@@ -5,6 +5,7 @@
 ![https://theaniketraj.github.io/vitals](https://github.com/theaniketraj/vitals/blob/main/docs/icon_small.png?raw=true)
 
 [![Deploy Documentation](https://github.com/theaniketraj/vitals/actions/workflows/deploy-docs.yml/badge.svg)](https://github.com/theaniketraj/vitals/actions/workflows/deploy-docs.yml)
+[![Open VSX Registry](https://img.shields.io/open-vsx/dt/theaniketraj/vitals?label=Open%20VSX)](https://open-vsx.org/extension/theaniketraj/vitals)
 [![Version](https://img.shields.io/visual-studio-marketplace/v/theaniketraj.vitals)](https://marketplace.visualstudio.com/items?itemName=theaniketraj.vitals)
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/theaniketraj.vitals)](https://marketplace.visualstudio.com/items?itemName=theaniketraj.vitals)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/theaniketraj/vitals/blob/main/LICENSE)
