@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are currently being supported with security updates.
+We use this section to tell people about which versions of our project are currently being supported with security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -12,8 +12,6 @@ Use this section to tell people about which versions of your project are current
 ## Reporting a Vulnerability
 
 We take security seriously. If you discover a security vulnerability within Vitals, please do **not** create a public GitHub issue.
-
-Instead, please report it via email to `security@example.com` (Replace with actual email or private contact method).
 
 ### Process
 
