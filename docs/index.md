@@ -30,6 +30,9 @@ hero:
     - theme: alt
       text: View on Marketplace
       link: https://marketplace.visualstudio.com/items?itemName=theaniketraj.vitals
+    - theme: alt
+      text: View on Open VSX
+      link: https://open-vsx.org/extension/theaniketraj/vitals
 
 features:
   - title: Real-Time Metrics
