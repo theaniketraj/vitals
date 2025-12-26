@@ -42,7 +42,6 @@
         "title": "Sign In with GitHub",
         "category": "Vitals"
       },
-
       {
         "command": "vitals.signOut",
         "title": "Sign Out from GitHub",
@@ -97,6 +96,29 @@
           "minimum": 1,
           "maximum": 60,
           "description": "Interval in minutes to save usage statistics (default: 5 minutes)."
+        },
+        "vitals.customQueries": {
+          "type": "array",
+          "default": [],
+          "description": "List of custom PromQL queries to monitor.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Display name for the query"
+              },
+              "query": {
+                "type": "string",
+                "description": "PromQL query"
+              }
+            }
+          }
+        },
+        "vitals.alertmanagerUrl": {
+          "type": "string",
+          "description": "URL of the Alertmanager server.",
+          "default": "http://localhost:9093"
         }
       }
     }
