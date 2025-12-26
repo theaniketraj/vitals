@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { getWebviewContent } from "./utils/webviewUtils";
-import { PrometheusApi } from "./api";
+import { PrometheusApi, AlertmanagerApi } from "./api";
 import { getUsageStats } from "./telemetry/usageStats";
 
 export class VitalsViewProvider implements vscode.WebviewViewProvider {
@@ -199,6 +199,7 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
           break;
         }
 
+
         case "fetchCustomMetrics": {
           getUsageStats(this._context).trackFeature("custom_metrics");
           try {
@@ -237,6 +238,53 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
             });
           } catch (error: any) {
             console.error(`Failed to fetch custom metrics: ${error.message}`);
+          }
+          break;
+        }
+
+        case "fetchAlertmanagerData": {
+          try {
+            const config = vscode.workspace.getConfiguration("vitals");
+            const alertmanagerUrl = config.get<string>("alertmanagerUrl") || "http://localhost:9093";
+            const api = new AlertmanagerApi(alertmanagerUrl);
+
+            const [alerts, silences] = await Promise.all([
+              api.getAlerts(),
+              api.getSilences()
+            ]);
+
+            webviewView.webview.postMessage({
+              command: "updateAlertmanagerData",
+              data: { alerts, silences }
+            });
+          } catch (error: any) {
+            console.error(`Failed to fetch Alertmanager data: ${error.message}`);
+            webviewView.webview.postMessage({
+              command: "alertmanagerError",
+              message: error.message
+            });
+          }
+          break;
+        }
+
+        case "createSilence": {
+          try {
+            const config = vscode.workspace.getConfiguration("vitals");
+            const alertmanagerUrl = config.get<string>("alertmanagerUrl") || "http://localhost:9093";
+            const api = new AlertmanagerApi(alertmanagerUrl);
+
+            const result = await api.createSilence(message.data);
+
+            webviewView.webview.postMessage({
+              command: "silenceCreated",
+              data: result
+            });
+          } catch (error: any) {
+            console.error(`Failed to create silence: ${error.message}`);
+            webviewView.webview.postMessage({
+              command: "silenceError",
+              message: error.message
+            });
           }
           break;
         }

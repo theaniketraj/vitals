@@ -520,3 +520,141 @@ body {
   font-family: var(--vscode-font-family) !important;
   font-size: 11px !important;
 }
+
+/* Alertmanager Panel */
+.alertmanager-panel {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  height: 100%;
+}
+
+.alert-item, .silence-item {
+  background: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-widget-border);
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.alert-item.firing {
+  border-left: 4px solid var(--vscode-editorError-foreground);
+}
+
+.alert-item.suppressed {
+  border-left: 4px solid var(--vscode-disabledForeground);
+  opacity: 0.7;
+}
+
+.alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.alert-name {
+  font-weight: 600;
+  color: var(--vscode-editor-foreground);
+}
+
+.alert-severity.critical {
+  color: var(--vscode-editorError-foreground);
+  background: rgba(255, 0, 0, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  text-transform: uppercase;
+}
+
+.alert-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.label-tag {
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  font-size: 0.75em;
+  padding: 2px 6px;
+  border-radius: 12px;
+}
+
+.silence-btn {
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  border: none;
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.silence-btn:hover {
+    background: var(--vscode-button-secondaryHoverBackground);
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--vscode-editorWidget-background);
+  color: var(--vscode-editor-foreground);
+  padding: 24px;
+  border-radius: 6px;
+  width: 400px;
+  border: 1px solid var(--vscode-widget-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.form-group input, .form-group textarea {
+    width: 100%;
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border);
+    padding: 8px;
+    border-radius: 3px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.primary-btn {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.primary-btn:hover {
+    background: var(--vscode-button-hoverBackground);
+}

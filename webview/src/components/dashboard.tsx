@@ -2,8 +2,10 @@ import * as React from "react";
 import MetricChart from "./MetricChart";
 import LogViewer from "./LogViewer";
 import AlertPanel from "./AlertPanel";
+import AlertmanagerPanel from "./AlertmanagerPanel";
 import { useVitalsData } from "../hooks/useVitalsData";
 import { useAlerts } from "../hooks/useAlerts";
+import { useAlertmanager } from "../hooks/useAlertmanager";
 
 interface DashboardProps {
   vscode: any;
@@ -18,9 +20,18 @@ const Dashboard: React.FC<DashboardProps> = ({ vscode }) => {
     error: alertsError,
   } = useAlerts(vscode);
 
+  const {
+    alerts: amAlerts,
+    silences: amSilences,
+    loading: amLoading,
+    error: amError,
+    createSilence
+  } = useAlertmanager(vscode);
+
   const [prometheusUrl, setPrometheusUrl] = React.useState<string>('');
   const [isDemoMode, setIsDemoMode] = React.useState<boolean>(false);
   const [customMetrics, setCustomMetrics] = React.useState<any[]>([]);
+  const [showAlertManager, setShowAlertManager] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     // Request Prometheus URL from extension
@@ -154,13 +165,39 @@ const Dashboard: React.FC<DashboardProps> = ({ vscode }) => {
 
         {/* Alerts Area */}
         <div className="card area-alerts">
-          <div className="card-header">Active Alerts</div>
-          <div className="card-body">
-            <AlertPanel
-              alerts={alerts}
-              loading={alertsLoading}
-              error={alertsError}
-            />
+          <div className="card-header">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Active Alerts</span>
+              <button
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--vscode-textLink-foreground)',
+                  cursor: 'pointer',
+                  fontSize: '11px'
+                }}
+                onClick={() => setShowAlertManager(!showAlertManager)}
+              >
+                {showAlertManager ? 'Show Simple View' : 'Manage Alerts'}
+              </button>
+            </div>
+          </div>
+          <div className="card-body" style={{ padding: showAlertManager ? 16 : 16 }}>
+            {showAlertManager ? (
+              <AlertmanagerPanel
+                alerts={amAlerts}
+                silences={amSilences}
+                loading={amLoading}
+                error={amError}
+                onCreateSilence={createSilence}
+              />
+            ) : (
+              <AlertPanel
+                alerts={alerts}
+                loading={alertsLoading}
+                error={alertsError}
+              />
+            )}
           </div>
         </div>
       </div>
