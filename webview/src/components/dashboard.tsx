@@ -17,25 +17,40 @@ const Dashboard: React.FC<DashboardProps> = ({ vscode }) => {
     loading: alertsLoading,
     error: alertsError,
   } = useAlerts(vscode);
-  
+
   const [prometheusUrl, setPrometheusUrl] = React.useState<string>('');
   const [isDemoMode, setIsDemoMode] = React.useState<boolean>(false);
+  const [customMetrics, setCustomMetrics] = React.useState<any[]>([]);
 
   React.useEffect(() => {
     // Request Prometheus URL from extension
     vscode.postMessage({ command: 'getPrometheusUrl' });
-    
+
+    // Initial fetch for custom metrics
+    vscode.postMessage({ command: 'fetchCustomMetrics' });
+
     // Listen for response
     const messageHandler = (event: MessageEvent) => {
       const message = event.data;
       if (message.command === 'prometheusUrl') {
         setPrometheusUrl(message.url);
         setIsDemoMode(message.isDemoMode);
+      } else if (message.command === 'updateCustomMetrics') {
+        setCustomMetrics(message.data);
       }
     };
-    
+
     window.addEventListener('message', messageHandler);
-    return () => window.removeEventListener('message', messageHandler);
+
+    // Refresh custom metrics periodically
+    const intervalId = setInterval(() => {
+      vscode.postMessage({ command: 'fetchCustomMetrics' });
+    }, 5000); // Sync with default refresh interval
+
+    return () => {
+      window.removeEventListener('message', messageHandler);
+      clearInterval(intervalId);
+    };
   }, [vscode]);
 
   const handleConfigurePrometheus = () => {
@@ -70,8 +85,8 @@ const Dashboard: React.FC<DashboardProps> = ({ vscode }) => {
             <div className="demo-mode-badge" title="Using demo Prometheus with sample metrics">
               <span className="demo-icon">🎯</span>
               <span className="demo-text">Demo Mode</span>
-              <button 
-                className="connect-btn" 
+              <button
+                className="connect-btn"
                 onClick={handleConfigurePrometheus}
                 title="Connect to your own Prometheus instance"
               >
@@ -79,8 +94,8 @@ const Dashboard: React.FC<DashboardProps> = ({ vscode }) => {
               </button>
             </div>
           )}
-          <div 
-            className={`live-badge ${connectionStatus === 'error' ? 'error' : ''}`} 
+          <div
+            className={`live-badge ${connectionStatus === 'error' ? 'error' : ''}`}
             title={connectionStatus === 'error' ? connectionError || 'Connection failed' : 'Connected to Prometheus'}
           >
             <span className="live-dot"></span>
@@ -118,6 +133,16 @@ const Dashboard: React.FC<DashboardProps> = ({ vscode }) => {
             <MetricChart metrics={metrics} loading={loading} error={error} />
           </div>
         </div>
+
+        {/* Custom Metrics Area */}
+        {customMetrics.length > 0 && customMetrics.map((cm, idx) => (
+          <div className="card area-chart" key={idx} style={{ gridColumn: '1 / -1' }}>
+            <div className="card-header">{cm.name}</div>
+            <div className="card-body">
+              <MetricChart metrics={cm.data} loading={loading} error={cm.error} />
+            </div>
+          </div>
+        ))}
 
         {/* Logs Area */}
         <div className="card area-logs">

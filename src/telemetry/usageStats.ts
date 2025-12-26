@@ -8,22 +8,22 @@ export interface UsageStatistics {
   sessionId: string;
   sessionStartTime: string;
   sessionDuration?: number;
-  
+
   // Extension usage
   commandsExecuted: string[];
   dashboardOpens: number;
   dashboardViewDuration: number;
-  
+
   // Feature usage
   metricsViewed: number;
   logsViewed: number;
   alertsViewed: number;
-  
+
   // System info (anonymous)
   platform: string;
   vscodeVersion: string;
   extensionVersion: string;
-  
+
   // Errors encountered
   errors: {
     type: string;
@@ -44,7 +44,7 @@ export class UsageStatsCollector {
     this.context = context;
     this.sessionId = this.generateSessionId();
     this.sessionStartTime = new Date();
-    
+
     this.stats = {
       sessionId: this.sessionId,
       sessionStartTime: this.sessionStartTime.toISOString(),
@@ -62,7 +62,7 @@ export class UsageStatsCollector {
 
     // Auto-save stats every 5 minutes
     this.startAutoSave();
-    
+
     // Save on extension deactivation
     context.subscriptions.push({
       dispose: () => this.dispose()
@@ -84,7 +84,7 @@ export class UsageStatsCollector {
     // Get save interval from config
     const config = vscode.workspace.getConfiguration('vitals');
     const intervalMinutes = config.get<number>('telemetrySaveInterval') || 5;
-    
+
     // Save stats periodically
     this.saveInterval = setInterval(() => {
       this.saveStats();
@@ -104,7 +104,7 @@ export class UsageStatsCollector {
    */
   trackCommand(commandName: string) {
     this.stats.commandsExecuted.push(commandName);
-    
+
     // Track specific command types
     if (commandName === 'vitals.openDashboard') {
       this.stats.dashboardOpens++;
@@ -126,7 +126,7 @@ export class UsageStatsCollector {
   /**
    * Track feature usage
    */
-  trackFeature(feature: 'metrics' | 'logs' | 'alerts') {
+  trackFeature(feature: 'metrics' | 'logs' | 'alerts' | 'custom_metrics') {
     switch (feature) {
       case 'metrics':
         this.stats.metricsViewed++;
@@ -136,6 +136,9 @@ export class UsageStatsCollector {
         break;
       case 'alerts':
         this.stats.alertsViewed++;
+        break;
+      case 'custom_metrics':
+        // We might want to track this specifically in the future
         break;
     }
   }
@@ -180,7 +183,7 @@ export class UsageStatsCollector {
       }
 
       const currentStats = this.getStats();
-      
+
       // Send usage statistics as telemetry event
       await vitalsApi.logEvent(
         String(user.id),
@@ -203,11 +206,11 @@ export class UsageStatsCollector {
    */
   private anonymizeCommands(commands: string[]): Record<string, number> {
     const commandCounts: Record<string, number> = {};
-    
+
     for (const cmd of commands) {
       commandCounts[cmd] = (commandCounts[cmd] || 0) + 1;
     }
-    
+
     return commandCounts;
   }
 
@@ -285,10 +288,10 @@ export class UsageStatsCollector {
     if (this.saveInterval) {
       clearInterval(this.saveInterval);
     }
-    
+
     // Save final stats
     await this.saveStats();
-    
+
     // Generate daily summary
     await this.generateDailySummary();
   }

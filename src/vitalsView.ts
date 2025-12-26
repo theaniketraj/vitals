@@ -10,7 +10,7 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
   constructor(
     private readonly _extensionUri: vscode.Uri,
     private readonly _context: vscode.ExtensionContext
-  ) {}
+  ) { }
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -140,24 +140,24 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
 
             // Helper to extract scalar value safely
             const getScalarValue = (result: any, decimals = 2, multiplier = 1): string => {
-                try {
-                    // result.data.result should be an array. If we used sum(), it usually has 1 element if data exists.
-                    const valStr = result?.data?.result?.[0]?.value?.[1];
-                    if (!valStr) return "0";
-                    
-                    const val = Number.parseFloat(valStr);
-                    if (Number.isNaN(val) || !Number.isFinite(val)) return "0";
-                    
-                    return (val * multiplier).toFixed(decimals);
-                } catch {
-                    return "0";
-                }
+              try {
+                // result.data.result should be an array. If we used sum(), it usually has 1 element if data exists.
+                const valStr = result?.data?.result?.[0]?.value?.[1];
+                if (!valStr) return "0";
+
+                const val = Number.parseFloat(valStr);
+                if (Number.isNaN(val) || !Number.isFinite(val)) return "0";
+
+                return (val * multiplier).toFixed(decimals);
+              } catch {
+                return "0";
+              }
             };
 
             // Send success status
             webviewView.webview.postMessage({
-                command: "updateStatus",
-                status: "connected"
+              command: "updateStatus",
+              status: "connected"
             });
 
             webviewView.webview.postMessage({
@@ -170,12 +170,12 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
             });
           } catch (error: any) {
             console.log(`Failed to fetch KPIs: ${error.message}`);
-            
+
             // Send error status
             webviewView.webview.postMessage({
-                command: "updateStatus",
-                status: "error",
-                error: error.message
+              command: "updateStatus",
+              status: "error",
+              error: error.message
             });
           }
           break;
@@ -198,10 +198,52 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
           });
           break;
         }
+
+        case "fetchCustomMetrics": {
+          getUsageStats(this._context).trackFeature("custom_metrics");
+          try {
+            const config = vscode.workspace.getConfiguration("vitals");
+            const prometheusUrl =
+              config.get<string>("prometheusUrl") || "https://prometheus.demo.do.prometheus.io:9090";
+            const api = new PrometheusApi(prometheusUrl);
+            const customQueries = config.get<any[]>("customQueries") || [];
+
+            const end = Math.floor(Date.now() / 1000);
+            const start = end - 30 * 60; // 30 minutes
+            const step = 15;
+
+            const results = await Promise.all(
+              customQueries.map(async (cq) => {
+                try {
+                  const result = await api.queryRange(cq.query, start, end, step);
+                  return {
+                    name: cq.name,
+                    data: result,
+                    error: null
+                  };
+                } catch (e: any) {
+                  return {
+                    name: cq.name,
+                    data: null,
+                    error: e.message
+                  };
+                }
+              })
+            );
+
+            webviewView.webview.postMessage({
+              command: "updateCustomMetrics",
+              data: results
+            });
+          } catch (error: any) {
+            console.error(`Failed to fetch custom metrics: ${error.message}`);
+          }
+          break;
+        }
       }
     });
   }
-  
+
   public show() {
     if (this._view) {
       this._view.show?.(true);
