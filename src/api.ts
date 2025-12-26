@@ -4,6 +4,7 @@ export * from "./api/PrometheusApi";
 export * from "./api/IDataSource";
 export * from "./api/DataSourceManager";
 export * from "./api/AlertmanagerApi";
+export * from "./api/LokiApi";
 
 export enum MessageTypes {
   TRIGGER_ALERT = "TRIGGER_ALERT",

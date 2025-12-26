@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { getWebviewContent } from "./utils/webviewUtils";
-import { PrometheusApi, AlertmanagerApi } from "./api";
+import { PrometheusApi, AlertmanagerApi, LokiApi } from "./api";
 import { getUsageStats } from "./telemetry/usageStats";
 
 export class VitalsViewProvider implements vscode.WebviewViewProvider {
@@ -184,18 +184,56 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
           // Track logs feature usage
           getUsageStats(this._context).trackFeature("logs");
 
-          // Mock log data for now as Prometheus doesn't have a standard logs endpoint
-          // In a real scenario, this would connect to Loki or another log source
-          const mockLogs = [
-            `[INFO] Application started at ${new Date().toISOString()}`,
-            `[INFO] Connected to database`,
-            `[WARN] High memory usage detected`,
-            `[INFO] Request processed in 45ms`,
-          ];
-          webviewView.webview.postMessage({
-            command: "updateLogs",
-            data: mockLogs,
-          });
+          try {
+            const config = vscode.workspace.getConfiguration("vitals");
+            const lokiUrl = config.get<string>("lokiUrl") || "http://localhost:3100";
+            const logQuery = config.get<string>("logQuery") || '{job="varlogs"}';
+
+            const api = new LokiApi(lokiUrl);
+
+            // Fetch last 15 minutes of logs
+            const end = Date.now() / 1000;
+            const start = end - 15 * 60;
+
+            const logs = await api.queryRange(logQuery, start, end, 1000);
+
+            // Format for frontend
+            const formattedLogs = logs.map((log: any) => {
+              // Formatting timestamp slightly nicer or just passing it raw
+              // Loki returns ns string, let's keep it simple for display
+              // If timestamp is strictly numeric string, we can format it
+              const ts = parseInt(log.timestamp.substr(0, 13)); // ms approximation
+              const timeStr = !isNaN(ts) ? new Date(ts).toISOString() : log.timestamp;
+
+              // Construct a readable line
+              // Check if line is JSON
+              let content = log.line;
+              let level = "INFO"; // Default
+
+              // Naive level detection
+              if (content.match(/error|fail|exception/i)) level = "ERROR";
+              else if (content.match(/warn/i)) level = "WARN";
+
+              return `[${level}] ${timeStr} ${content}`;
+            });
+
+            if (formattedLogs.length === 0) {
+              formattedLogs.push(`[INFO] No logs found for query: ${logQuery}`);
+            }
+
+            webviewView.webview.postMessage({
+              command: "updateLogs",
+              data: formattedLogs,
+            });
+
+          } catch (error: any) {
+            console.error(`Failed to fetch logs: ${error.message}`);
+            webviewView.webview.postMessage({
+              command: "updateLogs",
+              // Send error as a log line for now, or handle separately
+              data: [`[ERROR] Failed to fetch logs from Loki: ${error.message}`]
+            });
+          }
           break;
         }
 

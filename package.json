@@ -72,7 +72,8 @@
         {
           "type": "webview",
           "id": "vitals.dashboardView",
-          "name": "Dashboard"
+          "name": "Dashboard",
+          "icon": "icon.png"
         }
       ]
     },
@@ -119,6 +120,16 @@
           "type": "string",
           "description": "URL of the Alertmanager server.",
           "default": "http://localhost:9093"
+        },
+        "vitals.lokiUrl": {
+          "type": "string",
+          "description": "URL of the Loki server.",
+          "default": "http://localhost:3100"
+        },
+        "vitals.logQuery": {
+          "type": "string",
+          "description": "Default LogQL query to fetch logs.",
+          "default": "{job=\"varlogs\"}"
         }
       }
     }
