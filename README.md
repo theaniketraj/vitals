@@ -11,6 +11,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/theaniketraj/vitals/blob/main/LICENSE)
 
 > **Real-time Observability for VS Code** - Monitor application metrics, logs, and alerts without leaving your editor.
+
 </div>
 
 **Vitals** brings enterprise-grade observability directly into Visual Studio Code. Integrated seamlessly with Prometheus, it transforms your development environment into a powerful monitoring hub, enabling you to catch issues early and optimize performance in real-time.
@@ -20,6 +21,8 @@
 ---
 
 ## Key Features
+
+> **New in v0.3.0**: Check out our [Premium Features](./docs/premium_features.md) guide for Custom Metrics and Alertmanager integration!
 
 ### Real-Time Metrics
 
@@ -140,13 +143,13 @@ Open VS Code Settings (`Ctrl+,` or `Cmd+,`) and search for "vitals":
 
 All settings are available in VS Code Settings (`Ctrl+,`):
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `vitals.prometheusUrl` | `http://localhost:9090` | Prometheus server endpoint |
-| `vitals.refreshInterval` | `5000` | Metrics refresh interval (ms) |
-| `vitals.enableNotifications` | `true` | Show VS Code notifications for alerts |
-| `vitals.maxLogLines` | `1000` | Maximum log lines to display |
-| `vitals.theme` | `auto` | Color theme: `auto`, `light`, `dark` |
+| Setting                      | Default                 | Description                           |
+| ---------------------------- | ----------------------- | ------------------------------------- |
+| `vitals.prometheusUrl`       | `http://localhost:9090` | Prometheus server endpoint            |
+| `vitals.refreshInterval`     | `5000`                  | Metrics refresh interval (ms)         |
+| `vitals.enableNotifications` | `true`                  | Show VS Code notifications for alerts |
+| `vitals.maxLogLines`         | `1000`                  | Maximum log lines to display          |
+| `vitals.theme`               | `auto`                  | Color theme: `auto`, `light`, `dark`  |
 
 ### Example Configuration
 
@@ -342,19 +345,19 @@ Please read [CONTRIBUTING](./docs/contributing.md) for:
 
 ## Roadmap
 
-### Current (v0.2.1)
+### Current (v0.3.0)
 
 - ✅ Real-time metrics visualization
 - ✅ Live log streaming
-- ✅ Alert management
+- ✅ Alert management (Prometheus)
+- ✅ **Custom Metric Queries**
+- ✅ **Alertmanager Integration (Silence/Manage)**
 - ✅ Prometheus integration
 
-### Upcoming (v0.3.0)
+### Upcoming (v0.4.0)
 
-- 🔄 Custom metric queries
-- 🔄 Alertmanager integration
 - 🔄 Historical data analysis
-- 🔄 Multi-datasource support
+- 🔄 Multi-datasource support (Loki, etc.)
 
 See [VISION](./docs/vision.md) for the full roadmap.
 
@@ -433,4 +436,4 @@ If you find Vitals helpful, please consider:
 
 **Built with ❤️ by [Aniket Raj](https://theaniketraj.netlify.app)**
 
-## *Vitals - Real-time Observability for Modern Developers*
+## _Vitals - Real-time Observability for Modern Developers_

@@ -41,8 +41,8 @@ features:
   - title: Live Log Stream
     details: Stream application logs in a terminal-like interface with syntax highlighting and filtering capabilities.
     icon: 🖥️
-  - title: Instant Alerts
-    details: Stay informed with a dedicated panel for firing and pending Prometheus alerts, right in your sidebar.
+  - title: Alerts & Management
+    details: View, manage, and silence Prometheus alerts directly from VS Code with a powerful new UI.
     icon: 🚨
   - title: Zero Configuration
     details: Works out-of-the-box with local Prometheus instances. Just install and start monitoring.

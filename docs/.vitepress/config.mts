@@ -150,6 +150,7 @@ export default withMermaid(
           text: "Guides",
           items: [
             { text: "Getting Started", link: "/getting_started" },
+            { text: "Premium Features", link: "/premium_features" },
             { text: "Troubleshooting", link: "/troubleshooting" },
           ],
         },
