@@ -208,7 +208,7 @@ vsce publish
 or
 
 ```bash
-vsce publish 0.2.1
+vsce publish 0.3.0
 ```
 
 For manual publishing, see [Publishing Extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension).

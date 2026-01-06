@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.0] - 06 Jan 2026
+
+- **Custom Metrics Support**:
+  - Define custom PromQL queries in settings (`vitals.customQueries`).
+  - Monitor and visualize your specific application metrics directly in the dashboard.
+- **Alertmanager Integration**:
+  - Connect to your Alertmanager instance (`vitals.alertmanagerUrl`).
+  - View active alerts and their severity.
+  - Manage silences: view active silences and create new ones to suppress alerts.
+
 ## [0.2.1] - 08 Dec 2025
 
 - **Authentication**:

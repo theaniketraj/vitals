@@ -84,7 +84,7 @@ Premium design that feels native to VS Code:
 
 ```bash
 # Download the latest .vsix from releases
-code --install-extension vitals-0.2.1.vsix
+code --install-extension vitals-0.3.0.vsix
 ```
 
 ### From Source

@@ -48,7 +48,7 @@ Vitals includes an opt-in usage statistics collection system that helps us under
 {
   platform: string,             // e.g., "win32-x64"
   vscodeVersion: string,        // e.g., "1.94.0"
-  extensionVersion: string      // e.g., "0.2.1"
+  extensionVersion: string      // e.g., "0.3.0"
 }
 ```
 
@@ -58,8 +58,8 @@ Vitals includes an opt-in usage statistics collection system that helps us under
 {
   errors: [
     { type: "prometheus_metrics_fetch_failed", count: 3 },
-    { type: "prometheus_alerts_fetch_failed", count: 1 }
-  ]
+    { type: "prometheus_alerts_fetch_failed", count: 1 },
+  ];
 }
 ```
 
@@ -70,7 +70,7 @@ Vitals includes an opt-in usage statistics collection system that helps us under
 ❌ **Metric Values**: No actual Prometheus data or query results  
 ❌ **Log Contents**: No log messages or sensitive data  
 ❌ **Personal Info**: Beyond GitHub username (from OAuth)  
-❌ **Keystroke Data**: No typing patterns or editor activity  
+❌ **Keystroke Data**: No typing patterns or editor activity
 
 ## Data Flow
 
@@ -100,7 +100,7 @@ Vitals includes an opt-in usage statistics collection system that helps us under
 
 ```json
 {
-  "vitals.enableTelemetry": false  // Disable telemetry
+  "vitals.enableTelemetry": false // Disable telemetry
 }
 ```
 
@@ -116,7 +116,7 @@ Vitals includes an opt-in usage statistics collection system that helps us under
 
 ```json
 {
-  "vitals.telemetrySaveInterval": 10  // Save every 10 minutes
+  "vitals.telemetrySaveInterval": 10 // Save every 10 minutes
 }
 ```
 
@@ -129,7 +129,7 @@ Logged when extension loads (only for authenticated users)
 ```typescript
 {
   timestamp: "2025-12-05T10:30:00Z",
-  extensionVersion: "0.2.1"
+  extensionVersion: "0.3.0"
 }
 ```
 
@@ -139,7 +139,7 @@ Logged when user opens Vitals dashboard
 
 ```typescript
 {
-  timestamp: "2025-12-05T10:31:00Z"
+  timestamp: "2025-12-05T10:31:00Z";
 }
 ```
 
@@ -196,8 +196,8 @@ commandsExecuted: [
   "vitals.openDashboard",
   "vitals.showStatus",
   "vitals.openDashboard",
-  "vitals.openDashboard"
-]
+  "vitals.openDashboard",
+];
 ```
 
 **After Anonymization:**
@@ -313,7 +313,7 @@ Located in: `src/telemetry/usageStats.ts`
 
 ```typescript
 const usageStats = getUsageStats(context);
-usageStats.trackCommand('vitals.openDashboard');
+usageStats.trackCommand("vitals.openDashboard");
 ```
 
 ### Integration Points
@@ -328,20 +328,20 @@ const usageStats = getUsageStats(context);
 **Command Tracking:**
 
 ```typescript
-usageStats.trackCommand('vitals.openDashboard');
+usageStats.trackCommand("vitals.openDashboard");
 ```
 
 **Feature Tracking:**
 
 ```typescript
 // src/vitalsView.ts
-getUsageStats(context).trackFeature('metrics');
+getUsageStats(context).trackFeature("metrics");
 ```
 
 **Error Tracking:**
 
 ```typescript
-getUsageStats(context).trackError('prometheus_metrics_fetch_failed');
+getUsageStats(context).trackError("prometheus_metrics_fetch_failed");
 ```
 
 ## Testing
