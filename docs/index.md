@@ -7,13 +7,19 @@ description: Monitor application metrics, logs, and alerts directly in Visual St
 head:
   - - meta
     - name: keywords
-      content: VS Code extension, Prometheus monitoring, real-time metrics, developer observability, application monitoring, logs viewer, alerts dashboard
+      content: VS Code extension, Prometheus monitoring, real-time metrics, developer observability, application monitoring, logs viewer, alerts dashboard, Loki logs, Alertmanager, DevOps tools, container monitoring, Kubernetes monitoring
   - - meta
     - property: og:title
       content: Vitals - Real-time Observability for VS Code
   - - meta
     - property: og:description
       content: Monitor application metrics, logs, and alerts directly in Visual Studio Code. Integrated with Prometheus for seamless developer experience.
+  - - meta
+    - property: og:type
+      content: website
+  - - meta
+    - name: twitter:site
+      content: '@theaniketraj'
 
 hero:
   name: "Vitals"
