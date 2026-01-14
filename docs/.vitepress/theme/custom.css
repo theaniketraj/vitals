@@ -82,43 +82,36 @@
 /* Hero logo glow effect with smooth transitions */
 .VPHero .image-container,
 .VPHero .VPImage {
-  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  /* Removed transform transition to prevent conflict with mouse-move JS */
   will-change: transform;
 }
 
 .VPHero .image-container img,
 .VPHero .VPImage {
   transition: filter 0.6s ease;
-  filter: drop-shadow(0 0 35px rgba(59, 130, 246, 0.4)) 
-          drop-shadow(0 0 70px rgba(59, 130, 246, 0.2));
+  filter: drop-shadow(0 0 35px rgba(59, 130, 246, 0.4));
 }
 
 /* Light theme hover glow */
 .VPHero .image-container:hover img,
 .VPHero .image-container:hover .VPImage {
-  filter: drop-shadow(0 0 50px rgba(59, 130, 246, 0.6)) 
-          drop-shadow(0 0 100px rgba(59, 130, 246, 0.4))
-          drop-shadow(0 0 150px rgba(59, 130, 246, 0.2));
+  filter: drop-shadow(0 0 50px rgba(59, 130, 246, 0.6));
 }
 
-/* Dark theme glow - more intense and larger */
+/* Dark theme glow - Simplified to match size but increase intensity */
 .dark .VPHero .image-container img,
 .dark .VPHero .VPImage {
-  filter: drop-shadow(0 0 45px rgba(96, 165, 250, 0.5)) 
-          drop-shadow(0 0 90px rgba(59, 130, 246, 0.3))
-          drop-shadow(0 0 135px rgba(37, 99, 235, 0.15));
+  filter: drop-shadow(0 0 45px rgba(59, 130, 246, 0.5));
 }
 
 .dark .VPHero .image-container:hover img,
 .dark .VPHero .image-container:hover .VPImage {
-  filter: drop-shadow(0 0 60px rgba(96, 165, 250, 0.7)) 
-          drop-shadow(0 0 120px rgba(59, 130, 246, 0.5))
-          drop-shadow(0 0 180px rgba(37, 99, 235, 0.3))
-          drop-shadow(0 0 240px rgba(29, 78, 216, 0.15));
+  filter: drop-shadow(0 0 60px rgba(59, 130, 246, 0.7));
 }
 
 /* Improve readability on mobile devices */
 @media (max-width: 768px) {
+
   /* Adjust base font size for better readability */
   :root {
     --vp-font-size-base: 16px;
@@ -230,7 +223,7 @@
   }
 
   /* Improve inline code readability */
-  .vp-doc :not(pre) > code {
+  .vp-doc :not(pre)>code {
     padding: 0.25rem 0.4rem;
     font-size: 0.9em;
     word-break: break-word;
@@ -354,6 +347,7 @@
 }
 
 @media (min-width: 960px) {
+
   /* Desktop: Switch to Row/Wrap layout */
   .Layout {
     flex-direction: row !important;
@@ -374,29 +368,32 @@
     transform: none !important;
     z-index: 1;
   }
-  
+
   /* Content: Side-by-side with Sidebar */
   .VPContent {
     flex-grow: 1;
     width: calc(100% - var(--vp-sidebar-width)) !important;
-    padding-left: 0 !important; /* Remove padding, using flex layout instead */
+    padding-left: 0 !important;
+    /* Remove padding, using flex layout instead */
     margin-top: var(--vp-nav-height) !important;
-    padding-top: 0 !important; /* Reset padding-top as we use margin */
+    padding-top: 0 !important;
+    /* Reset padding-top as we use margin */
     padding-bottom: 0 !important;
   }
 }
 
 @media (min-width: 1280px) {
+
   /* Make "On this page" (Outline) scroll with content */
   .VPDocAside {
     position: static !important;
     display: block !important;
   }
-  
+
   .VPDocAsideOutline {
     position: static !important;
   }
-  
+
   /* Ensure the container allows flow */
   .VPDoc {
     overflow: visible !important;
@@ -413,4 +410,3 @@
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
-

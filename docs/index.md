@@ -1,30 +1,30 @@
 ---
 layout: home
-title: Vitals - Real-time Observability for VS Code
+title: Vitals - Beautiful Observability for VS Code
 titleTemplate: false
-description: Monitor application metrics, logs, and alerts directly in Visual Studio Code. Integrated with Prometheus for seamless developer experience.
+description: Stop context switching. Monitor Prometheus metrics, Loki logs, and Alertmanager alerts directly in VS Code.
 
 head:
   - - meta
     - name: keywords
-      content: VS Code extension, Prometheus monitoring, real-time metrics, developer observability, application monitoring, logs viewer, alerts dashboard, Loki logs, Alertmanager, DevOps tools, container monitoring, Kubernetes monitoring
+      content: VS Code extension, Prometheus monitoring, real-time metrics, developer observability, application monitoring, logs viewer, alerts dashboard, Loki logs, Alertmanager, DevOps tools, container monitoring, Kubernetes monitoring, glassmorphism, developer experience
   - - meta
     - property: og:title
-      content: Vitals - Real-time Observability for VS Code
+      content: Vitals - Beautiful Observability for VS Code
   - - meta
     - property: og:description
-      content: Monitor application metrics, logs, and alerts directly in Visual Studio Code. Integrated with Prometheus for seamless developer experience.
+      content: Stop context switching. Monitor Prometheus metrics, Loki logs, and Alertmanager alerts directly in VS Code.
   - - meta
     - property: og:type
       content: website
   - - meta
     - name: twitter:site
-      content: '@theaniketraj'
+      content: "@theaniketraj"
 
 hero:
   name: "Vitals"
-  text: "Real-time Observability for VS Code"
-  tagline: Monitor metrics, logs, and alerts without leaving your editor.
+  text: "Observability for VS Code that looks as good as it works."
+  tagline: Stop context switching. Bring Prometheus, Loki, and Alertmanager directly into your editor.
   image:
     light: /icon-light.png
     dark: /icon-dark.png
@@ -41,16 +41,22 @@ hero:
       link: https://open-vsx.org/extension/theaniketraj/vitals
 
 features:
-  - title: Real-Time Metrics
-    details: Visualize CPU, Memory, and Request Latency with beautiful, auto-updating charts powered by Prometheus.
-    icon: 📊
-  - title: Live Log Stream
-    details: Stream application logs in a terminal-like interface with syntax highlighting and filtering capabilities.
-    icon: 🖥️
-  - title: Alerts & Management
-    details: View, manage, and silence Prometheus alerts directly from VS Code with a powerful new UI.
-    icon: 🚨
-  - title: Zero Configuration
-    details: Works out-of-the-box with local Prometheus instances. Just install and start monitoring.
+  - title: Premium Glassmorphic UI
+    details: A completely redesigned dashboard with smooth particle animations, gradients, and a modern aesthetic that fits perfectly into your workflow.
+    icon: ✨
+  - title: Custom Metrics
+    details: Define your own PromQL queries to track exactly what matters. CPU, Memory, Request Rates—visualize it all in real-time.
+    icon: 📈
+  - title: Alert Management
+    details: View active alerts from Alertmanager and create silences instantly without leaving your code editor.
+    icon: 🔔
+  - title: Live Log Streaming
+    details: Stream logs from Grafana Loki with automatic syntax highlighting. Filter by job, level, or search terms.
+    icon: 📜
+  - title: Zero-Config Demo
+    details: Comes with a built-in demo mode. See the particle reveal and graphs in action instantly, no server required.
     icon: ⚡
+  - title: Privacy First
+    details: 100% Open Source. Vitals connects directly to your infrastructure. Your data never leaves your machine.
+    icon: 🔒
 ---
