@@ -1,3 +1,21 @@
+/**
+ * AWS CloudWatch Provider
+ * 
+ * This file is disabled by default because it requires AWS SDK dependencies.
+ * 
+ * To enable AWS support:
+ * 1. Install dependencies:
+ *    npm install @aws-sdk/client-cloudwatch @aws-sdk/client-xray
+ * 
+ * 2. Rename this file from AWSProvider.ts.disabled to AWSProvider.ts
+ * 
+ * 3. Uncomment the export in src/api/multicloud/index.ts:
+ *    export { AWSProvider } from './providers/AWSProvider';
+ * 
+ * 4. Rebuild the extension:
+ *    npm run build
+ */
+
 import { CloudWatch, XRay } from '@aws-sdk/client-cloudwatch';
 import {
   ICloudProvider,
@@ -58,7 +76,7 @@ export class AWSProvider implements ICloudProvider {
       // Parse CloudWatch Insights query
       const params = this.parseCloudWatchQuery(query);
       
-      const response = await this.cloudwatch.getMetricStatistics(params as any);
+      const response = await this.cloudwatch.getMetricStatistics(params);
 
       const dataPoints = this.normalizeCloudWatchResponse(response, query);
 
@@ -90,7 +108,7 @@ export class AWSProvider implements ICloudProvider {
       params.EndTime = new Date(end);
       params.Period = step;
 
-      const response = await this.cloudwatch.getMetricStatistics(params as any);
+      const response = await this.cloudwatch.getMetricStatistics(params);
       const dataPoints = this.normalizeCloudWatchResponse(response, query);
 
       return {
@@ -217,7 +235,8 @@ export class AWSProvider implements ICloudProvider {
   private parseCloudWatchQuery(query: string): any {
     // Simple parser for CloudWatch metrics
     // Format: Namespace:MetricName{Dimension1=Value1,Dimension2=Value2}
-    const match = query.match(/^([\w/]+):([\w]+)(?:\{([^}]+)\})?$/);
+    const regex = /^([\w/]+):([\w]+)(?:\{([^}]+)\})?$/;
+    const match = regex.exec(query);
     
     if (!match) {
       throw new Error('Invalid CloudWatch query format');

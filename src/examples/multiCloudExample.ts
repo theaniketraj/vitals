@@ -12,14 +12,16 @@ import {
   CloudCredentialManager,
   DatadogProvider,
   NewRelicProvider,
-  AWSProvider,
   AzureProvider,
   UnifiedQueryTranslator,
   DataNormalizer,
   CostOptimizer,
   UnifiedQuery,
   AggregationType,
-} from './api/multicloud';
+} from '../api/multicloud';
+// Note: AWSProvider requires @aws-sdk/client-cloudwatch to be installed
+// Uncomment the line below after running: npm install @aws-sdk/client-cloudwatch @aws-sdk/client-xray
+// import { AWSProvider } from '../api/multicloud';
 
 /**
  * Initialize the multi-cloud system
@@ -34,12 +36,12 @@ export async function initializeMultiCloud(context: vscode.ExtensionContext) {
   // Register providers
   const datadog = new DatadogProvider();
   const newrelic = new NewRelicProvider();
-  const aws = new AWSProvider();
+  // const aws = new AWSProvider(); // Requires AWS SDK - install first
   const azure = new AzureProvider();
 
   providerManager.registerProvider(datadog);
   providerManager.registerProvider(newrelic);
-  providerManager.registerProvider(aws);
+  // providerManager.registerProvider(aws); // Uncomment after installing AWS SDK
   providerManager.registerProvider(azure);
 
   // Configure providers with stored credentials
