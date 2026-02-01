@@ -68,6 +68,36 @@
         "title": "View Cost Metrics",
         "category": "Vitals",
         "icon": "$(graph)"
+      },
+      {
+        "command": "vitals.configureTraceProvider",
+        "title": "Configure Trace Provider",
+        "category": "Vitals",
+        "icon": "$(symbol-event)"
+      },
+      {
+        "command": "vitals.searchTraces",
+        "title": "Search Traces",
+        "category": "Vitals",
+        "icon": "$(search)"
+      },
+      {
+        "command": "vitals.viewServiceMap",
+        "title": "View Service Dependency Map",
+        "category": "Vitals",
+        "icon": "$(graph-scatter)"
+      },
+      {
+        "command": "vitals.analyzePerformance",
+        "title": "Analyze Performance",
+        "category": "Vitals",
+        "icon": "$(pulse)"
+      },
+      {
+        "command": "vitals.detectRegressions",
+        "title": "Detect Performance Regressions",
+        "category": "Vitals",
+        "icon": "$(warning)"
       }
     ],
     "viewsContainers": {
@@ -127,6 +157,65 @@
               }
             }
           }
+        },
+        "vitals.alertmanagerUrl": {
+          "type": "string",
+          "description": "URL of the Alertmanager server.",
+          "default": "http://localhost:9093"
+        },
+        "vitals.lokiUrl": {
+          "type": "string",
+          "description": "URL of the Loki server.",
+          "default": "http://localhost:3100"
+        },
+        "vitals.logQuery": {
+          "type": "string",
+          "description": "Default LogQL query to fetch logs.",
+          "default": "{job=\"varlogs\"}"
+        },
+        "vitals.cloudProviders": {
+          "type": "array",
+          "default": [],
+          "description": "List of enabled cloud providers (managed internally)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vitals.enableCostTracking": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable cost tracking across cloud providers"
+        },
+        "vitals.costAlertThreshold": {
+          "type": "number",
+          "default": 1000,
+          "description": "Alert when monthly costs exceed this amount (USD)"
+        },
+        "vitals.traceProvider": {
+          "type": "string",
+          "enum": ["jaeger", "opentelemetry"],
+          "default": "jaeger",
+          "description": "Active distributed tracing provider"
+        },
+        "vitals.traceEndpoint": {
+          "type": "string",
+          "default": "http://localhost:16686",
+          "description": "Endpoint URL for the trace provider"
+        },
+        "vitals.enableCodeLensAnnotations": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show inline performance annotations in code editor"
+        },
+        "vitals.performanceThreshold": {
+          "type": "number",
+          "default": 5,
+          "description": "Minimum percentage of execution time for hot path highlighting"
+        },
+        "vitals.enableAutoTracing": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically analyze traces when opening a project"
         },
         "vitals.alertmanagerUrl": {
           "type": "string",

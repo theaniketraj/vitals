@@ -14,9 +14,11 @@
 
 </div>
 
-**Vitals** brings enterprise-grade observability directly into Visual Studio Code. Now with **multi-cloud support**, Vitals integrates seamlessly with Prometheus, Datadog, New Relic, AWS CloudWatch, Azure Monitor, and more - transforming your development environment into a unified monitoring hub.
+**Vitals** brings enterprise-grade observability directly into Visual Studio Code. Now with **multi-cloud support** and **distributed tracing**, Vitals integrates seamlessly with Prometheus, Jaeger, OpenTelemetry, Datadog, New Relic, AWS CloudWatch, Azure Monitor, and more - transforming your development environment into a unified monitoring hub.
 
-**🌟 New: Multi-Cloud Integration** - Query multiple observability platforms, correlate data, and optimize costs - all from VS Code! [Learn more →](./MULTICLOUD_INTEGRATION.md)
+**🌟 New Features**:
+- **Multi-Cloud Integration** - Query multiple observability platforms, correlate data, and optimize costs [Learn more →](./MULTICLOUD_INTEGRATION.md)
+- **Distributed Tracing** - Visual trace analysis, performance profiling, and in-editor code insights [Learn more →](./DISTRIBUTED_TRACING.md)
 
 <!-- ![Vitals Demo](https://raw.githubusercontent.com/theaniketraj/vitals/main/docs/images/demo.gif) -->
 
@@ -24,7 +26,23 @@
 
 ## Key Features
 
-> **🚀 New in v0.4.0**: [Multi-Cloud Integration](./MULTICLOUD_INTEGRATION.md) - Query Datadog, New Relic, AWS CloudWatch, Azure Monitor, and more from a single interface!
+> **🚀 New in v0.4.0**: 
+> - [Multi-Cloud Integration](./MULTICLOUD_INTEGRATION.md) - Query Datadog, New Relic, AWS CloudWatch, Azure Monitor, and more!
+> - [Distributed Tracing](./DISTRIBUTED_TRACING.md) - Jaeger & OpenTelemetry integration with flame graphs and performance profiling!
+
+### 🔍 Distributed Tracing & Performance Profiling
+
+Understand request flow and identify performance bottlenecks:
+
+- **Trace Providers**: Jaeger, OpenTelemetry, Zipkin-compatible backends
+- **Interactive Flame Graphs**: Visualize execution hierarchies with D3.js-powered charts
+- **Service Dependency Maps**: Auto-generated topology with real-time health status
+- **Database Query Analysis**: Detect slow queries and N+1 patterns automatically
+- **Code-Level Insights**: Inline performance annotations via CodeLens API
+- **Critical Path Analysis**: Find the slowest operation chain in traces
+- **Regression Detection**: Compare baseline vs current performance metrics
+
+👉 **[Tracing Guide](./DISTRIBUTED_TRACING.md)** | **[Examples](./src/examples/tracingExamples.ts)**
 
 ### 🌐 Multi-Cloud Observability
 
