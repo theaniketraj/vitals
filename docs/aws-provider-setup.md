@@ -113,6 +113,6 @@ AWS/EC2:CPUUtilization{InstanceId=i-1234567890abcdef0}
 
 ## Need Help?
 
-- [Full Documentation](MULTICLOUD_INTEGRATION.md)
+- [Full Documentation](multicloud-integration.md)
 - [Report Issues](https://github.com/theaniketraj/vitals/issues)
 - [Discussions](https://github.com/theaniketraj/vitals/discussions)

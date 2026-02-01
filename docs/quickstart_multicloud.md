@@ -255,7 +255,7 @@ for (const rec of report.recommendations) {
 
 ## Next Steps
 
-- Read the [Full Documentation](MULTICLOUD_INTEGRATION.md)
+- Read the [Full Documentation](multicloud-integration.md)
 - Check out [Examples](../src/examples/multiCloudExample.ts)
 - Add more providers
 - Set up cost alerts
@@ -265,4 +265,4 @@ for (const rec of report.recommendations) {
 
 - [Report Issues](https://github.com/theaniketraj/vitals/issues)
 - [Discussions](https://github.com/theaniketraj/vitals/discussions)
-- [Full Documentation](MULTICLOUD_INTEGRATION.md)
+- [Full Documentation](multicloud-integration.md)

@@ -242,11 +242,11 @@ To add support for a new cloud provider:
 3. Register the provider in `CloudProviderManager`
 4. Add configuration UI in `CloudCredentialManager`
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+See [CONTRIBUTING.md](contributing.md) for details.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License - see LICENSE file in project root for details.
 
 ## Known Limitations
 

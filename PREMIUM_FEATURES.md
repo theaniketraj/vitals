@@ -55,100 +55,7 @@ This document outlines the top 5 premium features that would transform Vitals fr
 
 ---
 
-<!-- ### 2. **Multi-Cloud & Multi-Datasource Integration**
-
-**Problem**: Modern applications use diverse monitoring stacks (Datadog, New Relic, Grafana Cloud, AWS CloudWatch, etc.)
-
-**Solution**: Unified observability across all monitoring platforms in one VS Code interface.
-
-**Features**:
-
-- **Supported Integrations**
-  - Datadog APM & Metrics
-  - New Relic Insights
-  - AWS CloudWatch & X-Ray
-  - Azure Monitor & Application Insights
-  - Google Cloud Operations (Stackdriver)
-  - Grafana Cloud/Loki
-  - Elasticsearch/ELK Stack
-  - Splunk
-  - Honeycomb
-  
-- **Unified Dashboard**
-  - Aggregate metrics from multiple sources in single view
-  - Cross-platform correlation (e.g., AWS metrics + Datadog traces)
-  - Normalized visualization regardless of source
-  
-- **Cost Optimization**
-  - Track observability costs across all platforms
-  - Identify expensive queries and unused dashboards
-  - Recommendations to reduce monitoring spend
-  
-- **Smart Query Builder**
-  - Platform-agnostic query language
-  - Automatic translation to native query formats (PromQL, LogQL, etc.)
-  - Query templates and saved searches
-
-**Technical Stack**:
-
-- API integrations for each platform (OAuth, API keys)
-- Query language parser and translator
-- Data normalization layer
-- Secure credential management (VS Code secrets API)
-
-**Revenue Potential**: VERY HIGH - Enterprises use multiple tools, this consolidates workflows -->
-
----
-
-<!-- ### 3. **Advanced Distributed Tracing & Performance Profiling**
-
-**Problem**: Understanding request flow across microservices and identifying performance bottlenecks is complex.
-
-**Solution**: Visual distributed tracing with flame graphs, service maps, and in-editor performance profiling.
-
-**Features**:
-
-- **Distributed Tracing**
-  - OpenTelemetry & Jaeger integration
-  - Interactive trace timeline visualization
-  - Span-level detail with tags and events
-  - Trace comparison (before/after deployments)
-  
-- **Service Dependency Maps**
-  - Auto-generated service topology graphs
-  - Real-time traffic flow visualization
-  - Identify bottleneck services
-  - Health status overlay on service map
-  
-- **Performance Profiling**
-  - CPU and memory flame graphs
-  - Database query analysis (slow queries, N+1 detection)
-  - Network call waterfall charts
-  - Click-to-code navigation from traces to source
-  
-- **Continuous Profiling**
-  - Always-on profiling with low overhead
-  - Historical performance comparison
-  - Regression detection across deployments
-  
-- **Code-Level Insights**
-  - Inline performance annotations in code editor
-  - "Hot path" highlighting in source files
-  - Automatic suggestions for optimization
-
-**Technical Stack**:
-
-- OpenTelemetry SDK integration
-- Jaeger/Zipkin collectors
-- D3.js for service maps and flame graphs
-- VS Code CodeLens API for inline annotations
-- Integration with Python/Node.js profilers
-
-**Revenue Potential**: HIGH - Critical for microservices architectures -->
-
----
-
-### 4. **Collaborative Incident Management & On-Call Workflows**
+### 2. **Collaborative Incident Management & On-Call Workflows**
 
 **Problem**: When incidents occur, teams struggle with context sharing, handoffs, and post-mortem documentation.
 
@@ -197,7 +104,7 @@ This document outlines the top 5 premium features that would transform Vitals fr
 
 ---
 
-### 5. **CI/CD Integration & Deployment Intelligence**
+### 3. **CI/CD Integration & Deployment Intelligence**
 
 **Problem**: Understanding how code changes impact production performance is difficult without correlation.
 
