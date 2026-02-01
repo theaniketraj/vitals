@@ -56,6 +56,18 @@
         "command": "vitals.configurePrometheus",
         "title": "Configure Prometheus URL",
         "category": "Vitals"
+      },
+      {
+        "command": "vitals.configureCloudProvider",
+        "title": "Configure Cloud Provider",
+        "category": "Vitals",
+        "icon": "$(cloud)"
+      },
+      {
+        "command": "vitals.viewCostMetrics",
+        "title": "View Cost Metrics",
+        "category": "Vitals",
+        "icon": "$(graph)"
       }
     ],
     "viewsContainers": {
@@ -130,6 +142,24 @@
           "type": "string",
           "description": "Default LogQL query to fetch logs.",
           "default": "{job=\"varlogs\"}"
+        },
+        "vitals.cloudProviders": {
+          "type": "array",
+          "default": [],
+          "description": "List of enabled cloud providers (managed internally)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vitals.enableCostTracking": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable cost tracking across cloud providers"
+        },
+        "vitals.costAlertThreshold": {
+          "type": "number",
+          "default": 1000,
+          "description": "Alert when monthly costs exceed this amount (USD)"
         }
       }
     }
@@ -150,7 +180,9 @@
   "dependencies": {
     "@observablehq/plot": "^0.6.17",
     "axios": "^1.7.7",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "@aws-sdk/client-cloudwatch": "^3.0.0",
+    "@aws-sdk/client-xray": "^3.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",

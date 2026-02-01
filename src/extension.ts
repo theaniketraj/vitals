@@ -230,13 +230,53 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  // Register command to configure cloud providers
+  const configureCloudProvider = vscode.commands.registerCommand(
+    "vitals.configureCloudProvider",
+    async () => {
+      usageStats.trackCommand('vitals.configureCloudProvider');
+      
+      const providerOptions = [
+        { label: '$(cloud) Datadog', description: 'Datadog APM & Metrics', value: 'datadog' },
+        { label: '$(cloud) New Relic', description: 'New Relic Insights', value: 'newrelic' },
+        { label: '$(cloud) AWS CloudWatch', description: 'AWS CloudWatch & X-Ray', value: 'aws' },
+        { label: '$(cloud) Azure Monitor', description: 'Azure Monitor & Application Insights', value: 'azure' },
+        { label: '$(cloud) Google Cloud', description: 'Google Cloud Operations', value: 'gcp' },
+      ];
+
+      const selected = await vscode.window.showQuickPick(providerOptions, {
+        placeHolder: 'Select a cloud provider to configure',
+        title: 'Configure Cloud Provider',
+      });
+
+      if (selected) {
+        const { CloudCredentialManager } = await import('./api/multicloud');
+        const credentialManager = new CloudCredentialManager(context);
+        await credentialManager.configureProviderInteractive(selected.value);
+      }
+    }
+  );
+
+  // Register command to view cost metrics
+  const viewCostMetrics = vscode.commands.registerCommand(
+    "vitals.viewCostMetrics",
+    async () => {
+      usageStats.trackCommand('vitals.viewCostMetrics');
+      vscode.window.showInformationMessage('Opening cost metrics dashboard...');
+      // This would open a webview with cost metrics
+      provider.show();
+    }
+  );
+
   // Add the commands to the extension's context subscriptions
   context.subscriptions.push(
     openDashboard, 
     signOut, 
     showStatus, 
     signIn,
-    configurePrometheus
+    configurePrometheus,
+    configureCloudProvider,
+    viewCostMetrics
   );
 
   console.log('✅ Commands registered successfully');
