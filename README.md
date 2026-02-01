@@ -39,14 +39,14 @@
 
 📖 [Full Documentation](https://theaniketraj.github.io/vitals/multicloud-integration.html)
 
-### 📊 Real-Time Metrics & Logs
+### Real-Time Metrics & Logs
 
 - Live charts for CPU, memory, latency, and custom metrics
 - Streaming logs with syntax highlighting and filtering
 - Alert management with VS Code notifications
 - Auto-discovery of local Prometheus instances
 
-### ⚡ Zero Configuration
+### Zero Configuration
 
 - Works out-of-the-box with sensible defaults
 - Theme-aware UI that adapts to VS Code
