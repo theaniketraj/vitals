@@ -14,7 +14,9 @@
 
 </div>
 
-**Vitals** brings enterprise-grade observability directly into Visual Studio Code. Integrated seamlessly with Prometheus, it transforms your development environment into a powerful monitoring hub, enabling you to catch issues early and optimize performance in real-time.
+**Vitals** brings enterprise-grade observability directly into Visual Studio Code. Now with **multi-cloud support**, Vitals integrates seamlessly with Prometheus, Datadog, New Relic, AWS CloudWatch, Azure Monitor, and more - transforming your development environment into a unified monitoring hub.
+
+**🌟 New: Multi-Cloud Integration** - Query multiple observability platforms, correlate data, and optimize costs - all from VS Code! [Learn more →](./MULTICLOUD_INTEGRATION.md)
 
 <!-- ![Vitals Demo](https://raw.githubusercontent.com/theaniketraj/vitals/main/docs/images/demo.gif) -->
 
@@ -22,7 +24,19 @@
 
 ## Key Features
 
-> **New in v0.3.0**: Check out our [Premium Features](./docs/premium_features.md) guide for Custom Metrics and Alertmanager integration!
+> **🚀 New in v0.4.0**: [Multi-Cloud Integration](./MULTICLOUD_INTEGRATION.md) - Query Datadog, New Relic, AWS CloudWatch, Azure Monitor, and more from a single interface!
+
+### 🌐 Multi-Cloud Observability
+
+Unified monitoring across all your observability platforms:
+
+- **Supported Platforms**: Datadog, New Relic, AWS CloudWatch, Azure Monitor, Grafana/Loki, Prometheus
+- **Unified Query Language**: Write once, run on any platform - automatically translated to PromQL, NRQL, KQL, etc.
+- **Cost Optimization**: Track spending across all platforms, identify expensive queries, get savings recommendations
+- **Cross-Platform Correlation**: Compare metrics from different providers, detect anomalies and discrepancies
+- **Secure Credentials**: VS Code-native encrypted storage for API keys and tokens
+
+👉 **[Quick Start](./QUICKSTART_MULTICLOUD.md)** | **[Full Guide](./MULTICLOUD_INTEGRATION.md)**
 
 ### Real-Time Metrics
 
