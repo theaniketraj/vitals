@@ -14,422 +14,147 @@
 
 </div>
 
-**Vitals** brings enterprise-grade observability directly into Visual Studio Code. Now with **multi-cloud support** and **distributed tracing**, Vitals integrates seamlessly with Prometheus, Jaeger, OpenTelemetry, Datadog, New Relic, AWS CloudWatch, Azure Monitor, and more - transforming your development environment into a unified monitoring hub.
-
-**🌟 New Features**:
-- **Multi-Cloud Integration** - Query multiple observability platforms, correlate data, and optimize costs [Learn more →](./MULTICLOUD_INTEGRATION.md)
-- **Distributed Tracing** - Visual trace analysis, performance profiling, and in-editor code insights [Learn more →](./DISTRIBUTED_TRACING.md)
-
-<!-- ![Vitals Demo](https://raw.githubusercontent.com/theaniketraj/vitals/main/docs/images/demo.gif) -->
+**Vitals** brings enterprise-grade observability directly into Visual Studio Code. Monitor Prometheus, Jaeger, OpenTelemetry, Datadog, New Relic, AWS CloudWatch, Azure Monitor, and more - all from your editor.
 
 ---
 
 ## Key Features
 
-> **🚀 New in v0.4.0**: 
-> - [Multi-Cloud Integration](./MULTICLOUD_INTEGRATION.md) - Query Datadog, New Relic, AWS CloudWatch, Azure Monitor, and more!
-> - [Distributed Tracing](./DISTRIBUTED_TRACING.md) - Jaeger & OpenTelemetry integration with flame graphs and performance profiling!
+### Distributed Tracing & Performance Profiling
 
-### 🔍 Distributed Tracing & Performance Profiling
+- Visual flame graphs and service dependency maps
+- Database query analysis with N+1 detection
+- Inline performance annotations via CodeLens
+- Critical path analysis and regression detection
+- Supports Jaeger, OpenTelemetry, Zipkin
 
-Understand request flow and identify performance bottlenecks:
+📖 [Full Documentation](https://theaniketraj.github.io/vitals/distributed_tracing.html)
 
-- **Trace Providers**: Jaeger, OpenTelemetry, Zipkin-compatible backends
-- **Interactive Flame Graphs**: Visualize execution hierarchies with D3.js-powered charts
-- **Service Dependency Maps**: Auto-generated topology with real-time health status
-- **Database Query Analysis**: Detect slow queries and N+1 patterns automatically
-- **Code-Level Insights**: Inline performance annotations via CodeLens API
-- **Critical Path Analysis**: Find the slowest operation chain in traces
-- **Regression Detection**: Compare baseline vs current performance metrics
+### Multi-Cloud Observability
 
-👉 **[Tracing Guide](./DISTRIBUTED_TRACING.md)** | **[Examples](./src/examples/tracingExamples.ts)**
+- Unified queries across Datadog, New Relic, AWS, Azure, Prometheus, Grafana
+- Automatic query translation (PromQL, NRQL, KQL, etc.)
+- Cost tracking and optimization recommendations
+- Cross-platform correlation and anomaly detection
 
-### 🌐 Multi-Cloud Observability
+📖 [Full Documentation](https://theaniketraj.github.io/vitals/multicloud-integration.html)
 
-Unified monitoring across all your observability platforms:
+### 📊 Real-Time Metrics & Logs
 
-- **Supported Platforms**: Datadog, New Relic, AWS CloudWatch, Azure Monitor, Grafana/Loki, Prometheus
-- **Unified Query Language**: Write once, run on any platform - automatically translated to PromQL, NRQL, KQL, etc.
-- **Cost Optimization**: Track spending across all platforms, identify expensive queries, get savings recommendations
-- **Cross-Platform Correlation**: Compare metrics from different providers, detect anomalies and discrepancies
-- **Secure Credentials**: VS Code-native encrypted storage for API keys and tokens
+- Live charts for CPU, memory, latency, and custom metrics
+- Streaming logs with syntax highlighting and filtering
+- Alert management with VS Code notifications
+- Auto-discovery of local Prometheus instances
 
-👉 **[Quick Start](./QUICKSTART_MULTICLOUD.md)** | **[Full Guide](./MULTICLOUD_INTEGRATION.md)**
+### ⚡ Zero Configuration
 
-### Real-Time Metrics
-
-Visualize critical system and application metrics with beautiful, auto-updating charts:
-
-- **CPU Usage**: Track processor utilization across cores
-- **Memory Consumption**: Monitor RAM usage and trends
-- **Request Latency**: Analyze API response times (p50, p95, p99)
-- **Custom Metrics**: Support for any Prometheus metric
-
-### Live Log Stream
-
-Stream application logs directly in VS Code with a terminal-like interface:
-
-- **Syntax Highlighting**: Color-coded log levels (INFO, WARN, ERROR)
-- **Real-time Updates**: Watch logs as they happen
-- **Filtering & Search**: Quickly find specific log entries
-- **Scroll & History**: Navigate through log history effortlessly
-
-### Instant Alerts
-
-Stay informed with a dedicated alerts panel:
-
-- **Firing Alerts**: See active alerts with severity indicators
-- **Pending Alerts**: Monitor warnings before they trigger
-- **Alert Details**: View labels, annotations, and timestamps
-- **Smart Notifications**: Optional VS Code notifications for critical alerts
-
-### Zero Configuration
-
-Works out-of-the-box with minimal setup:
-
-- **Auto-discovery**: Detects local Prometheus instances
-- **Quick Start**: Just install and connect
-- **Flexible**: Configure custom Prometheus endpoints
-- **No External Tools**: Everything runs within VS Code
-
-### Modern UI
-
-Premium design that feels native to VS Code:
-
-- **Theme-Aware**: Automatically adapts to light/dark mode
-- **Responsive Layout**: Optimized for all screen sizes
-- **Smooth Animations**: Polished interactions and transitions
-- **Accessibility**: Full keyboard navigation and screen reader support
+- Works out-of-the-box with sensible defaults
+- Theme-aware UI that adapts to VS Code
+- Full keyboard navigation and accessibility
 
 ---
 
 ## Installation
 
-### From VS Code Marketplace
+**From VS Code Marketplace:**
 
-1. Open **Visual Studio Code**
-2. Open the **Extensions** view (`Ctrl+Shift+X` or `Cmd+Shift+X`)
-3. Search for **"Vitals"**
-4. Click **Install**
+1. Open Extensions view (`Ctrl+Shift+X`)
+2. Search for **"Vitals"**
+3. Click **Install**
 
-### From VSIX (Manual)
-
-```bash
-# Download the latest .vsix from releases
-code --install-extension vitals-0.3.0.vsix
-```
-
-### From Source
-
-```bash
-git clone https://github.com/theaniketraj/vitals.git
-cd vitals
-npm install
-npm run build
-code --install-extension .
-```
+**From CLI:** `code --install-extension theaniketraj.vitals`
 
 ---
 
 ## Quick Start
 
-### 1. Install Prometheus (if not already running)
+1. **Install Prometheus** (if needed): `docker run -p 9090:9090 prom/prometheus`
+2. **Open Command Palette**: `Ctrl+Shift+P` → `Vitals: Open Dashboard`
+3. **Configure** (optional): Set `vitals.prometheusUrl` in Settings
 
-**macOS (Homebrew):**
-
-```bash
-brew install prometheus
-prometheus --config.file=/opt/homebrew/etc/prometheus.yml
-```
-
-**Linux (Docker):**
-
-```bash
-docker run -d -p 9090:9090 prom/prometheus
-```
-
-**Windows:**
-Download from [prometheus.io/download](https://prometheus.io/download/)
-
-### 2. Configure Vitals
-
-Open VS Code Settings (`Ctrl+,` or `Cmd+,`) and search for "vitals":
-
-```json
-{
-  "vitals.prometheusUrl": "http://localhost:9090",
-  "vitals.refreshInterval": 5000,
-  "vitals.enableNotifications": true
-}
-```
-
-### 3. Open Vitals
-
-- **Command Palette**: `Ctrl+Shift+P` → `Vitals: Open Dashboard`
-- **Keyboard Shortcut**: `Ctrl+Alt+P` (customize in Settings)
-- **Activity Bar**: Click the Vitals icon in the sidebar
+📖 [Getting Started Guide](https://theaniketraj.github.io/vitals/getting_started.html)
 
 ---
 
 ## Configuration
 
-All settings are available in VS Code Settings (`Ctrl+,`):
+Key settings (access via `Ctrl+,` → search "vitals"):
 
-| Setting                      | Default                 | Description                           |
-| ---------------------------- | ----------------------- | ------------------------------------- |
-| `vitals.prometheusUrl`       | `http://localhost:9090` | Prometheus server endpoint            |
-| `vitals.refreshInterval`     | `5000`                  | Metrics refresh interval (ms)         |
-| `vitals.enableNotifications` | `true`                  | Show VS Code notifications for alerts |
-| `vitals.maxLogLines`         | `1000`                  | Maximum log lines to display          |
-| `vitals.theme`               | `auto`                  | Color theme: `auto`, `light`, `dark`  |
+- `vitals.prometheusUrl` - Prometheus endpoint (default: `http://localhost:9090`)
+- `vitals.refreshInterval` - Update frequency in ms (default: `5000`)
+- `vitals.traceProvider` - Tracing backend: `jaeger`, `opentelemetry`
+- `vitals.cloudProviders` - Multi-cloud platform credentials
 
-### Example Configuration
-
-```json
-{
-  "vitals.prometheusUrl": "https://prometheus.example.com",
-  "vitals.refreshInterval": 3000,
-  "vitals.enableNotifications": true,
-  "vitals.maxLogLines": 5000,
-  "vitals.metrics": [
-    "node_cpu_seconds_total",
-    "node_memory_MemAvailable_bytes",
-    "http_request_duration_seconds"
-  ]
-}
-```
+📖 [Full Configuration Guide](https://theaniketraj.github.io/vitals/getting_started.html)
 
 ---
 
-## Usage
+## Commands
 
-### Opening the Dashboard
+- `Vitals: Open Dashboard` - Open metrics, logs, and alerts view
+- `Vitals: Configure Trace Provider` - Set up Jaeger/OpenTelemetry
+- `Vitals: Search Traces` - Query distributed traces
+- `Vitals: View Service Map` - Visualize service dependencies
+- `Vitals: Configure Cloud Provider` - Add multi-cloud platforms
 
-1. **Command Palette** (`Ctrl+Shift+P`)
-2. Type `Vitals: Open Dashboard`
-3. Press `Enter`
-
-The dashboard opens in a new webview panel showing:
-
-- **Metrics Tab**: Real-time charts and graphs
-- **Logs Tab**: Live log stream
-- **Alerts Tab**: Active and pending alerts
-
-### Viewing Metrics
-
-Navigate to the **Metrics** tab to see:
-
-- CPU usage across all cores
-- Memory consumption trends
-- Request latency percentiles
-- Custom metrics (configure in settings)
-
-**Interactions:**
-
-- **Hover**: See exact values at specific timestamps
-- **Zoom**: Click and drag to zoom into time ranges
-- **Legend**: Click to toggle metric visibility
-
-### Monitoring Logs
-
-The **Logs** tab provides a real-time log viewer:
-
-- Auto-scrolls to latest entries
-- Color-coded by severity (INFO, WARN, ERROR)
-- Search and filter capabilities
-- Export logs to file
-
-### Managing Alerts
-
-The **Alerts** tab displays:
-
-- **Firing Alerts** (red): Critical issues requiring attention
-- **Pending Alerts** (yellow): Warnings approaching thresholds
-- Click an alert to see full details
+📖 [Usage Documentation](https://theaniketraj.github.io/vitals/)
 
 ---
 
 ## Architecture
 
-Vitals uses a clean, modular architecture:
+Vitals uses a modular architecture with TypeScript, React, and VS Code's Webview API.
 
-```bash
-┌─────────────────────────────────────────────┐
-│         VS Code Extension Host              │
-│  ┌─────────────┐      ┌──────────────┐      │
-│  │  Extension  │ →    │ Prometheus   │      │
-│  │  Commands   │      │  API Client  │      │
-│  └─────────────┘      └──────────────┘      │
-│         │                     │             │
-│         ▼                     ▼             │
-│  ┌──────────────────────────────────┐       │
-│  │      Webview Bridge (IPC)        │       │
-│  └──────────────────────────────────┘       │
-└─────────────────────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────┐
-│            React Webview UI                 │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │ Metrics  │  │   Logs   │  │  Alerts  │   │
-│  │ Charts   │  │  Viewer  │  │  Panel   │   │
-│  └──────────┘  └──────────┘  └──────────┘   │
-└─────────────────────────────────────────────┘
-```
-
-**Key Components:**
-
-- **Extension Host**: Node.js process handling configuration, commands, and API calls
-- **Webview**: React-based UI rendering metrics, logs, and alerts
-- **IPC Bridge**: Message passing between extension and webview
-- **Data Layer**: Prometheus API client with polling and caching
-
-For detailed architecture docs, see [SYSTEM_ARCHITECTURE](./docs/system_architecture.md).
+📖 [System Architecture](https://theaniketraj.github.io/vitals/system_architecture.html) | [Project Structure](https://theaniketraj.github.io/vitals/project_structure.html)
 
 ---
 
 ## Development
 
-### Prerequisites
-
-- Node.js 18+ and npm
-- Visual Studio Code 1.85.0+
-- Git
-
-### Setup
-
 ```bash
-# Clone the repository
 git clone https://github.com/theaniketraj/vitals.git
 cd vitals
-
-# Install dependencies
 npm install
-
-# Build the extension
-npm run build
+npm run watch  # Start dev mode
+# Press F5 in VS Code to launch Extension Development Host
 ```
 
-### Running Locally
-
-```bash
-# Start development mode with hot reload
-npm run watch
-
-# In VS Code, press F5 to launch Extension Development Host
-```
-
-### Testing
-
-```bash
-# Run unit tests
-npm test
-
-# Run integration tests
-npm run test:integration
-
-# Test with local Prometheus
-npm run test:e2e
-```
-
-### Project Structure
-
-```bash
-vitals/
-├── src/
-│   ├── extension.ts         # Extension entry point
-│   ├── api.ts              # Prometheus API client
-│   ├── vitalsView.ts        # Webview provider
-│   ├── data/               # Data fetching & processing
-│   └── utils/              # Utilities & helpers
-├── webview/
-│   ├── src/
-│   │   ├── App.tsx         # Main React app
-│   │   ├── components/     # UI components
-│   │   └── hooks/          # Custom React hooks
-│   └── public/             # Static assets
-├── Docs/                   # Documentation
-└── package.json
-```
-
-See [DEVELOPMENT](./docs/development.md) for comprehensive dev docs.
+📖 [Development Guide](https://theaniketraj.github.io/vitals/development.html) | [Contributing](https://theaniketraj.github.io/vitals/contributing.html)
 
 ---
 
 ## Contributing
 
-We welcome contributions! Here's how you can help:
+Contributions welcome! Fork the repo, create a feature branch, and open a PR.
 
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
-
-Please read [CONTRIBUTING](./docs/contributing.md) for:
-
-- Code of Conduct
-- Development guidelines
-- PR process
-- Coding standards
+📖 [Contributing Guide](https://theaniketraj.github.io/vitals/contributing.html)
 
 ---
 
 ## Roadmap
 
-### Current (v0.3.0)
-
-- ✅ Real-time metrics visualization
-- ✅ Live log streaming
-- ✅ Alert management (Prometheus)
-- ✅ **Custom Metric Queries**
-- ✅ **Alertmanager Integration (Silence/Manage)**
-- ✅ Prometheus integration
-
-### Upcoming (v0.4.0)
-
+- ✅ Prometheus, Jaeger, OpenTelemetry integration
+- ✅ Multi-cloud support (Datadog, New Relic, AWS, Azure)
+- ✅ Distributed tracing and flame graphs
 - 🔄 Historical data analysis
-- 🔄 Multi-datasource support (Loki, etc.)
+- 🔄 Custom dashboards and saved queries
 
-See [VISION](./docs/vision.md) for the full roadmap.
+📖 [Full Roadmap](https://theaniketraj.github.io/vitals/vision.html)
 
 ---
 
 ## Troubleshooting
 
-### Connection Issues
+**Can't connect to Prometheus?**
 
-**Problem**: "Unable to connect to Prometheus"
+- Verify Prometheus is running: `curl http://localhost:9090/api/v1/status/config`
+- Check `vitals.prometheusUrl` setting
 
-**Solutions:**
+**No metrics displayed?**
 
-1. Verify Prometheus is running: `curl http://localhost:9090/api/v1/status/config`
-2. Check `vitals.prometheusUrl` setting matches your Prometheus endpoint
-3. Ensure no firewall is blocking the connection
-4. Try disabling SSL verification for self-signed certificates
+- Confirm Prometheus has active targets: `http://localhost:9090/targets`
 
-### No Metrics Displayed
-
-**Problem**: Dashboard is empty
-
-**Solutions:**
-
-1. Confirm Prometheus has scraped targets: Visit `http://localhost:9090/targets`
-2. Check metrics exist: Query in Prometheus UI
-3. Verify metric names in `vitals.metrics` setting
-4. Increase `vitals.refreshInterval` for slow networks
-
-### Logs Not Streaming
-
-**Problem**: Log tab shows no entries
-
-**Solutions:**
-
-1. Ensure your application is exporting logs to Prometheus/Loki
-2. Verify log exporter configuration
-3. Check Vitals is configured to read from correct log source
-
-For more help, see [TROUBLESHOOTING](./docs/troubleshooting.md) or [open an issue](https://github.com/theaniketraj/vitals/issues).
+📖 [Troubleshooting Guide](https://theaniketraj.github.io/vitals/troubleshooting.html) | [Open an Issue](https://github.com/theaniketraj/vitals/issues)
 
 ---
 
@@ -449,20 +174,11 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ## Support
 
-- **Documentation**: [Vitals Docs](https://theaniketraj.github.io/vitals/)
-- **Issues**: [GitHub Issues](https://github.com/theaniketraj/vitals/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/theaniketraj/vitals/discussions)
+- 📖 [Documentation](https://theaniketraj.github.io/vitals/)
+- 🐛 [Report Issues](https://github.com/theaniketraj/vitals/issues)
+- 💬 [Discussions](https://github.com/theaniketraj/vitals/discussions)
 
----
-
-## Show Your Support
-
-If you find Vitals helpful, please consider:
-
-- Starring the repo on GitHub
-- Sharing with your team
-- Contributing to the project
-- Writing a review on the VS Code Marketplace
+If Vitals helps you, consider ⭐ starring the repo!
 
 ---
 
