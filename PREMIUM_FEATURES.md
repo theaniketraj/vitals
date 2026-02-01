@@ -55,7 +55,7 @@ This document outlines the top 5 premium features that would transform Vitals fr
 
 ---
 
-### 2. **Multi-Cloud & Multi-Datasource Integration**
+<!-- ### 2. **Multi-Cloud & Multi-Datasource Integration**
 
 **Problem**: Modern applications use diverse monitoring stacks (Datadog, New Relic, Grafana Cloud, AWS CloudWatch, etc.)
 
@@ -96,11 +96,11 @@ This document outlines the top 5 premium features that would transform Vitals fr
 - Data normalization layer
 - Secure credential management (VS Code secrets API)
 
-**Revenue Potential**: VERY HIGH - Enterprises use multiple tools, this consolidates workflows
+**Revenue Potential**: VERY HIGH - Enterprises use multiple tools, this consolidates workflows -->
 
 ---
 
-### 3. **Advanced Distributed Tracing & Performance Profiling**
+<!-- ### 3. **Advanced Distributed Tracing & Performance Profiling**
 
 **Problem**: Understanding request flow across microservices and identifying performance bottlenecks is complex.
 
@@ -144,7 +144,7 @@ This document outlines the top 5 premium features that would transform Vitals fr
 - VS Code CodeLens API for inline annotations
 - Integration with Python/Node.js profilers
 
-**Revenue Potential**: HIGH - Critical for microservices architectures
+**Revenue Potential**: HIGH - Critical for microservices architectures -->
 
 ---
 
