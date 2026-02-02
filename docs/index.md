@@ -47,12 +47,24 @@ features:
   - title: Custom Metrics
     details: Define your own PromQL queries to track exactly what matters. CPU, Memory, Request Rates—visualize it all in real-time.
     icon: 📈
+  - title: Incident Management
+    details: Collaborative debugging workflows with runbook automation, hypothesis tracking, and AI-powered post-mortems—all within VS Code.
+    icon: 🚨
+  - title: CI/CD Intelligence
+    details: Track deployments, analyze performance impact with statistical testing, and get intelligent rollback recommendations automatically.
+    icon: 🚀
   - title: Alert Management
     details: View active alerts from Alertmanager and create silences instantly without leaving your code editor.
     icon: 🔔
   - title: Live Log Streaming
     details: Stream logs from Grafana Loki with automatic syntax highlighting. Filter by job, level, or search terms.
     icon: 📜
+  - title: Feature Flag Integration
+    details: Connect to LaunchDarkly, Split.io, or Unleash. Correlate flag changes with metric impacts and identify problematic rollouts.
+    icon: 🚩
+  - title: Distributed Tracing
+    details: Search traces, visualize service dependencies, and detect performance regressions across your microservices architecture.
+    icon: 🔍
   - title: Zero-Config Demo
     details: Comes with a built-in demo mode. See the particle reveal and graphs in action instantly, no server required.
     icon: ⚡

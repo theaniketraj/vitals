@@ -11,9 +11,11 @@ head:
 
 ## Extension Commands
 
-### `vitals.openDashboard`
+### Core Commands
 
-Opens the Vitals in a new webview panel.
+#### `vitals.openDashboard`
+
+Opens the Vitals dashboard in a new webview panel.
 
 **Usage:**
 
@@ -27,9 +29,191 @@ or programmatically:
 vscode.commands.executeCommand('vitals.openDashboard');
 ```
 
+---
+
+### Incident Management Commands
+
+#### `vitals.createIncident`
+
+Creates a new incident from an alert or manually.
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.createIncident');
+```
+
+#### `vitals.viewIncidents`
+
+Opens a quick pick view of active incidents.
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.viewIncidents');
+```
+
+#### `vitals.executeRunbook`
+
+Executes an automated runbook for incident remediation.
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.executeRunbook');
+```
+
+#### `vitals.addHypothesis`
+
+Adds a hypothesis to an active incident investigation.
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.addHypothesis');
+```
+
+#### `vitals.generatePostMortem`
+
+Generates an AI-powered post-mortem report for a resolved incident.
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.generatePostMortem');
+```
+
+#### `vitals.configureIncidentIntegrations`
+
+Opens the incident integration configuration wizard (PagerDuty, Opsgenie, Slack).
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.configureIncidentIntegrations');
+```
+
+#### `vitals.viewOnCallSchedule`
+
+Displays the current on-call schedule from connected platforms.
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.viewOnCallSchedule');
+```
+
+#### `vitals.viewIncidentMetrics`
+
+Shows incident analytics (MTTD, MTTA, MTTI, MTTR).
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.viewIncidentMetrics');
+```
+
+---
+
+### CI/CD Integration Commands
+
+#### `vitals.trackDeployment`
+
+Registers a new deployment with metadata (service, version, environment).
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.trackDeployment');
+```
+
+#### `vitals.viewDeployments`
+
+Opens a quick pick list of recent deployments with impact summaries.
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.viewDeployments');
+```
+
+#### `vitals.analyzeDeploymentImpact`
+
+Runs statistical performance analysis (Welch's t-test) for a deployment.
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.analyzeDeploymentImpact');
+```
+
+#### `vitals.rollbackDeployment`
+
+Generates rollback recommendation and executes rollback with selected strategy.
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.rollbackDeployment');
+```
+
+#### `vitals.viewBuildTrends`
+
+Displays CI pipeline build trends and optimization insights.
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.viewBuildTrends');
+```
+
+#### `vitals.viewFlakyTests`
+
+Shows flaky test detection report with failure rates.
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.viewFlakyTests');
+```
+
+#### `vitals.connectFeatureFlagProvider`
+
+Connects to a feature flag provider (LaunchDarkly, Split.io, Unleash).
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.connectFeatureFlagProvider');
+```
+
+#### `vitals.analyzeFlagImpact`
+
+Analyzes the impact of feature flags on metrics and user experience.
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.analyzeFlagImpact');
+```
+
+#### `vitals.generateReleaseNotes`
+
+Auto-generates release notes from Git commits and performance data.
+
+**Usage:**
+
+```typescript
+vscode.commands.executeCommand('vitals.generateReleaseNotes');
+```
+
+---
+
 ## Configuration Settings
 
-### `vitals.prometheusUrl`
+### Core Settings
+
+#### `vitals.prometheusUrl`
 
 - **Type**: `string`
 - **Default**: `http://localhost:9090`
@@ -42,6 +226,114 @@ vscode.commands.executeCommand('vitals.openDashboard');
   "vitals.prometheusUrl": "http://prometheus.example.com:9090"
 }
 ```
+
+---
+
+### Incident Management Settings
+
+#### `vitals.enableIncidentManagement`
+
+- **Type**: `boolean`
+- **Default**: `true`
+- **Description**: Enable/disable incident management features
+
+#### `vitals.incidentIntegrations`
+
+- **Type**: `object`
+- **Description**: Configuration for incident integrations (PagerDuty, Opsgenie, Slack, Teams)
+
+**Example:**
+
+```json
+{
+  "vitals.incidentIntegrations": {
+    "pagerduty": {
+      "enabled": true,
+      "apiToken": "<stored-securely>",
+      "serviceId": "P1234567"
+    },
+    "slack": {
+      "enabled": true,
+      "webhookUrl": "<stored-securely>",
+      "channel": "#incidents"
+    }
+  }
+}
+```
+
+#### `vitals.runbookDirectory`
+
+- **Type**: `string`
+- **Default**: `"${workspaceFolder}/.vitals/runbooks"`
+- **Description**: Directory path for runbook YAML files
+
+#### `vitals.onCallPlatform`
+
+- **Type**: `enum`
+- **Values**: `"pagerduty"`, `"opsgenie"`, `"none"`
+- **Default**: `"none"`
+- **Description**: On-call platform for schedule integration
+
+---
+
+### CI/CD Integration Settings
+
+#### `vitals.enableCICDIntegration`
+
+- **Type**: `boolean`
+- **Default**: `true`
+- **Description**: Enable/disable CI/CD integration features
+
+#### `vitals.cicdPlatform`
+
+- **Type**: `enum`
+- **Values**: `"github_actions"`, `"gitlab_ci"`, `"jenkins"`, `"circleci"`, `"azure_devops"`, `"travis_ci"`
+- **Default**: `"github_actions"`
+- **Description**: CI platform for build monitoring
+
+#### `vitals.deploymentDetection`
+
+- **Type**: `object`
+- **Description**: Configuration for automatic deployment detection
+
+**Example:**
+
+```json
+{
+  "vitals.deploymentDetection": {
+    "useGitTags": true,
+    "tagPattern": "^v\\d+\\.\\d+\\.\\d+$",
+    "useCIWebhooks": false
+  }
+}
+```
+
+#### `vitals.performanceAnalysisWindow`
+
+- **Type**: `number`
+- **Default**: `30`
+- **Description**: Time window (in minutes) before/after deployment for performance analysis
+
+#### `vitals.regressionThreshold`
+
+- **Type**: `number`
+- **Default**: `10`
+- **Description**: Percentage threshold for detecting performance regressions
+
+#### `vitals.autoRollbackEnabled`
+
+- **Type**: `boolean`
+- **Default**: `false`
+- **Description**: Enable automatic rollback for critical regressions (requires 95% confidence)
+
+#### `vitals.featureFlagProvider`
+
+- **Type**: `enum`
+- **Values**: `"launchdarkly"`, `"splitio"`, `"unleash"`, `"none"`
+- **Default**: `"none"`
+- **Description**: Feature flag provider for integration
+
+---
 
 ## Prometheus API Integration
 

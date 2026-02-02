@@ -259,6 +259,13 @@ export default withMermaid(
           ],
         },
         {
+          text: "Features",
+          items: [
+            { text: "Incident Management", link: "/incident_management" },
+            { text: "CI/CD Integration", link: "/cicd_integration" },
+          ],
+        },
+        {
           text: "Architecture",
           items: [
             { text: "System Overview", link: "/system_architecture" },

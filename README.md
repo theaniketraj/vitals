@@ -20,6 +20,28 @@
 
 ## Key Features
 
+### Incident Management & On-Call Workflows
+
+- Automatic incident detection from alert thresholds
+- One-click runbook automation (Kubernetes restarts, scaling, rollbacks)
+- AI-powered post-mortem generation with root cause analysis
+- PagerDuty/Opsgenie bi-directional sync for on-call coordination
+- Hypothesis tracking with evidence collection timeline
+- Team collaboration with MTTD, MTTA, MTTI, MTTR metrics
+
+📖 [Incident Management Guide](https://theaniketraj.github.io/vitals/incident_management.html)
+
+### CI/CD Integration & Deployment Intelligence
+
+- Auto-detect deployments from Git tags or manual tracking
+- Statistical performance analysis (Welch's t-test) for regression detection
+- Intelligent rollback recommendations with 4 deployment strategies
+- Flaky test detection and CI pipeline optimization insights
+- Feature flag integration (LaunchDarkly, Split.io, Unleash)
+- Auto-generate release notes from commits and metrics
+
+📖 [CI/CD Integration Guide](https://theaniketraj.github.io/vitals/cicd_integration.html)
+
 ### Distributed Tracing & Performance Profiling
 
 - Visual flame graphs and service dependency maps
@@ -91,13 +113,32 @@ Key settings (access via `Ctrl+,` → search "vitals"):
 
 ## Commands
 
+**Core Observability:**
+
 - `Vitals: Open Dashboard` - Open metrics, logs, and alerts view
 - `Vitals: Configure Trace Provider` - Set up Jaeger/OpenTelemetry
 - `Vitals: Search Traces` - Query distributed traces
 - `Vitals: View Service Map` - Visualize service dependencies
 - `Vitals: Configure Cloud Provider` - Add multi-cloud platforms
 
-📖 [Usage Documentation](https://theaniketraj.github.io/vitals/)
+**Incident Management:**
+
+- `Vitals: Create Incident` - Create incident from alert or manually
+- `Vitals: View Incidents` - Browse active incidents
+- `Vitals: Execute Runbook` - Run automated remediation playbooks
+- `Vitals: Generate Post-Mortem` - Create AI-powered incident reports
+- `Vitals: Configure Incident Integrations` - Set up PagerDuty/Slack/Teams
+
+**CI/CD Intelligence:**
+
+- `Vitals: Track Deployment` - Register deployment with metadata
+- `Vitals: Analyze Deployment Impact` - Statistical performance analysis
+- `Vitals: Rollback Deployment` - Execute intelligent rollback
+- `Vitals: View Build Trends` - CI pipeline optimization insights
+- `Vitals: Connect Feature Flag Provider` - Integrate LaunchDarkly/Split.io
+- `Vitals: Generate Release Notes` - Auto-generate from commits
+
+📖 [Full API Reference](https://theaniketraj.github.io/vitals/api.html)
 
 ---
 

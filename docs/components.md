@@ -21,7 +21,10 @@ App
     ├── KPI Cards (kpis)
     ├── MetricChart
     ├── LogViewer
-    └── AlertPanel
+    ├── AlertPanel
+    ├── IncidentPanel
+    ├── DeploymentTimeline
+    └── FeatureFlagPanel
 ```
 
 ## Core Components

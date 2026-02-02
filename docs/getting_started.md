@@ -90,6 +90,71 @@ By default, Vitals tries to connect to `http://localhost:9090`. If your Promethe
 
 ## Next Steps
 
+### Basic Monitoring
+
 - Customize your metrics in `src/data/fetchMetrics.ts`.
 - Set up custom alert rules in your Prometheus configuration.
 - Read the [Architecture Guide](system_architecture.md) to understand how it works under the hood.
+
+### Advanced Features
+
+#### Incident Management
+
+- **[Incident Management Guide](incident_management.md)** - Set up collaborative debugging workflows
+  - Create incidents from alerts
+  - Execute automated runbooks
+  - Generate AI-powered post-mortems
+  - Configure PagerDuty/Slack integrations
+
+#### CI/CD Integration
+
+- **[CI/CD Integration Guide](cicd_integration.md)** - Track deployment impact
+  - Detect deployments from Git tags
+  - Analyze performance regressions with statistical testing
+  - Enable intelligent rollback recommendations
+  - Connect feature flag providers (LaunchDarkly, Split.io)
+  - Auto-generate release notes
+
+#### Distributed Tracing
+
+- **[Distributed Tracing Guide](distributed_tracing.md)** - Debug microservices
+  - Search traces in Jaeger
+  - Visualize service dependency maps
+  - Detect performance regressions
+  - Profile critical paths
+
+### Configuration Examples
+
+#### Complete Setup with All Features
+
+```json
+{
+  // Core observability
+  "vitals.prometheusUrl": "http://localhost:9090",
+  "vitals.lokiUrl": "http://localhost:3100",
+  "vitals.traceProvider": "jaeger",
+  "vitals.traceEndpoint": "http://localhost:16686",
+  
+  // Incident management
+  "vitals.enableIncidentManagement": true,
+  "vitals.incidentIntegrations": {
+    "pagerduty": {
+      "enabled": true,
+      "serviceId": "P1234567"
+    },
+    "slack": {
+      "enabled": true,
+      "channel": "#incidents"
+    }
+  },
+  
+  // CI/CD integration
+  "vitals.enableCICDIntegration": true,
+  "vitals.deploymentDetection": {
+    "useGitTags": true,
+    "tagPattern": "^v\\d+\\.\\d+\\.\\d+$"
+  },
+  "vitals.regressionThreshold": 10,
+  "vitals.featureFlagProvider": "launchdarkly"
+}
+```
