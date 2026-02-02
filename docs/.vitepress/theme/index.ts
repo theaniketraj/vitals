@@ -3,12 +3,14 @@ import './custom.css'
 import Footer from './Footer.vue'
 import MermaidZoom from './MermaidZoom.vue'
 import CookieConsent from './CookieConsent.vue'
+import LandingExtras from './LandingExtras.vue'
 import { h } from 'vue'
 
 export default {
   extends: DefaultTheme,
   Layout() {
     return h(DefaultTheme.Layout, null, {
+      'home-features-after': () => h(LandingExtras),
       'layout-bottom': () => [h(Footer), h(CookieConsent)],
       'doc-after': () => h(MermaidZoom)
     })
