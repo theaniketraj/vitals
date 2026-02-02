@@ -2,8 +2,6 @@
 
 This document outlines the top 5 premium features that would transform Vitals from an open-source observability tool into a comprehensive paid enterprise extension.
 
----
-
 ## 🎯 Premium Feature Strategy
 
 **Business Model**: Freemium with tiered pricing
@@ -52,110 +50,6 @@ This document outlines the top 5 premium features that would transform Vitals fr
 - Pattern recognition for log analysis
 
 **Revenue Potential**: HIGH - This is a unique differentiator that saves significant debugging time
-
----
-
-### 2. **Collaborative Incident Management & On-Call Workflows**
-
-**Problem**: When incidents occur, teams struggle with context sharing, handoffs, and post-mortem documentation.
-
-**Solution**: Built-in incident management with collaboration features, runbooks, and automated post-mortems.
-
-**Features**:
-
-- **Incident Detection & Declaration**
-  - One-click incident creation from alerts/anomalies
-  - Automatic severity classification
-  - Slack/Teams/PagerDuty integration for notifications
-  
-- **Collaborative Debugging**
-  - Share live dashboard views with team members
-  - Real-time annotation and commenting on metrics
-  - Screen recording of debugging sessions
-  - Hypothesis tracking ("tried X, result Y")
-  
-- **Runbook Automation**
-  - Interactive runbooks triggered by alert types
-  - Step-by-step guided remediation
-  - Execute common fixes directly from VS Code (restart service, scale pods, etc.)
-  - Runbook templates for common scenarios
-  
-- **Post-Mortem Generator**
-  - Automatic timeline of events during incident
-  - Capture all metrics/logs/traces during incident window
-  - AI-generated post-mortem draft
-  - Action items and follow-up tracking
-  
-- **On-Call Management**
-  - VS Code status bar shows on-call status
-  - Quick access to dashboards for your services
-  - Alert routing based on team/service ownership
-  - Escalation policies
-
-**Technical Stack**:
-
-- WebRTC for real-time collaboration
-- Integration with PagerDuty, Opsgenie, VictorOps
-- Slack/Teams webhooks and bots
-- Markdown templates for post-mortems
-- RBAC for access control
-
-**Revenue Potential**: VERY HIGH - Enterprise teams pay premium for incident management tools
-
----
-
-### 3. **CI/CD Integration & Deployment Intelligence**
-
-**Problem**: Understanding how code changes impact production performance is difficult without correlation.
-
-**Solution**: Seamless integration with CI/CD pipelines to track deployment impact and enable intelligent rollbacks.
-
-**Features**:
-
-- **Deployment Tracking**
-  - Automatic detection of deployments (Git tags, CI/CD webhooks)
-  - Visual markers on metric charts showing deployment times
-  - Before/after performance comparison
-  - Deployment success/failure rate tracking
-  
-- **Performance Impact Analysis**
-  - Automatic A/B comparison of pre/post-deployment metrics
-  - Statistical significance testing for performance changes
-  - Alert if deployment causes regression
-  - SLO/SLI compliance checking
-  
-- **Intelligent Rollback Recommendations**
-  - Auto-detect when deployment degrades performance
-  - One-click rollback triggers
-  - Canary deployment analysis
-  - Blue-green deployment monitoring
-  
-- **CI/CD Pipeline Insights**
-  - Build time trends and optimization suggestions
-  - Flaky test detection from CI logs
-  - Resource usage during builds
-  - Cost analysis for CI/CD infrastructure
-  
-- **Feature Flag Integration**
-  - LaunchDarkly, Split.io, Unleash integration
-  - Correlate feature flag toggles with metric changes
-  - Identify problematic feature rollouts
-  - A/B test performance analysis
-  
-- **Release Notes Auto-Generation**
-  - Generate release notes from commits + performance data
-  - Include metric improvements/regressions
-  - Share with stakeholders directly from VS Code
-
-**Technical Stack**:
-
-- GitHub Actions, GitLab CI, Jenkins, CircleCI webhooks
-- Git integration for commit/tag detection
-- LaunchDarkly/Split.io SDKs
-- Statistical analysis libraries (t-tests, confidence intervals)
-- Deployment automation APIs (Kubernetes, AWS ECS, etc.)
-
-**Revenue Potential**: HIGH - Directly ties observability to development workflow
 
 ---
 
