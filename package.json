@@ -146,6 +146,60 @@
         "title": "Add Incident Hypothesis",
         "category": "Vitals",
         "icon": "$(lightbulb)"
+      },
+      {
+        "command": "vitals.trackDeployment",
+        "title": "Track Deployment",
+        "category": "Vitals CI/CD",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "vitals.viewDeployments",
+        "title": "View Deployments",
+        "category": "Vitals CI/CD",
+        "icon": "$(list-unordered)"
+      },
+      {
+        "command": "vitals.analyzeDeploymentImpact",
+        "title": "Analyze Deployment Impact",
+        "category": "Vitals CI/CD",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "vitals.rollbackDeployment",
+        "title": "Rollback Deployment",
+        "category": "Vitals CI/CD",
+        "icon": "$(debug-reverse-continue)"
+      },
+      {
+        "command": "vitals.viewBuildTrends",
+        "title": "View Build Trends",
+        "category": "Vitals CI/CD",
+        "icon": "$(graph-line)"
+      },
+      {
+        "command": "vitals.viewFlakyTests",
+        "title": "View Flaky Tests",
+        "category": "Vitals CI/CD",
+        "icon": "$(beaker)"
+      },
+      {
+        "command": "vitals.connectFeatureFlagProvider",
+        "title": "Connect Feature Flag Provider",
+        "category": "Vitals CI/CD",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "vitals.analyzeFlagImpact",
+        "title": "Analyze Feature Flag Impact",
+        "category": "Vitals CI/CD",
+        "icon": "$(pulse)"
+      },
+      {
+        "command": "vitals.generateReleaseNotes",
+        "title": "Generate Release Notes",
+        "category": "Vitals CI/CD",
+        "icon": "$(note)"
       }
     ],
     "viewsContainers": {
@@ -286,6 +340,47 @@
           "type": "boolean",
           "default": true,
           "description": "Show VS Code notifications when on-call"
+        },
+        "vitals.enableCICDIntegration": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable CI/CD integration features"
+        },
+        "vitals.cicdPlatform": {
+          "type": "string",
+          "enum": ["github_actions", "gitlab_ci", "jenkins", "circleci", "azure_devops"],
+          "default": "github_actions",
+          "description": "CI/CD platform integration"
+        },
+        "vitals.deploymentDetection": {
+          "type": "object",
+          "default": {
+            "useGitTags": true,
+            "tagPattern": "^v\\d+\\.\\d+\\.\\d+$",
+            "useCIWebhooks": false
+          },
+          "description": "Deployment detection configuration"
+        },
+        "vitals.performanceAnalysisWindow": {
+          "type": "number",
+          "default": 30,
+          "description": "Time window for deployment performance analysis (minutes)"
+        },
+        "vitals.regressionThreshold": {
+          "type": "number",
+          "default": 10,
+          "description": "Percent change to trigger regression alert"
+        },
+        "vitals.autoRollbackEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically rollback on critical regressions"
+        },
+        "vitals.featureFlagProvider": {
+          "type": "string",
+          "enum": ["launchdarkly", "splitio", "unleash", "none"],
+          "default": "none",
+          "description": "Feature flag provider integration"
         },
         "vitals.traceProvider": {
           "type": "string",

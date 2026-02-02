@@ -19,6 +19,12 @@ import { PostMortemGenerator } from "./incidents/PostMortemGenerator";
 import { OnCallManager } from "./incidents/OnCallManager";
 import { IntegrationManager } from "./incidents/IntegrationManager";
 import { IncidentStatus } from "./incidents/types";
+import { DeploymentTracker } from "./cicd/DeploymentTracker";
+import { PerformanceImpactAnalyzer } from "./cicd/PerformanceImpactAnalyzer";
+import { RollbackEngine } from "./cicd/RollbackEngine";
+import { CIPipelineMonitor } from "./cicd/CIPipelineMonitor";
+import { FeatureFlagManager } from "./cicd/FeatureFlagManager";
+import { ReleaseNotesGenerator } from "./cicd/ReleaseNotesGenerator";
 
 // Called when the extension is activated (e.g., when a command is executed)
 export async function activate(context: vscode.ExtensionContext) {
@@ -44,6 +50,15 @@ export async function activate(context: vscode.ExtensionContext) {
   const postMortemGenerator = new PostMortemGenerator(context, incidentManager, outputChannel);
   const onCallManager = new OnCallManager(context, outputChannel);
   const integrationManager = new IntegrationManager(context, outputChannel);
+
+  // Initialize CI/CD integration infrastructure
+  const cicdOutputChannel = vscode.window.createOutputChannel('Vitals CI/CD');
+  const deploymentTracker = new DeploymentTracker(context, cicdOutputChannel);
+  const performanceImpactAnalyzer = new PerformanceImpactAnalyzer(context, cicdOutputChannel);
+  const rollbackEngine = new RollbackEngine(context, cicdOutputChannel);
+  const ciPipelineMonitor = new CIPipelineMonitor(context, cicdOutputChannel);
+  const featureFlagManager = new FeatureFlagManager(context, cicdOutputChannel);
+  const releaseNotesGenerator = new ReleaseNotesGenerator(context, cicdOutputChannel);
 
   // Register CodeLens provider for all languages
   context.subscriptions.push(
@@ -938,6 +953,306 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  // Register CI/CD integration commands
+  const trackDeployment = vscode.commands.registerCommand(
+    'vitals.trackDeployment',
+    async () => {
+      const version = await vscode.window.showInputBox({
+        prompt: 'Deployment Version',
+        placeHolder: 'e.g., v1.2.3'
+      });
+      
+      if (!version) return;
+
+      const environment = await vscode.window.showQuickPick(
+        ['production', 'staging', 'development'],
+        { placeHolder: 'Select environment' }
+      );
+
+      if (!environment) return;
+
+      await deploymentTracker.registerDeployment({
+        version,
+        environment,
+        commitSha: 'HEAD',
+        commitMessage: 'Manual deployment',
+        author: 'current-user'
+      });
+    }
+  );
+
+  const viewDeployments = vscode.commands.registerCommand(
+    'vitals.viewDeployments',
+    async () => {
+      const deployments = deploymentTracker.listDeployments({ limit: 20 });
+      
+      const selected = await vscode.window.showQuickPick(
+        deployments.map(d => ({
+          label: `${d.version} (${d.environment})`,
+          description: `${d.status} - ${d.timestamp.toLocaleString()}`,
+          deployment: d
+        })),
+        { placeHolder: 'Select deployment to view details' }
+      );
+
+      if (selected) {
+        cicdOutputChannel.show();
+        cicdOutputChannel.appendLine(`\n=== Deployment Details ===`);
+        cicdOutputChannel.appendLine(`Version: ${selected.deployment.version}`);
+        cicdOutputChannel.appendLine(`Environment: ${selected.deployment.environment}`);
+        cicdOutputChannel.appendLine(`Status: ${selected.deployment.status}`);
+        cicdOutputChannel.appendLine(`Timestamp: ${selected.deployment.timestamp.toLocaleString()}`);
+        cicdOutputChannel.appendLine(`Commit: ${selected.deployment.commitSha}`);
+        cicdOutputChannel.appendLine(`Author: ${selected.deployment.author}`);
+      }
+    }
+  );
+
+  const analyzeDeploymentImpact = vscode.commands.registerCommand(
+    'vitals.analyzeDeploymentImpact',
+    async () => {
+      const deployments = deploymentTracker.listDeployments({ limit: 10 });
+      
+      const selected = await vscode.window.showQuickPick(
+        deployments.map(d => ({
+          label: d.version,
+          description: d.environment,
+          deployment: d
+        })),
+        { placeHolder: 'Select deployment to analyze' }
+      );
+
+      if (!selected) return;
+
+      await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: 'Analyzing deployment impact...',
+        cancellable: false
+      }, async (progress) => {
+        progress.report({ increment: 50 });
+        
+        // Mock metrics
+        const preMetrics = [
+          { metricName: 'response_time', timestamp: new Date(), value: 180 },
+          { metricName: 'error_rate', timestamp: new Date(), value: 0.025 }
+        ];
+        const postMetrics = [
+          { metricName: 'response_time', timestamp: new Date(), value: 165 },
+          { metricName: 'error_rate', timestamp: new Date(), value: 0.018 }
+        ];
+
+        const impacts = await performanceImpactAnalyzer.analyzeDeployment(
+          selected.deployment,
+          preMetrics,
+          postMetrics
+        );
+
+        progress.report({ increment: 100 });
+
+        cicdOutputChannel.show();
+        cicdOutputChannel.appendLine(`\n=== Performance Impact Analysis ===`);
+        impacts.forEach(impact => {
+          cicdOutputChannel.appendLine(`${impact.metricName}: ${impact.details}`);
+        });
+      });
+    }
+  );
+
+  const rollbackDeployment = vscode.commands.registerCommand(
+    'vitals.rollbackDeployment',
+    async () => {
+      const deployments = deploymentTracker.listDeployments({ limit: 5 });
+      
+      const selected = await vscode.window.showQuickPick(
+        deployments.map(d => ({
+          label: `Rollback from ${d.version}`,
+          description: d.environment,
+          deployment: d
+        })),
+        { placeHolder: 'Select deployment to rollback' }
+      );
+
+      if (!selected) return;
+
+      const targetVersion = await vscode.window.showInputBox({
+        prompt: 'Target version to rollback to',
+        placeHolder: 'e.g., v1.2.2'
+      });
+
+      if (!targetVersion) return;
+
+      const result = await rollbackEngine.executeRollback(
+        selected.deployment,
+        targetVersion
+      );
+
+      if (result.success) {
+        vscode.window.showInformationMessage(result.message);
+      }
+    }
+  );
+
+  const viewBuildTrends = vscode.commands.registerCommand(
+    'vitals.viewBuildTrends',
+    async () => {
+      const repository = await vscode.window.showInputBox({
+        prompt: 'Repository name',
+        placeHolder: 'e.g., myorg/myrepo'
+      });
+
+      if (!repository) return;
+
+      const branch = await vscode.window.showInputBox({
+        prompt: 'Branch name',
+        placeHolder: 'e.g., main',
+        value: 'main'
+      });
+
+      if (!branch) return;
+
+      const trends = ciPipelineMonitor.analyzeBuildTrends(repository, branch);
+      
+      cicdOutputChannel.show();
+      cicdOutputChannel.appendLine(`\n=== Build Trends: ${repository}/${branch} ===`);
+      cicdOutputChannel.appendLine(`Average Duration: ${(trends.averageDuration / 1000).toFixed(1)}s`);
+      cicdOutputChannel.appendLine(`Trend: ${trends.trendDirection}`);
+      cicdOutputChannel.appendLine(`\nSlowest Stages:`);
+      trends.slowestStages.forEach((stage, i) => {
+        cicdOutputChannel.appendLine(`${i + 1}. ${stage.name}: ${(stage.averageDuration / 1000).toFixed(1)}s`);
+      });
+      cicdOutputChannel.appendLine(`\nRecommendations:`);
+      trends.recommendations.forEach(rec => {
+        cicdOutputChannel.appendLine(`- ${rec}`);
+      });
+    }
+  );
+
+  const viewFlakyTests = vscode.commands.registerCommand(
+    'vitals.viewFlakyTests',
+    async () => {
+      const flakyTests = ciPipelineMonitor.getFlakyTests();
+      
+      if (flakyTests.length === 0) {
+        vscode.window.showInformationMessage('No flaky tests detected');
+        return;
+      }
+
+      cicdOutputChannel.show();
+      cicdOutputChannel.appendLine(`\n=== Flaky Tests Report ===`);
+      cicdOutputChannel.appendLine(`Found ${flakyTests.length} flaky test(s)\n`);
+      
+      flakyTests.forEach((test, i) => {
+        cicdOutputChannel.appendLine(`${i + 1}. ${test.testName}`);
+        cicdOutputChannel.appendLine(`   Failure Rate: ${(test.failureRate * 100).toFixed(1)}%`);
+        cicdOutputChannel.appendLine(`   Total Runs: ${test.totalRuns}`);
+        cicdOutputChannel.appendLine(`   Recommendation: ${test.recommendedAction}\n`);
+      });
+    }
+  );
+
+  const connectFeatureFlagProvider = vscode.commands.registerCommand(
+    'vitals.connectFeatureFlagProvider',
+    async () => {
+      const provider = await vscode.window.showQuickPick(
+        ['LaunchDarkly', 'Split.io', 'Unleash'],
+        { placeHolder: 'Select feature flag provider' }
+      );
+
+      if (!provider) return;
+
+      const apiKey = await vscode.window.showInputBox({
+        prompt: 'API Key',
+        password: true
+      });
+
+      if (!apiKey) return;
+
+      const providerMap: Record<string, any> = {
+        'LaunchDarkly': 'launchdarkly',
+        'Split.io': 'splitio',
+        'Unleash': 'unleash'
+      };
+
+      await featureFlagManager.connectProvider(providerMap[provider], { apiKey });
+    }
+  );
+
+  const analyzeFlagImpact = vscode.commands.registerCommand(
+    'vitals.analyzeFlagImpact',
+    async () => {
+      const flags = featureFlagManager.listFlags();
+      
+      if (flags.length === 0) {
+        vscode.window.showInformationMessage('No feature flags found. Connect a provider first.');
+        return;
+      }
+
+      const selected = await vscode.window.showQuickPick(
+        flags.map(f => ({
+          label: f.name,
+          description: `${f.rolloutPercentage}% rollout`,
+          flag: f
+        })),
+        { placeHolder: 'Select feature flag to analyze' }
+      );
+
+      if (!selected) return;
+
+      const analysis = await featureFlagManager.analyzeFlagImpact(selected.flag.key);
+      
+      if (analysis) {
+        cicdOutputChannel.show();
+        cicdOutputChannel.appendLine(`\n=== Flag Impact Analysis: ${selected.flag.key} ===`);
+        cicdOutputChannel.appendLine(`Rollout: ${selected.flag.rolloutPercentage}%`);
+        cicdOutputChannel.appendLine(`Affected Users: ${analysis.userImpact.affectedUsers.toLocaleString()}`);
+        cicdOutputChannel.appendLine(`Recommendation: ${analysis.recommendation}`);
+      }
+    }
+  );
+
+  const generateReleaseNotes = vscode.commands.registerCommand(
+    'vitals.generateReleaseNotes',
+    async () => {
+      const deployments = deploymentTracker.listDeployments({ limit: 10 });
+      
+      const selected = await vscode.window.showQuickPick(
+        deployments.map(d => ({
+          label: d.version,
+          description: `${d.environment} - ${d.timestamp.toLocaleString()}`,
+          deployment: d
+        })),
+        { placeHolder: 'Select deployment for release notes' }
+      );
+
+      if (!selected) return;
+
+      await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: 'Generating release notes...',
+        cancellable: false
+      }, async (progress) => {
+        progress.report({ increment: 50 });
+        
+        const allDeployments = deploymentTracker.listDeployments();
+        const previousDeployment = allDeployments.find(
+          d => d.environment === selected.deployment.environment && 
+               d.timestamp < selected.deployment.timestamp
+        );
+
+        const releaseNotes = await releaseNotesGenerator.generateReleaseNotes(
+          selected.deployment,
+          previousDeployment
+        );
+
+        progress.report({ increment: 100 });
+
+        vscode.window.showInformationMessage(
+          'Release notes generated and opened in editor'
+        );
+      });
+    }
+  );
+
   // Add the commands to the extension's context subscriptions
   context.subscriptions.push(
     openDashboard, 
@@ -962,6 +1277,15 @@ export async function activate(context: vscode.ExtensionContext) {
     configureIntegration,
     addIncidentAnnotation,
     addIncidentHypothesis,
+    trackDeployment,
+    viewDeployments,
+    analyzeDeploymentImpact,
+    rollbackDeployment,
+    viewBuildTrends,
+    viewFlakyTests,
+    connectFeatureFlagProvider,
+    analyzeFlagImpact,
+    generateReleaseNotes,
     onCallManager,
     outputChannel
   );
