@@ -16,9 +16,7 @@ Comprehensive collaborative incident management directly in VS Code. Detect, tra
 - **Team Collaboration** - Multi-user incident coordination
 - **Metrics & Analytics** - MTTD, MTTA, MTTI, MTTR tracking
 
-[📚 Complete Incident Management Guide](incident_management.md)
-
----
+[Complete Incident Management Guide](incident_management.md)
 
 ## CI/CD Integration & Deployment Intelligence
 
@@ -34,9 +32,7 @@ Track deployment impact with statistical performance analysis, intelligent rollb
 - **Release Notes Generation** - Auto-generate markdown from commits
 - **SLO Compliance Tracking** - Pre/post deployment SLI monitoring
 
-[📚 Complete CI/CD Integration Guide](cicd_integration.md)
-
----
+[Complete CI/CD Integration Guide](cicd_integration.md)
 
 ## Custom Metrics Dashboard
 
@@ -73,8 +69,6 @@ You can define custom queries in your VS Code `settings.json` file under `vitals
 2. Open the Vitals Dashboard.
 3. A new **Custom Metrics** section will automatically appear, displaying a real-time chart for each defined query.
 4. Charts auto-refresh every 5 seconds.
-
----
 
 ## Alertmanager Integration
 

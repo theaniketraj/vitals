@@ -227,8 +227,14 @@ export default withMermaid(
       siteTitle: "Vitals",
 
       nav: [
-        { text: "Guide", link: "/getting_started" },
-        { text: "Architecture", link: "/system_architecture" },
+        {
+          text: "Features",
+          items: [
+            { text: "Incident Management", link: "/incident_management" },
+            { text: "CI/CD Integration", link: "/cicd_integration" },
+            { text: "Premium Features", link: "/premium_features" },
+          ],
+        },
         { text: "API", link: "/api" },
         {
           text: "v0.3.0",
