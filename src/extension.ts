@@ -13,6 +13,12 @@ import {
   VisualizationGenerator,
   Trace,
 } from "./tracing";
+import { IncidentManager } from "./incidents/IncidentManager";
+import { RunbookEngine } from "./incidents/RunbookEngine";
+import { PostMortemGenerator } from "./incidents/PostMortemGenerator";
+import { OnCallManager } from "./incidents/OnCallManager";
+import { IntegrationManager } from "./incidents/IntegrationManager";
+import { IncidentStatus } from "./incidents/types";
 
 // Called when the extension is activated (e.g., when a command is executed)
 export async function activate(context: vscode.ExtensionContext) {
@@ -30,6 +36,14 @@ export async function activate(context: vscode.ExtensionContext) {
   const profiler = new PerformanceProfiler();
   const codeLensProvider = new PerformanceCodeLensProvider(traceManager, profiler);
   const visualizationGenerator = new VisualizationGenerator();
+
+  // Initialize incident management infrastructure
+  const outputChannel = vscode.window.createOutputChannel('Vitals Incidents');
+  const incidentManager = new IncidentManager(context, outputChannel);
+  const runbookEngine = new RunbookEngine(context, outputChannel);
+  const postMortemGenerator = new PostMortemGenerator(context, incidentManager, outputChannel);
+  const onCallManager = new OnCallManager(context, outputChannel);
+  const integrationManager = new IntegrationManager(context, outputChannel);
 
   // Register CodeLens provider for all languages
   context.subscriptions.push(
@@ -670,9 +684,257 @@ export async function activate(context: vscode.ExtensionContext) {
             outputChannel.show();
           }
         });
-      } catch (error: any) {
-        vscode.window.showErrorMessage(`Error detecting regressions: ${error.message}`);
+      } catch (error) {
+        vscode.window.showErrorMessage(`Failed to detect regressions: ${error}`);
       }
+    }
+  );
+
+  // Register incident management commands
+  const createIncident = vscode.commands.registerCommand(
+    'vitals.createIncident',
+    async () => {
+      const title = await vscode.window.showInputBox({
+        prompt: 'Incident Title',
+        placeHolder: 'Brief description of the incident'
+      });
+      
+      if (!title) return;
+
+      const description = await vscode.window.showInputBox({
+        prompt: 'Incident Description',
+        placeHolder: 'Detailed description'
+      });
+
+      if (!description) return;
+
+      const incident = await incidentManager.createIncident({
+        title,
+        description,
+        source: 'manual'
+      });
+
+      await integrationManager.notifyIncident(incident);
+      
+      vscode.window.showInformationMessage(`Incident ${incident.id} created`);
+    }
+  );
+
+  const showIncident = vscode.commands.registerCommand(
+    'vitals.showIncident',
+    async (incidentId?: string) => {
+      if (!incidentId) {
+        const incidents = incidentManager.listIncidents();
+        const selected = await vscode.window.showQuickPick(
+          incidents.map(i => ({
+            label: i.title,
+            description: i.severity,
+            detail: `Status: ${i.status} | ${i.detectedAt.toLocaleString()}`,
+            id: i.id
+          }))
+        );
+
+        if (!selected) return;
+        incidentId = selected.id;
+      }
+
+      const incident = incidentManager.getIncident(incidentId);
+      if (!incident) {
+        vscode.window.showErrorMessage('Incident not found');
+        return;
+      }
+
+      // Show incident details in webview
+      const panel = vscode.window.createWebviewPanel(
+        'incidentDetails',
+        `Incident: ${incident.title}`,
+        vscode.ViewColumn.One,
+        { enableScripts: true }
+      );
+
+      panel.webview.html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: var(--vscode-font-family); padding: 20px; }
+            .header { border-bottom: 2px solid var(--vscode-panel-border); padding-bottom: 10px; }
+            .severity { padding: 5px 10px; border-radius: 3px; display: inline-block; }
+            .critical { background: #ff0000; color: white; }
+            .high { background: #ff6600; color: white; }
+            .medium { background: #ffcc00; }
+            .low { background: #00cc00; }
+            .timeline { margin-top: 20px; }
+            .timeline-entry { margin: 10px 0; padding: 10px; background: var(--vscode-editor-background); }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>${incident.title}</h1>
+            <p><span class="severity ${incident.severity}">${incident.severity.toUpperCase()}</span></p>
+            <p><strong>ID:</strong> ${incident.id}</p>
+            <p><strong>Status:</strong> ${incident.status}</p>
+            <p><strong>Detected:</strong> ${incident.detectedAt.toLocaleString()}</p>
+            ${incident.resolvedAt ? `<p><strong>Resolved:</strong> ${incident.resolvedAt.toLocaleString()}</p>` : ''}
+          </div>
+          
+          <div class="description">
+            <h2>Description</h2>
+            <p>${incident.description}</p>
+          </div>
+
+          <div class="timeline">
+            <h2>Timeline</h2>
+            ${incident.timeline.map(entry => `
+              <div class="timeline-entry">
+                <strong>${entry.timestamp.toLocaleTimeString()}</strong> - ${entry.description}
+                <br><small>${entry.actor}</small>
+              </div>
+            `).join('')}
+          </div>
+
+          ${incident.hypothesis.length > 0 ? `
+            <div class="hypothesis">
+              <h2>Hypotheses</h2>
+              ${incident.hypothesis.map(h => `
+                <div class="timeline-entry">
+                  <strong>${h.hypothesis}</strong> - ${h.result}
+                  ${h.evidence ? `<br><small>Evidence: ${h.evidence}</small>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </body>
+        </html>
+      `;
+    }
+  );
+
+  const executeRunbook = vscode.commands.registerCommand(
+    'vitals.executeRunbook',
+    async () => {
+      const runbooks = runbookEngine.listRunbooks();
+      const selected = await vscode.window.showQuickPick(
+        runbooks.map(r => ({
+          label: r.name,
+          description: r.description,
+          detail: `Steps: ${r.steps.length}`,
+          id: r.id
+        }))
+      );
+
+      if (!selected) return;
+
+      const execution = await runbookEngine.executeRunbook(selected.id);
+      vscode.window.showInformationMessage(`Executing runbook: ${selected.label}`);
+
+      // Monitor execution
+      const interval = setInterval(async () => {
+        const status = runbookEngine.getExecution(execution.id);
+        if (status && (status.status === 'completed' || status.status === 'failed')) {
+          clearInterval(interval);
+          vscode.window.showInformationMessage(
+            `Runbook ${status.status}: ${selected.label}`
+          );
+        }
+      }, 2000);
+    }
+  );
+
+  const generatePostMortem = vscode.commands.registerCommand(
+    'vitals.generatePostMortem',
+    async (incidentId?: string) => {
+      if (!incidentId) {
+        const incidents = incidentManager.listIncidents({ status: IncidentStatus.Resolved });
+        const selected = await vscode.window.showQuickPick(
+          incidents.map(i => ({
+            label: i.title,
+            description: i.id,
+            id: i.id
+          }))
+        );
+
+        if (!selected) return;
+        incidentId = selected.id;
+      }
+
+      await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: 'Generating post-mortem...',
+        cancellable: false
+      }, async () => {
+        await postMortemGenerator.generatePostMortem(incidentId!);
+      });
+
+      vscode.window.showInformationMessage('Post-mortem generated and opened');
+    }
+  );
+
+  const showOnCallSchedule = vscode.commands.registerCommand(
+    'vitals.showOnCallSchedule',
+    async () => {
+      await onCallManager.showSchedule();
+    }
+  );
+
+  const configureIntegration = vscode.commands.registerCommand(
+    'vitals.configureIntegration',
+    async () => {
+      const service = await vscode.window.showQuickPick([
+        { label: 'PagerDuty', value: 'pagerduty' },
+        { label: 'Opsgenie', value: 'opsgenie' },
+        { label: 'Slack', value: 'slack' },
+        { label: 'Microsoft Teams', value: 'teams' }
+      ], {
+        placeHolder: 'Select integration to configure'
+      });
+
+      if (!service) return;
+
+      await integrationManager.configureIntegration(service.value as any);
+      vscode.window.showInformationMessage(`${service.label} configured successfully`);
+    }
+  );
+
+  const addIncidentAnnotation = vscode.commands.registerCommand(
+    'vitals.addIncidentAnnotation',
+    async () => {
+      const activeIncident = incidentManager.getActiveIncident();
+      if (!activeIncident) {
+        vscode.window.showWarningMessage('No active incident');
+        return;
+      }
+
+      const annotation = await vscode.window.showInputBox({
+        prompt: 'Add annotation to incident',
+        placeHolder: 'What did you observe or try?'
+      });
+
+      if (!annotation) return;
+
+      await incidentManager.addAnnotation(activeIncident.id, annotation);
+      vscode.window.showInformationMessage('Annotation added');
+    }
+  );
+
+  const addIncidentHypothesis = vscode.commands.registerCommand(
+    'vitals.addIncidentHypothesis',
+    async () => {
+      const activeIncident = incidentManager.getActiveIncident();
+      if (!activeIncident) {
+        vscode.window.showWarningMessage('No active incident');
+        return;
+      }
+
+      const hypothesis = await vscode.window.showInputBox({
+        prompt: 'Add hypothesis',
+        placeHolder: 'What do you think is causing this?'
+      });
+
+      if (!hypothesis) return;
+
+      await incidentManager.addHypothesis(activeIncident.id, hypothesis);
+      vscode.window.showInformationMessage('Hypothesis added');
     }
   );
 
@@ -691,13 +953,24 @@ export async function activate(context: vscode.ExtensionContext) {
     viewServiceMap,
     analyzePerformance,
     showPerformanceDetails,
-    detectRegressions
+    detectRegressions,
+    createIncident,
+    showIncident,
+    executeRunbook,
+    generatePostMortem,
+    showOnCallSchedule,
+    configureIntegration,
+    addIncidentAnnotation,
+    addIncidentHypothesis,
+    onCallManager,
+    outputChannel
   );
 
-  console.log('✅ Commands registered successfully');
+  console.log('✅ Vitals extension activated successfully');
 }
 
 // Called when the extension is deactivated
 export function deactivate() {
   console.log("Vitals extension deactivated");
 }
+

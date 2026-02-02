@@ -98,6 +98,54 @@
         "title": "Detect Performance Regressions",
         "category": "Vitals",
         "icon": "$(warning)"
+      },
+      {
+        "command": "vitals.createIncident",
+        "title": "Create Incident",
+        "category": "Vitals",
+        "icon": "$(alert)"
+      },
+      {
+        "command": "vitals.showIncident",
+        "title": "Show Incident Details",
+        "category": "Vitals",
+        "icon": "$(info)"
+      },
+      {
+        "command": "vitals.executeRunbook",
+        "title": "Execute Runbook",
+        "category": "Vitals",
+        "icon": "$(play)"
+      },
+      {
+        "command": "vitals.generatePostMortem",
+        "title": "Generate Post-Mortem",
+        "category": "Vitals",
+        "icon": "$(note)"
+      },
+      {
+        "command": "vitals.showOnCallSchedule",
+        "title": "Show On-Call Schedule",
+        "category": "Vitals",
+        "icon": "$(calendar)"
+      },
+      {
+        "command": "vitals.configureIntegration",
+        "title": "Configure Incident Integration",
+        "category": "Vitals",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "vitals.addIncidentAnnotation",
+        "title": "Add Incident Annotation",
+        "category": "Vitals",
+        "icon": "$(comment)"
+      },
+      {
+        "command": "vitals.addIncidentHypothesis",
+        "title": "Add Incident Hypothesis",
+        "category": "Vitals",
+        "icon": "$(lightbulb)"
       }
     ],
     "viewsContainers": {
@@ -190,6 +238,54 @@
           "type": "number",
           "default": 1000,
           "description": "Alert when monthly costs exceed this amount (USD)"
+        },
+        "vitals.incidentIntegrations": {
+          "type": "object",
+          "default": {},
+          "description": "Configuration for incident management integrations",
+          "properties": {
+            "pagerduty": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "serviceId": { "type": "string" }
+              }
+            },
+            "slack": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "channel": { "type": "string" }
+              }
+            },
+            "teams": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" }
+              }
+            }
+          }
+        },
+        "vitals.enableIncidentManagement": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable incident management features"
+        },
+        "vitals.runbookAutoExecute": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically execute runbooks when incidents are detected"
+        },
+        "vitals.postMortemTemplate": {
+          "type": "string",
+          "enum": ["standard", "detailed", "minimal"],
+          "default": "standard",
+          "description": "Post-mortem document template style"
+        },
+        "vitals.onCallNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show VS Code notifications when on-call"
         },
         "vitals.traceProvider": {
           "type": "string",

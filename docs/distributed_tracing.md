@@ -484,7 +484,3 @@ The tracing feature has minimal impact on your development workflow:
 - **Documentation**: [Full Guide](https://theaniketraj.github.io/vitals/)
 - **Issues**: [GitHub Issues](https://github.com/theaniketraj/vitals/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/theaniketraj/vitals/discussions)
-
----
-
-Built with ❤️ for developers who care about performance.

@@ -101,13 +101,13 @@ Your AWS credentials need these permissions:
 
 AWS CloudWatch uses this query format:
 
-```
+```text
 Namespace:MetricName{Dimension1=Value1,Dimension2=Value2}
 ```
 
 Example:
 
-```
+```text
 AWS/EC2:CPUUtilization{InstanceId=i-1234567890abcdef0}
 ```
 
