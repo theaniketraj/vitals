@@ -11,7 +11,9 @@
 
       <div class="benefits-grid">
         <div class="benefit-card">
-          <div class="benefit-icon gradient-blue">⚡</div>
+          <div class="benefit-icon gradient-blue">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
           <h3>Debug Faster</h3>
           <p>
             See real-time latency and error rates right in CodeLens. Fix issues
@@ -19,7 +21,9 @@
           </p>
         </div>
         <div class="benefit-card">
-          <div class="benefit-icon gradient-purple">🔒</div>
+          <div class="benefit-icon gradient-purple">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
           <h3>Private & Secure</h3>
           <p>
             Direct connection to your infrastructure. No data leaves your
@@ -27,7 +31,9 @@
           </p>
         </div>
         <div class="benefit-card">
-          <div class="benefit-icon gradient-green">🚀</div>
+          <div class="benefit-icon gradient-green">
+            <i class="fa-solid fa-rocket"></i>
+          </div>
           <h3>Ship Confidently</h3>
           <p>
             Automated regression detection on every deploy. Statistical analysis
@@ -45,12 +51,18 @@
           <h2>Live Dashboard in Your Editor</h2>
           <p>
             Query Prometheus with custom PromQL. Visualize CPU, memory, request
-            rates—all without leaving VS Code.
+            rates. All without leaving VS Code.
           </p>
           <ul class="feature-list">
-            <li><i class="check">✓</i> Auto-refresh every 5s</li>
-            <li><i class="check">✓</i> Custom metric templates</li>
-            <li><i class="check">✓</i> Historical trend analysis</li>
+            <li>
+              <i class="fa-solid fa-check check"></i> Auto-refresh every 5s
+            </li>
+            <li>
+              <i class="fa-solid fa-check check"></i> Custom metric templates
+            </li>
+            <li>
+              <i class="fa-solid fa-check check"></i> Historical trend analysis
+            </li>
           </ul>
         </div>
         <div class="split-visual">
@@ -59,7 +71,6 @@
               <span class="dot red"></span>
               <span class="dot yellow"></span>
               <span class="dot green"></span>
-              <span class="card-title">Vitals Dashboard</span>
             </div>
             <div class="card-body">
               <div class="metric-row">
@@ -113,9 +124,16 @@
             <span class="period">/month</span>
           </div>
           <ul class="features">
-            <li><i class="icon-check">✓</i> Unlimited Metrics & Logs</li>
-            <li><i class="icon-check">✓</i> Basic Dashboards</li>
-            <li><i class="icon-check">✓</i> Community Support</li>
+            <li>
+              <i class="fa-solid fa-check icon-check"></i> Unlimited Metrics &
+              Logs
+            </li>
+            <li>
+              <i class="fa-solid fa-check icon-check"></i> Basic Dashboards
+            </li>
+            <li>
+              <i class="fa-solid fa-check icon-check"></i> Community Support
+            </li>
           </ul>
           <a href="/getting_started" class="btn btn-secondary">Get Started</a>
         </div>
@@ -128,10 +146,21 @@
             <span class="period">/user/mo</span>
           </div>
           <ul class="features">
-            <li><i class="icon-check">✓</i> Everything in Community</li>
-            <li><i class="icon-check">✓</i> Collaborative Incidents</li>
-            <li><i class="icon-check">✓</i> CI/CD Regression Analysis</li>
-            <li><i class="icon-check">✓</i> AI Post-Mortems</li>
+            <li>
+              <i class="fa-solid fa-check icon-check"></i> Everything in
+              Community
+            </li>
+            <li>
+              <i class="fa-solid fa-check icon-check"></i> Collaborative
+              Incidents
+            </li>
+            <li>
+              <i class="fa-solid fa-check icon-check"></i> CI/CD Regression
+              Analysis
+            </li>
+            <li>
+              <i class="fa-solid fa-check icon-check"></i> AI Post-Mortems
+            </li>
           </ul>
           <a href="#" class="btn btn-primary">Start Free Trial</a>
         </div>
@@ -142,10 +171,16 @@
             <span class="amount">Custom</span>
           </div>
           <ul class="features">
-            <li><i class="icon-check">✓</i> Everything in Pro</li>
-            <li><i class="icon-check">✓</i> SSO & SAML</li>
-            <li><i class="icon-check">✓</i> Priority Support</li>
-            <li><i class="icon-check">✓</i> On-Premise Options</li>
+            <li>
+              <i class="fa-solid fa-check icon-check"></i> Everything in Pro
+            </li>
+            <li><i class="fa-solid fa-check icon-check"></i> SSO & SAML</li>
+            <li>
+              <i class="fa-solid fa-check icon-check"></i> Priority Support
+            </li>
+            <li>
+              <i class="fa-solid fa-check icon-check"></i> On-Premise Options
+            </li>
           </ul>
           <a href="mailto:contact@vitals.dev" class="btn btn-secondary"
             >Contact Sales</a

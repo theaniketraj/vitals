@@ -43,32 +43,32 @@ hero:
 features:
   - title: Premium Glassmorphic UI
     details: A completely redesigned dashboard with smooth particle animations, gradients, and a modern aesthetic that fits perfectly into your workflow.
-    icon: ✨
+    icon: <i class="fa-solid fa-wand-magic-sparkles"></i>
   - title: Custom Metrics
     details: Define your own PromQL queries to track exactly what matters. CPU, Memory, Request Rates—visualize it all in real-time.
-    icon: 📈
+    icon: <i class="fa-solid fa-chart-line"></i>
   - title: Incident Management
     details: Collaborative debugging workflows with runbook automation, hypothesis tracking, and AI-powered post-mortems—all within VS Code.
-    icon: 🚨
+    icon: <i class="fa-solid fa-triangle-exclamation"></i>
   - title: CI/CD Intelligence
     details: Track deployments, analyze performance impact with statistical testing, and get intelligent rollback recommendations automatically.
-    icon: 🚀
+    icon: <i class="fa-solid fa-rocket"></i>
   - title: Alert Management
     details: View active alerts from Alertmanager and create silences instantly without leaving your code editor.
-    icon: 🔔
+    icon: <i class="fa-solid fa-bell"></i>
   - title: Live Log Streaming
     details: Stream logs from Grafana Loki with automatic syntax highlighting. Filter by job, level, or search terms.
-    icon: 📜
+    icon: <i class="fa-solid fa-scroll"></i>
   - title: Feature Flag Integration
     details: Connect to LaunchDarkly, Split.io, or Unleash. Correlate flag changes with metric impacts and identify problematic rollouts.
-    icon: 🚩
+    icon: <i class="fa-solid fa-flag"></i>
   - title: Distributed Tracing
     details: Search traces, visualize service dependencies, and detect performance regressions across your microservices architecture.
-    icon: 🔍
+    icon: <i class="fa-solid fa-magnifying-glass"></i>
   - title: Zero-Config Demo
     details: Comes with a built-in demo mode. See the particle reveal and graphs in action instantly, no server required.
-    icon: ⚡
+    icon: <i class="fa-solid fa-bolt"></i>
   - title: Privacy First
     details: 100% Open Source. Vitals connects directly to your infrastructure. Your data never leaves your machine.
-    icon: 🔒
+    icon: <i class="fa-solid fa-lock"></i>
 ---

@@ -27,6 +27,7 @@ export default withMermaid(
 
     head: [
       ["link", { rel: "icon", href: "/vitals/icon.png" }],
+      ["link", { rel: "stylesheet", href: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" }],
       ["meta", { name: "theme-color", content: "#3b82f6" }],
       ["meta", { name: "author", content: "Aniket Raj" }],
       [
