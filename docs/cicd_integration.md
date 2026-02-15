@@ -139,7 +139,7 @@ const compliance = await analyzer.checkSLOCompliance(deployment, slos);
 
 **Output:**
 
-```etext
+```text
 ✅ API Availability: 99.95% (target: 99.9%)
 ✅ Request Latency: 99.7% (target: 99.5%)
    Error Budget: 0.2% remaining
@@ -523,20 +523,20 @@ graph TD
 
 2. **Vitals detects deployment**
 
-   ```etext
+   ```text
    ✅ Detected deployment: v1.2.3 (abc1234)
    📊 Capturing baseline metrics...
    ```
 
 3. **Deployment completes**
 
-   ```etext
+   ```text
    CI/CD pipeline: ✅ Success (4m 32s)
    ```
 
 4. **Vitals analyzes impact**
 
-   ```etext
+   ```text
    📈 Analyzing deployment impact...
 
    response_time: -8.3% (180ms → 165ms)
@@ -550,7 +550,7 @@ graph TD
 
 5. **SLO validation**
 
-   ```etext
+   ```text
    🎯 SLO Compliance Check
    ✅ API Availability: 99.95% (target: 99.9%)
    ✅ Request Latency: 99.7% (target: 99.5%)
@@ -558,7 +558,7 @@ graph TD
 
 6. **Release notes generated**
 
-   ```etext
+   ```text
    📝 Generating release notes...
    ✅ Release notes saved: release-notes/v1.2.3_production.md
    ```

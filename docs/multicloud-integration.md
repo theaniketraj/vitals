@@ -193,7 +193,7 @@ Add to your VS Code `settings.json`:
 
 ## Architecture
 
-```pgsql
+```bash
 ┌────────────────────────────────────────────────┐
 │           VS Code Extension (Vitals)           │
 ├────────────────────────────────────────────────┤

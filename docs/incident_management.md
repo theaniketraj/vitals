@@ -137,7 +137,7 @@ Steps:
 
 When you're on-call, see a badge in VS Code's status bar:
 
-```etext
+```text
 🚨 On-Call
 ```
 

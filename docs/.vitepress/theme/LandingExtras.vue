@@ -1,54 +1,38 @@
 <template>
   <div class="landing-extras">
-    
-    <!-- Trusted By Section -->
-    <section class="trusted-section">
-      <p class="section-label">TRUSTED BY TEAMS USING</p>
-      <div class="tech-logos">
-        <div class="tech-item">
-          <i class="icon">🔥</i>
-          <span>Prometheus</span>
-        </div>
-        <div class="tech-item">
-          <i class="icon">📊</i>
-          <span>Grafana</span>
-        </div>
-        <div class="tech-item">
-          <i class="icon">🐳</i>
-          <span>Docker</span>
-        </div>
-        <div class="tech-item">
-          <i class="icon">☸️</i>
-          <span>Kubernetes</span>
-        </div>
-        <div class="tech-item">
-          <i class="icon">☁️</i>
-          <span>AWS</span>
-        </div>
-      </div>
-    </section>
-
     <!-- Why Vitals Section -->
     <section class="why-section">
       <div class="badge">Why Vitals?</div>
       <h2>Stop Paying the Context Switch Tax</h2>
-      <p class="subtitle">Every Alt+Tab to check metrics breaks your flow. Vitals brings production insights to where you write code.</p>
-      
+      <p class="subtitle">
+        Every Alt+Tab to check metrics breaks your flow. Vitals brings
+        production insights to where you write code.
+      </p>
+
       <div class="benefits-grid">
         <div class="benefit-card">
           <div class="benefit-icon gradient-blue">⚡</div>
           <h3>Debug Faster</h3>
-          <p>See real-time latency and error rates right in CodeLens. Fix issues before they escalate.</p>
+          <p>
+            See real-time latency and error rates right in CodeLens. Fix issues
+            before they escalate.
+          </p>
         </div>
         <div class="benefit-card">
           <div class="benefit-icon gradient-purple">🔒</div>
           <h3>Private & Secure</h3>
-          <p>Direct connection to your infrastructure. No data leaves your network. Zero compliance risk.</p>
+          <p>
+            Direct connection to your infrastructure. No data leaves your
+            network. Zero compliance risk.
+          </p>
         </div>
         <div class="benefit-card">
           <div class="benefit-icon gradient-green">🚀</div>
           <h3>Ship Confidently</h3>
-          <p>Automated regression detection on every deploy. Statistical analysis tells you when to rollback.</p>
+          <p>
+            Automated regression detection on every deploy. Statistical analysis
+            tells you when to rollback.
+          </p>
         </div>
       </div>
     </section>
@@ -59,7 +43,10 @@
         <div class="split-text">
           <div class="badge">Real-Time Metrics</div>
           <h2>Live Dashboard in Your Editor</h2>
-          <p>Query Prometheus with custom PromQL. Visualize CPU, memory, request rates—all without leaving VS Code.</p>
+          <p>
+            Query Prometheus with custom PromQL. Visualize CPU, memory, request
+            rates—all without leaving VS Code.
+          </p>
           <ul class="feature-list">
             <li><i class="check">✓</i> Auto-refresh every 5s</li>
             <li><i class="check">✓</i> Custom metric templates</li>
@@ -78,21 +65,30 @@
               <div class="metric-row">
                 <span class="metric-label">CPU Usage</span>
                 <div class="metric-bar">
-                  <div class="bar-fill" style="width: 45%; background: #3b82f6;"></div>
+                  <div
+                    class="bar-fill"
+                    style="width: 45%; background: #3b82f6"
+                  ></div>
                 </div>
                 <span class="metric-value">45%</span>
               </div>
               <div class="metric-row">
                 <span class="metric-label">Memory</span>
                 <div class="metric-bar">
-                  <div class="bar-fill" style="width: 72%; background: #f59e0b;"></div>
+                  <div
+                    class="bar-fill"
+                    style="width: 72%; background: #f59e0b"
+                  ></div>
                 </div>
                 <span class="metric-value">72%</span>
               </div>
               <div class="metric-row">
                 <span class="metric-label">Error Rate</span>
                 <div class="metric-bar">
-                  <div class="bar-fill" style="width: 3%; background: #10b981;"></div>
+                  <div
+                    class="bar-fill"
+                    style="width: 3%; background: #10b981"
+                  ></div>
                 </div>
                 <span class="metric-value">0.1%</span>
               </div>
@@ -108,7 +104,7 @@
         <h2>Simple, Transparent Pricing</h2>
         <p>Start monitoring for free. Scale when you need to.</p>
       </div>
-      
+
       <div class="pricing-grid">
         <div class="price-card">
           <h3>Community</h3>
@@ -151,7 +147,9 @@
             <li><i class="icon-check">✓</i> Priority Support</li>
             <li><i class="icon-check">✓</i> On-Premise Options</li>
           </ul>
-          <a href="mailto:contact@vitals.dev" class="btn btn-secondary">Contact Sales</a>
+          <a href="mailto:contact@vitals.dev" class="btn btn-secondary"
+            >Contact Sales</a
+          >
         </div>
       </div>
     </section>
@@ -161,7 +159,10 @@
       <h2>Ready to Transform Your Workflow?</h2>
       <p>Join developers who've eliminated context switching forever.</p>
       <div class="cta-buttons">
-        <a href="https://marketplace.visualstudio.com/items?itemName=theaniketraj.vitals" class="btn btn-primary btn-large">
+        <a
+          href="https://marketplace.visualstudio.com/items?itemName=theaniketraj.vitals"
+          class="btn btn-primary btn-large"
+        >
           Install Now — It's Free
         </a>
         <a href="/getting_started" class="btn btn-secondary btn-large">
@@ -169,7 +170,6 @@
         </a>
       </div>
     </section>
-
   </div>
 </template>
 
@@ -383,9 +383,15 @@
   border-radius: 50%;
 }
 
-.dot.red { background: #ef4444; }
-.dot.yellow { background: #f59e0b; }
-.dot.green { background: #10b981; }
+.dot.red {
+  background: #ef4444;
+}
+.dot.yellow {
+  background: #f59e0b;
+}
+.dot.green {
+  background: #10b981;
+}
 
 .card-title {
   margin-left: auto;
