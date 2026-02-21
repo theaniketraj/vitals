@@ -173,7 +173,7 @@ export default withMermaid(
                 },
                 "downloadUrl": "https://marketplace.visualstudio.com/items?itemName=theaniketraj.vitals",
                 "screenshot": "https://theaniketraj.github.io/vitals/icon.png",
-                "softwareVersion": "0.3.0",
+                "softwareVersion": "0.3.1",
                 "aggregateRating": {
                   "@type": "AggregateRating",
                   "ratingValue": "4.8",
@@ -238,7 +238,7 @@ export default withMermaid(
         },
         { text: "API", link: "/api" },
         {
-          text: "v0.3.0",
+          text: "v0.3.1",
           items: [
             {
               text: "Changelog",

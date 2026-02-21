@@ -208,7 +208,7 @@ vsce publish
 or
 
 ```bash
-vsce publish 0.3.0
+vsce publish 0.3.1
 ```
 
 For manual publishing, see [Publishing Extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension).
@@ -218,7 +218,7 @@ For manual publishing, see [Publishing Extensions](https://code.visualstudio.com
 We use GitHub Actions to automate releases. To create a new release with an attached `.vsix` file:
 
 1.  Update the version in `package.json`.
-2.  Push a new tag starting with `v` (e.g., `git tag v0.3.0 && git push origin v0.3.0`).
+2.  Push a new tag starting with `v` (e.g., `git tag v0.3.1 && git push origin v0.3.1`).
 3.  The workflow will automatically build the extension and create a release on GitHub.
 
 ## Common Issues

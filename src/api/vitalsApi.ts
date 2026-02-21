@@ -81,7 +81,7 @@ export class VitalsApiClient {
         properties: {
           ...properties,
           timestamp: new Date().toISOString(),
-          extensionVersion: "0.3.0", // TODO: Get from package.json
+          extensionVersion: "0.3.1", // TODO: Get from package.json
         },
       });
     } catch (error) {

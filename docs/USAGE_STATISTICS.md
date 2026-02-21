@@ -48,7 +48,7 @@ Vitals includes an opt-in usage statistics collection system that helps us under
 {
   platform: string,             // e.g., "win32-x64"
   vscodeVersion: string,        // e.g., "1.94.0"
-  extensionVersion: string      // e.g., "0.3.0"
+  extensionVersion: string      // e.g., "0.3.1"
 }
 ```
 
@@ -129,7 +129,7 @@ Logged when extension loads (only for authenticated users)
 ```typescript
 {
   timestamp: "2025-12-05T10:30:00Z",
-  extensionVersion: "0.3.0"
+  extensionVersion: "0.3.1"
 }
 ```
 

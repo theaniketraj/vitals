@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.1] - 21 Feb 2026
+
+- **Incident Management**:
+  - Collaborative debugging workflows with shared incident context.
+  - Runbook automation for common remediation tasks.
+  - Hypothesis tracking to document investigation steps.
+  - AI-powered post-mortem generation from incident timelines.
+  - Integration with PagerDuty for real-time alert synchronization.
+- **CI/CD Integration**:
+  - Automated deployment tracking and performance regression detection.
+  - Statistical analysis (Welch's t-test) for intelligent rollback recommendations.
+  - Metric correlation to link performance changes with specific Git commits.
+  - Feature flag synchronization with LaunchDarkly, Split.io, and Unleash.
+  - Cost analysis tracking for cloud spend changes per deployment.
+
 ## [0.3.0] - 06 Jan 2026
 
 - **Custom Metrics Support**:
