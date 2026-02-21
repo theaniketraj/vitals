@@ -50,7 +50,7 @@
 - Critical path analysis and regression detection
 - Supports Jaeger, OpenTelemetry, Zipkin
 
-📖 [Full Documentation](https://theaniketraj.github.io/vitals/distributed_tracing.html)
+📖 [Distributed Tracing Guide](https://theaniketraj.github.io/vitals/distributed_tracing.html)
 
 ### Multi-Cloud Observability
 
@@ -59,7 +59,7 @@
 - Cost tracking and optimization recommendations
 - Cross-platform correlation and anomaly detection
 
-📖 [Full Documentation](https://theaniketraj.github.io/vitals/multicloud-integration.html)
+📖 [Multi-Cloud Integration Guide](https://theaniketraj.github.io/vitals/multicloud-integration.html)
 
 ### Real-Time Metrics & Logs
 
@@ -160,7 +160,7 @@ npm run watch  # Start dev mode
 # Press F5 in VS Code to launch Extension Development Host
 ```
 
-📖 [Development Guide](https://theaniketraj.github.io/vitals/development.html) | [Contributing](https://theaniketraj.github.io/vitals/contributing.html)
+📖 [Development Guide](https://theaniketraj.github.io/vitals/development.html) | [Testing Guide](https://theaniketraj.github.io/vitals/testing.html)
 
 ---
 
@@ -174,11 +174,11 @@ Contributions welcome! Fork the repo, create a feature branch, and open a PR.
 
 ## Roadmap
 
-- ✅ Prometheus, Jaeger, OpenTelemetry integration
-- ✅ Multi-cloud support (Datadog, New Relic, AWS, Azure)
-- ✅ Distributed tracing and flame graphs
-- 🔄 Historical data analysis
-- 🔄 Custom dashboards and saved queries
+- [✓] Prometheus, Jaeger, OpenTelemetry integration
+- [✓] Multi-cloud support (Datadog, New Relic, AWS, Azure)
+- [✓] Distributed tracing and flame graphs
+- [⁘] Historical data analysis
+- [⁘] Custom dashboards and saved queries
 
 📖 [Full Roadmap](https://theaniketraj.github.io/vitals/vision.html)
 
