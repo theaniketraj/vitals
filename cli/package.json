@@ -1,0 +1,35 @@
+{
+  "name": "vitals-cli",
+  "version": "0.1.0",
+  "description": "VITALS CLI - Performance decision engine for CI/CD",
+  "main": "dist/cli/index.js",
+  "bin": {
+    "vitals": "./bin/vitals"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.cli.json",
+    "dev": "tsc -p tsconfig.cli.json --watch",
+    "test": "jest --config jest.cli.config.js"
+  },
+  "keywords": [
+    "vitals",
+    "cli",
+    "performance",
+    "regression",
+    "ci-cd",
+    "observability"
+  ],
+  "author": "Aniket Raj",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "axios": "^1.6.0",
+    "chalk": "^4.1.2",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/js-yaml": "^4.0.9",
+    "typescript": "^5.3.0"
+  }
+}

@@ -1,0 +1,39 @@
+version: 1
+
+# Prometheus configuration
+prometheus:
+  url: http://localhost:9090
+  timeout: 10000
+
+# Default metrics to analyze
+metrics:
+  latency_p95:
+    regression:
+      max_increase_percent: 10
+      p_value: 0.05
+      effect_size: 0.5
+      window: 10m
+      min_samples: 30
+      action: fail
+
+  error_rate:
+    threshold:
+      max: 0.02
+      action: fail
+
+  cpu_usage:
+    threshold:
+      max: 80
+      duration: 5m
+      action: warn
+
+# Deployment settings
+deployment:
+  rollback:
+    enabled: true
+    strategy: canary
+
+# Global defaults
+defaults:
+  action: warn
+  format: pretty
