@@ -1,0 +1,57 @@
+# Example: Batch Analysis with Policy File
+# Analyzes multiple metrics defined in vitals.yaml
+
+name: Batch Performance Check
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  batch-analysis:
+    name: Multi-Metric Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Run VITALS Batch Analysis
+        id: vitals
+        uses: vitals-dev/vitals/.github/actions/vitals@v1
+        with:
+          mode: batch
+          baseline: ${{ github.event.pull_request.base.sha }}
+          candidate: ${{ github.event.pull_request.head.sha }}
+          prometheus-url: ${{ secrets.PROMETHEUS_URL }}
+          config: .github/vitals.yaml
+          time-range: 10m
+          fail-fast: false
+          comment-pr: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Parse Results
+        if: always()
+        run: |
+          echo "Verdict: ${{ steps.vitals.outputs.verdict }}"
+          echo "Full Report:"
+          echo '${{ steps.vitals.outputs.report }}' | jq .
+      
+      - name: Notify Slack on Failure
+        if: steps.vitals.outputs.verdict == 'FAIL'
+        uses: slackapi/slack-github-action@v1
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+          payload: |
+            {
+              "text": "Performance regression detected in PR #${{ github.event.pull_request.number }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Performance Regression Alert*\n\nPR: <${{ github.event.pull_request.html_url }}|#${{ github.event.pull_request.number }}>\nAuthor: ${{ github.event.pull_request.user.login }}"
+                  }
+                }
+              ]
+            }

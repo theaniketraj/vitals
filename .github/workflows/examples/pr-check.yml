@@ -1,0 +1,51 @@
+# Example: Basic PR Performance Check
+# This workflow runs on every pull request to detect performance regressions
+
+name: PR Performance Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - develop
+
+jobs:
+  vitals-check:
+    name: VITALS Performance Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Run VITALS Regression Check
+        id: vitals
+        uses: vitals-dev/vitals/.github/actions/vitals@v1
+        with:
+          mode: regress
+          baseline: ${{ github.event.pull_request.base.sha }}
+          candidate: ${{ github.event.pull_request.head.sha }}
+          metric: latency_p95
+          prometheus-url: ${{ secrets.PROMETHEUS_URL }}
+          threshold: 10
+          pvalue: 0.05
+          effect-size: 0.5
+          time-range: 15m
+          comment-pr: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: vitals-report
+          path: vitals-report.json
+      
+      - name: Check Verdict
+        if: steps.vitals.outputs.verdict == 'FAIL'
+        run: |
+          echo "Performance regression detected!"
+          echo "Change: ${{ steps.vitals.outputs.change-percent }}%"
+          echo "p-value: ${{ steps.vitals.outputs.p-value }}"
+          exit 1

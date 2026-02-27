@@ -2,7 +2,7 @@
   "name": "vitals",
   "displayName": "Vitals",
   "description": "Monitor application metrics and logs in real-time within Visual Studio Code.",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "publisher": "theaniketraj",
   "repository": {
     "type": "git",

@@ -7,6 +7,7 @@ prometheus:
 
 # Default metrics to analyze
 metrics:
+  # API Latency (p95) - Critical Performance Metric
   latency_p95:
     regression:
       max_increase_percent: 10
@@ -16,22 +17,63 @@ metrics:
       min_samples: 30
       action: fail
 
+  # API Latency (p99) - Stricter for tail latency
+  latency_p99:
+    regression:
+      max_increase_percent: 15
+      p_value: 0.05
+      effect_size: 0.5
+      window: 10m
+      min_samples: 30
+      action: fail
+
+  # Error Rate - Absolute threshold + regression detection
   error_rate:
     threshold:
       max: 0.02
       action: fail
+    regression:
+      max_increase_percent: 5
+      p_value: 0.05
+      effect_size: 0.3
+      action: fail
 
+  # CPU Usage - Warning only
   cpu_usage:
     threshold:
       max: 80
       duration: 5m
       action: warn
+    regression:
+      max_increase_percent: 20
+      p_value: 0.05
+      effect_size: 0.5
+      action: warn
+
+  # Memory Usage - Track but don't fail
+  memory_usage:
+    regression:
+      max_increase_percent: 15
+      p_value: 0.05
+      effect_size: 0.5
+      action: warn
+    threshold:
+      max: 0.90
+      action: warn
+
+  # Database Query Time
+  db_query_time:
+    regression:
+      max_increase_percent: 10
+      p_value: 0.05
+      effect_size: 0.5
+      action: fail
 
 # Deployment settings
 deployment:
   rollback:
     enabled: true
-    strategy: canary
+    strategy: canary  # canary | blue-green | immediate
 
 # Global defaults
 defaults:

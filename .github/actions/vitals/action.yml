@@ -1,0 +1,88 @@
+name: 'VITALS Performance Check'
+description: 'Detect performance regressions using statistical analysis'
+branding:
+  icon: 'activity'
+  color: 'red'
+
+inputs:
+  mode:
+    description: 'Analysis mode: regress, batch, or analyze'
+    required: false
+    default: 'regress'
+  
+  baseline:
+    description: 'Baseline deployment identifier (required for regress/batch)'
+    required: false
+  
+  candidate:
+    description: 'Candidate deployment identifier (required for regress/batch)'
+    required: false
+  
+  metric:
+    description: 'Metric to analyze (for regress mode)'
+    required: false
+    default: 'latency_p95'
+  
+  metrics:
+    description: 'Comma-separated list of metrics (for batch mode)'
+    required: false
+  
+  config:
+    description: 'Path to vitals.yaml config file'
+    required: false
+    default: 'vitals.yaml'
+  
+  prometheus-url:
+    description: 'Prometheus server URL'
+    required: true
+  
+  threshold:
+    description: 'Regression threshold percentage'
+    required: false
+  
+  pvalue:
+    description: 'Statistical significance threshold'
+    required: false
+    default: '0.05'
+  
+  effect-size:
+    description: 'Minimum effect size threshold'
+    required: false
+    default: '0.5'
+  
+  time-range:
+    description: 'Time range for metrics (e.g., 10m, 1h)'
+    required: false
+    default: '10m'
+  
+  fail-fast:
+    description: 'Exit on first failure (batch mode only)'
+    required: false
+    default: 'false'
+  
+  comment-pr:
+    description: 'Post results as PR comment'
+    required: false
+    default: 'true'
+  
+  github-token:
+    description: 'GitHub token for PR comments'
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  verdict:
+    description: 'Analysis verdict: PASS, FAIL, WARN, or INSUFFICIENT_DATA'
+  
+  report:
+    description: 'Full analysis report in JSON format'
+  
+  change-percent:
+    description: 'Performance change percentage'
+  
+  p-value:
+    description: 'Statistical p-value'
+
+runs:
+  using: 'node20'
+  main: 'dist/action.js'

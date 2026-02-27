@@ -1,0 +1,89 @@
+# Example: Production Deployment Validation
+# Monitors production deployments and triggers rollback on regression
+
+name: Production Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_id:
+        description: 'Deployment identifier'
+        required: true
+  deployment_status:
+
+jobs:
+  validate-deployment:
+    if: github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' || github.event_name == 'workflow_dispatch'
+    name: Validate Production Deployment
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Get Deployment Info
+        id: deployment
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "current=${{ github.event.inputs.deployment_id }}" >> $GITHUB_OUTPUT
+            echo "previous=prod-previous" >> $GITHUB_OUTPUT
+          else
+            echo "current=${{ github.event.deployment.sha }}" >> $GITHUB_OUTPUT
+            echo "previous=${{ github.event.deployment.ref }}-previous" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: VITALS Production Check
+        id: vitals
+        uses: vitals-dev/vitals/.github/actions/vitals@v1
+        with:
+          mode: batch
+          baseline: ${{ steps.deployment.outputs.previous }}
+          candidate: ${{ steps.deployment.outputs.current }}
+          prometheus-url: ${{ secrets.PROMETHEUS_URL }}
+          config: .github/vitals-production.yaml
+          time-range: 30m
+          fail-fast: true
+      
+      - name: Trigger Rollback
+        if: failure()
+        run: |
+          echo "Performance regression in production - triggering rollback"
+          curl -X POST "${{ secrets.ROLLBACK_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "deployment": "${{ steps.deployment.outputs.current }}",
+              "reason": "Performance regression detected by VITALS",
+              "report": ${{ toJson(steps.vitals.outputs.report) }}
+            }'
+      
+      - name: Create GitHub Issue on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Production Performance Regression Detected',
+              body: `## Deployment Validation Failed
+              
+              **Deployment:** ${{ steps.deployment.outputs.current }}
+              **Verdict:** ${{ steps.vitals.outputs.verdict }}
+              
+              ### Analysis Report
+              \`\`\`json
+              ${{ steps.vitals.outputs.report }}
+              \`\`\`
+              
+              **Action Required:** Review the regression and consider rollback.
+              `,
+              labels: ['performance', 'production', 'incident']
+            })
+      
+      - name: Success Notification
+        if: success()
+        run: |
+          echo "Production deployment validated - no regressions detected"
+          curl -X POST "${{ secrets.SLACK_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d '{"text": "✅ Production deployment validated successfully"}'
