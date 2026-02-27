@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { runRegression } from '../core/regression';
 import { fetchMetric } from '../services/prometheus';
 import { formatResult } from '../utils/formatter';
-import { loadPolicy, findPolicyConfig, getMetricPolicy, evaluateRegression, getDefaultOptions } from '../services/policyLoader';
+import { loadPolicy, findPolicyConfig, getServiceMetricPolicy, evaluateRegression, getDefaultOptions } from '../services/policyLoaderV2';
 
 export function registerRegressCommand(program: Command) {
   program
@@ -11,6 +11,7 @@ export function registerRegressCommand(program: Command) {
     .requiredOption('--baseline <deployment>', 'Baseline deployment identifier')
     .requiredOption('--candidate <deployment>', 'Candidate deployment identifier')
     .option('--metric <metric>', 'Metric to analyze', 'latency_p95')
+    .option('--service <service>', 'Service name for service-specific policies')
     .option('--config <path>', 'Path to vitals.yaml config file')
     .option('--prometheus-url <url>', 'Prometheus server URL', process.env.PROMETHEUS_URL)
     .option('--threshold <percent>', 'Regression threshold percentage')
@@ -18,6 +19,7 @@ export function registerRegressCommand(program: Command) {
     .option('--effect-size <value>', 'Minimum effect size threshold')
     .option('--min-samples <count>', 'Minimum sample size required', '30')
     .option('--time-range <range>', 'Time range for metrics (e.g., 10m, 1h)', '10m')
+    .option('--test <test>', 'Statistical test: welch, mann-whitney, permutation, auto', 'welch')
     .option('--format <format>', 'Output format: json or pretty', 'pretty')
     .option('--no-color', 'Disable colored output')
     .action(async (options) => {
@@ -30,11 +32,13 @@ export function registerRegressCommand(program: Command) {
           console.error(`✓ Loaded policy from: ${configPath}\n`);
         }
 
-        // Get metric-specific policy
-        const metricPolicy = policy ? getMetricPolicy(policy, options.metric) : null;
+        // Get metric-specific policy (with service support)
+        const metricPolicy = policy 
+          ? getServiceMetricPolicy(policy, options.service || null, options.metric)
+          : null;
         
         // Get defaults from policy or use command defaults
-        const defaults = getDefaultOptions(policy);
+        const defaults = getDefaultOptions(policy, options.service);
         const prometheusUrl = options.prometheusUrl || defaults.prometheusUrl;
         const threshold = options.threshold 
           ? parseFloat(options.threshold) 
@@ -66,8 +70,8 @@ export function registerRegressCommand(program: Command) {
           timeRange: options.timeRange
         });
 
-        // Run regression analysis
-        console.error('Running regression analysis...\n');
+        // Run regression analysis (with test selection)
+        console.error(`Running regression analysis (test: ${options.test})...\n`);
         const result = await runRegression(
           {
             baseline: options.baseline,
@@ -76,7 +80,8 @@ export function registerRegressCommand(program: Command) {
             threshold,
             pValue,
             effectSizeThreshold: effectSize,
-            minSamples: parseInt(options.minSamples)
+            minSamples: parseInt(options.minSamples),
+            testType: options.test
           },
           baselineData,
           candidateData

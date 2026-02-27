@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { runRegression } from '../core/regression';
 import { fetchMetric } from '../services/prometheus';
-import { loadPolicy, findPolicyConfig, getMetricPolicy, evaluateRegression, getDefaultOptions } from '../services/policyLoader';
+import { loadPolicy, findPolicyConfig, getServiceMetricPolicy, evaluateRegression, getDefaultOptions } from '../services/policyLoaderV2';
 
 interface BatchResult {
   metric: string;
@@ -21,6 +21,7 @@ export function registerBatchCommand(program: Command) {
     .requiredOption('--baseline <deployment>', 'Baseline deployment identifier')
     .requiredOption('--candidate <deployment>', 'Candidate deployment identifier')
     .option('--metrics <metrics>', 'Comma-separated list of metrics to analyze')
+    .option('--service <service>', 'Service name for service-specific policies')
     .option('--config <path>', 'Path to vitals.yaml config file')
     .option('--prometheus-url <url>', 'Prometheus server URL')
     .option('--time-range <range>', 'Time range for metrics (e.g., 10m, 1h)', '10m')
@@ -38,7 +39,7 @@ export function registerBatchCommand(program: Command) {
         }
 
         // Get default options from policy
-        const defaults = getDefaultOptions(policy);
+        const defaults = getDefaultOptions(policy, options.service);
         const prometheusUrl = options.prometheusUrl || defaults.prometheusUrl;
 
         // Determine metrics to analyze
@@ -46,8 +47,17 @@ export function registerBatchCommand(program: Command) {
         
         if (options.metrics) {
           metricsToAnalyze = options.metrics.split(',').map((m: string) => m.trim());
-        } else if (policy?.metrics) {
-          metricsToAnalyze = Object.keys(policy.metrics);
+        } else if (policy) {
+          // Get metrics from base or service-specific policy
+          if (options.service && policy.services?.[options.service]) {
+            const servicePolicyDefinition = policy.services[options.service];
+            metricsToAnalyze = servicePolicyDefinition.metrics ? Object.keys(servicePolicyDefinition.metrics) : [];
+          } else if (policy.base?.metrics) {
+            metricsToAnalyze = Object.keys(policy.base.metrics);
+          } else if (policy.metrics) {
+            // Backward compatibility: legacy global metrics
+            metricsToAnalyze = Object.keys(policy.metrics);
+          }
         } else {
           console.error('Error: No metrics specified. Use --metrics or define metrics in vitals.yaml');
           process.exit(2);
@@ -77,8 +87,10 @@ export function registerBatchCommand(program: Command) {
               timeRange: options.timeRange
             });
 
-            // Get metric-specific policy
-            const metricPolicy = policy ? getMetricPolicy(policy, metric) : null;
+            // Get metric-specific policy (with service support)
+            const metricPolicy = policy 
+              ? getServiceMetricPolicy(policy, options.service || null, metric)
+              : null;
             const threshold = metricPolicy?.regression?.max_increase_percent || 10;
             const pValue = metricPolicy?.regression?.p_value || 0.05;
             const effectSize = metricPolicy?.regression?.effect_size || 0.5;

@@ -1,0 +1,305 @@
+# VITALS Policy Configuration v2.0
+# Example demonstrating Phase 1.3 features: service-specific policies and inheritance
+
+version: 2.0
+
+# Base policy - applies to all services unless overridden
+base:
+  # Default Prometheus configuration
+  prometheus:
+    url: https://prometheus.example.com
+    timeout: 30s
+  
+  # Default deployment settings
+  deployment:
+    auto_rollback: true
+    notification_channels:
+      - slack
+      - email
+  
+  # Default metric policies
+  metrics:
+    # Latency (95th percentile)
+    latency_p95:
+      regression:
+        max_increase_percent: 10      # Allow up to 10% increase
+        p_value: 0.05                  # 95% confidence
+        effect_size: 0.5               # Medium effect size (Cohen's d)
+      threshold:
+        max_allowed: 500               # Max 500ms
+        warn_threshold: 400            # Warn at 400ms
+      actions:
+        on_regression: fail            # Block deployment on regression
+        on_threshold: warn             # Warn on threshold breach
+    
+    # Error rate
+    error_rate:
+      regression:
+        max_increase_percent: 5        # Strict: 5% increase max
+        p_value: 0.01                  # 99% confidence
+        effect_size: 0.3
+      threshold:
+        max_allowed: 0.05              # Max 5% error rate
+        critical: true
+      actions:
+        on_regression: fail
+        on_threshold: fail
+    
+    # Throughput (requests per second)
+    throughput:
+      regression:
+        max_increase_percent: -10      # Negative = decrease allowed
+        p_value: 0.05
+        effect_size: 0.5
+      threshold:
+        max_allowed: 10000
+      actions:
+        on_regression: warn            # Just warn, don't block
+
+# Service-specific policies
+services:
+  # -----------------------------------------------------------------------------
+  # Reusable Profiles
+  # -----------------------------------------------------------------------------
+  
+  # Critical service profile - strict policies for business-critical services
+  critical-service-profile:
+    metrics:
+      latency_p95:
+        regression:
+          max_increase_percent: 5      # Stricter than base
+          p_value: 0.01                # 99% confidence
+          effect_size: 0.3
+        threshold:
+          max_allowed: 300             # Lower than base
+          warn_threshold: 250
+      error_rate:
+        regression:
+          max_increase_percent: 2      # Very strict
+          p_value: 0.01
+        threshold:
+          max_allowed: 0.01            # Max 1% errors
+          critical: true
+  
+  # Experimental service profile - lenient for testing
+  experimental-profile:
+    metrics:
+      latency_p95:
+        regression:
+          max_increase_percent: 25     # More lenient
+          p_value: 0.10                # 90% confidence
+          effect_size: 0.8
+        threshold:
+          max_allowed: 1000
+      error_rate:
+        regression:
+          max_increase_percent: 10
+          p_value: 0.05
+        threshold:
+          max_allowed: 0.10            # Allow 10% errors
+  
+  # -----------------------------------------------------------------------------
+  # Production Services
+  # -----------------------------------------------------------------------------
+  
+  # Payment API - inherits critical profile
+  payment-api:
+    inherits: critical-service-profile
+    prometheus:
+      url: https://prometheus-payments.example.com
+    deployment:
+      auto_rollback: true
+      notification_channels:
+        - slack-payments
+        - pagerduty
+        - email-payments-team
+  
+  # Authentication API - inherits critical profile
+  auth-api:
+    inherits: critical-service-profile
+    prometheus:
+      url: https://prometheus-auth.example.com
+    deployment:
+      auto_rollback: true
+      notification_channels:
+        - slack-security
+        - pagerduty
+  
+  # Order processing - inherits critical profile but overrides latency
+  order-api:
+    inherits: critical-service-profile
+    prometheus:
+      url: https://prometheus-orders.example.com
+    metrics:
+      latency_p95:
+        regression:
+          max_increase_percent: 8      # Slightly more lenient than parent
+          p_value: 0.01
+        threshold:
+          max_allowed: 400             # Orders can be slightly slower
+  
+  # -----------------------------------------------------------------------------
+  # Internal Services
+  # -----------------------------------------------------------------------------
+  
+  # Analytics worker - non-critical, lenient policy
+  analytics-worker:
+    prometheus:
+      url: https://prometheus-analytics.example.com
+    metrics:
+      latency_p95:
+        regression:
+          max_increase_percent: 20
+          p_value: 0.05
+        threshold:
+          max_allowed: 2000            # Can be slower
+      error_rate:
+        regression:
+          max_increase_percent: 10
+        threshold:
+          max_allowed: 0.10            # 10% error rate OK
+      actions:
+        on_regression: warn            # Don't block deployments
+        on_threshold: warn
+  
+  # Background jobs processor
+  background-jobs:
+    prometheus:
+      url: https://prometheus-jobs.example.com
+    deployment:
+      auto_rollback: false             # Don't auto-rollback background jobs
+    metrics:
+      latency_p95:
+        regression:
+          max_increase_percent: 30
+          p_value: 0.10
+        threshold:
+          max_allowed: 5000
+      throughput:
+        regression:
+          max_increase_percent: -20    # Allow 20% throughput decrease
+        threshold:
+          max_allowed: 1000
+  
+  # -----------------------------------------------------------------------------
+  # Experimental Services
+  # -----------------------------------------------------------------------------
+  
+  # Beta features API - inherits experimental profile
+  beta-features-api:
+    inherits: experimental-profile
+    prometheus:
+      url: https://prometheus-beta.example.com
+    deployment:
+      auto_rollback: false             # Let it fail, gather data
+      notification_channels:
+        - slack-beta-team
+  
+  # ML inference service - experimental
+  ml-inference:
+    inherits: experimental-profile
+    prometheus:
+      url: https://prometheus-ml.example.com
+    metrics:
+      latency_p95:
+        regression:
+          max_increase_percent: 50     # Very lenient during development
+          p_value: 0.10
+        threshold:
+          max_allowed: 3000
+      error_rate:
+        threshold:
+          max_allowed: 0.20            # 20% errors acceptable during training
+  
+  # -----------------------------------------------------------------------------
+  # Environment-Specific Services
+  # -----------------------------------------------------------------------------
+  
+  # Production environment
+  production:
+    inherits: critical-service-profile
+    deployment:
+      auto_rollback: true
+      notification_channels:
+        - slack-production
+        - pagerduty
+        - email-oncall
+  
+  # Staging environment - moderate
+  staging:
+    metrics:
+      latency_p95:
+        regression:
+          max_increase_percent: 15
+          p_value: 0.05
+        threshold:
+          max_allowed: 600
+      error_rate:
+        regression:
+          max_increase_percent: 5
+        threshold:
+          max_allowed: 0.05
+    deployment:
+      auto_rollback: true
+      notification_channels:
+        - slack-staging
+  
+  # Development environment - lenient
+  development:
+    metrics:
+      latency_p95:
+        regression:
+          max_increase_percent: 50
+          p_value: 0.10
+        threshold:
+          max_allowed: 2000
+      error_rate:
+        regression:
+          max_increase_percent: 20
+        threshold:
+          max_allowed: 0.20
+      actions:
+        on_regression: warn
+        on_threshold: warn
+    deployment:
+      auto_rollback: false
+      notification_channels:
+        - slack-dev
+
+# Usage Examples:
+#
+# 1. Validate the policy:
+#    vitals validate --config vitals-example.yaml --strict
+#
+# 2. Run regression for payment API (strict thresholds):
+#    vitals regress \
+#      --baseline v1.0 \
+#      --candidate v1.1 \
+#      --metric latency_p95 \
+#      --service payment-api \
+#      --config vitals-example.yaml
+#
+# 3. Run batch analysis for production environment:
+#    vitals batch \
+#      --baseline v1.0 \
+#      --candidate v1.1 \
+#      --service production \
+#      --config vitals-example.yaml
+#
+# 4. Historical trend analysis:
+#    vitals historical \
+#      --baselines v1.0,v1.1,v1.2,v1.3,v1.4 \
+#      --candidate v1.5 \
+#      --metric latency_p95 \
+#      --service payment-api \
+#      --aggregate mean \
+#      --config vitals-example.yaml
+#
+# 5. Test experimental service with lenient thresholds:
+#    vitals regress \
+#      --baseline v1.0 \
+#      --candidate v1.1 \
+#      --metric latency_p95 \
+#      --service beta-features-api \
+#      --test auto \
+#      --config vitals-example.yaml

@@ -7,6 +7,11 @@ import {
   validateSampleSize,
   mean
 } from './stats/welch';
+import {
+  mannWhitneyUTest,
+  permutationTest,
+  selectStatisticalTest
+} from './stats/advanced';
 
 export interface RegressionOptions {
   baseline: string;
@@ -16,6 +21,7 @@ export interface RegressionOptions {
   pValue?: number;
   effectSizeThreshold?: number;
   minSamples?: number;
+  testType?: 'welch' | 'mann-whitney' | 'permutation' | 'auto';
 }
 
 export interface RegressionResult {
@@ -49,7 +55,8 @@ export async function runRegression(
     threshold = 10,
     pValue: pValueThreshold = 0.05,
     effectSizeThreshold = 0.5,
-    minSamples = 30
+    minSamples = 30,
+    testType = 'welch'
   } = options;
 
   // Step 1: Validate sample sizes
@@ -84,8 +91,37 @@ export async function runRegression(
   const candidateMean = mean(candidateSmoothed);
   const changePercent = ((candidateMean - baselineMean) / baselineMean) * 100;
 
-  // Step 6: Statistical tests
-  const { pValue } = welchTest(baselineSmoothed, candidateSmoothed);
+  // Step 6: Statistical tests (with test selection)
+  let pValue: number;
+  
+  if (testType === 'auto') {
+    // Automatically select the best test
+    const selectedTest = selectStatisticalTest(baselineSmoothed, candidateSmoothed);
+    
+    if (selectedTest === 'mann-whitney') {
+      const result = mannWhitneyUTest(baselineSmoothed, candidateSmoothed);
+      pValue = result.pValue;
+    } else if (selectedTest === 'permutation') {
+      const result = permutationTest(baselineSmoothed, candidateSmoothed, 1000);
+      pValue = result.pValue;
+    } else {
+      const result = welchTest(baselineSmoothed, candidateSmoothed);
+      pValue = result.pValue;
+    }
+  } else if (testType === 'mann-whitney') {
+    // Non-parametric test (doesn't assume normal distribution)
+    const result = mannWhitneyUTest(baselineSmoothed, candidateSmoothed);
+    pValue = result.pValue;
+  } else if (testType === 'permutation') {
+    // Exact test (good for small samples)
+    const result = permutationTest(baselineSmoothed, candidateSmoothed, 1000);
+    pValue = result.pValue;
+  } else {
+    // Default: Welch's t-test
+    const result = welchTest(baselineSmoothed, candidateSmoothed);
+    pValue = result.pValue;
+  }
+  
   const effectSize = Math.abs(cohensD(baselineSmoothed, candidateSmoothed));
 
   // Step 7: Determine significance
