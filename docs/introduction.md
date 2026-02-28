@@ -28,9 +28,13 @@ Vitals integrates these essential observability signals right where you work. By
 
 ## Key Capabilities
 
-### Real-Time Metrics
+### Real-Time Metrics Dashboard
 
 Visualize critical system and application metrics—such as CPU usage, memory consumption, and request latency—with beautiful, auto-updating charts. Vitals uses `@observablehq/plot` to render high-performance visualizations that look native to VS Code.
+
+### Command-Line Interface for CI/CD
+
+A comprehensive CLI for automated performance testing in your deployment pipeline. Detect regressions with statistical confidence, enforce performance policies, and compare against historical baselines—all from the command line.
 
 ### Live Log Stream
 

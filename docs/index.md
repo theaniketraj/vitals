@@ -50,8 +50,8 @@ features:
   - title: Incident Management
     details: Collaborative debugging workflows with runbook automation, hypothesis tracking, and AI-powered post-mortems—all within VS Code.
     icon: <i class="fa-solid fa-triangle-exclamation"></i>
-  - title: CI/CD Intelligence
-    details: Track deployments, analyze performance impact with statistical testing, and get intelligent rollback recommendations automatically.
+  - title: CI/CD Intelligence & CLI
+    details: Powerful CLI for performance regression testing with statistical analysis. Policy-as-Code engine with service-specific policies, historical baseline comparison, and automated rollback decisions.
     icon: <i class="fa-solid fa-rocket"></i>
   - title: Alert Management
     details: View active alerts from Alertmanager and create silences instantly without leaving your code editor.
