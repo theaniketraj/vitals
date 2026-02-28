@@ -1,0 +1,370 @@
+# VITALS Automation Configuration Example
+#
+# This file demonstrates Phase 4 automation capabilities including:
+# - Closed-loop automation policies
+# - Notification integrations (Slack, PagerDuty, webhooks)
+# - Historical data storage
+# - Pattern detection
+# - Predictive analytics
+
+# ============================================================================
+# AUTOMATION CONFIGURATION
+# ============================================================================
+
+automation:
+  enabled: true
+  
+  policies:
+    # Example 1: Critical Regression Alert
+    - name: "Critical Performance Regression"
+      description: "Alert immediately on critical performance degradation"
+      enabled: true
+      priority: 1  # Highest priority
+      
+      trigger:
+        type: regression_detected  # Fires when FAIL or WARN verdict
+        
+      conditions:
+        # Must be a FAIL verdict
+        - field: verdict
+          operator: equals
+          value: FAIL
+        # Must be significant change (>20%)
+        - field: change_percent
+          operator: greater_than
+          value: 20
+          
+      actions:
+        # Send Slack notification
+        - type: slack
+          config:
+            webhook_url: "${SLACK_WEBHOOK_URL}"
+            channel: "#vitals-alerts"
+            username: "VITALS Bot"
+            icon_emoji: ":warning:"
+        
+        # Create PagerDuty incident
+        - type: pagerduty
+          config:
+            routing_key: "${PAGERDUTY_ROUTING_KEY}"
+            severity: critical
+            dedup_key: "vitals-{{result.service}}-{{result.metric}}"
+            
+      # Don't re-alert for 1 hour
+      throttle:
+        duration_seconds: 3600
+        
+      # Continue to next policy even if this one fails
+      on_failure: continue
+
+    # Example 2: Auto-Rollback on Severe Regression
+    - name: "Auto-Rollback Severe Regression"
+      description: "Automatically rollback deployment on severe performance regression"
+      enabled: true
+      priority: 1
+      
+      trigger:
+        type: regression_detected
+        
+      conditions:
+        - field: verdict
+          operator: equals
+          value: FAIL
+        # Only rollback on extremely severe regressions (>100% degradation)
+        - field: change_percent
+          operator: greater_than
+          value: 100
+        # Only for production
+        - field: environment
+          operator: equals
+          value: production
+          
+      actions:
+        # Alert before rollback
+        - type: slack
+          config:
+            webhook_url: "${SLACK_WEBHOOK_URL}"
+            channel: "#incidents"
+            username: "VITALS Auto-Rollback"
+        
+        # Trigger rollback via webhook
+        - type: rollback
+          config:
+            webhook_url: "${ROLLBACK_WEBHOOK_URL}"
+            method: POST
+            headers:
+              Authorization: "Bearer ${ROLLBACK_API_TOKEN}"
+            body:
+              deployment_id: "{{deployment.id}}"
+              reason: "VITALS detected severe regression: {{result.metric}} degraded by {{result.change_percent}}%"
+              
+      throttle:
+        duration_seconds: 7200  # 2 hours
+        
+      # Abort if rollback fails (don't continue to other policies)
+      on_failure: abort
+
+    # Example 3: Warning Alert (Non-Critical)
+    - name: "Performance Warning"
+      description: "Alert on non-critical performance warnings"
+      enabled: true
+      priority: 2
+      
+      trigger:
+        type: warning_detected  # Only WARN verdicts
+        
+      conditions:
+        - field: verdict
+          operator: equals
+          value: WARN
+          
+      actions:
+        - type: slack
+          config:
+            webhook_url: "${SLACK_WEBHOOK_URL}"
+            channel: "#vitals-warnings"
+            icon_emoji: ":warning:"
+            
+      throttle:
+        duration_seconds: 1800  # 30 minutes
+
+    # Example 4: Deployment Success Notification
+    - name: "Deployment Success"
+      description: "Notify team when all checks pass"
+      enabled: true
+      priority: 3
+      
+      trigger:
+        type: all_passed
+        
+      actions:
+        - type: webhook
+          config:
+            url: "https://api.example.com/deployments/success"
+            method: POST
+            headers:
+              Content-Type: "application/json"
+              Authorization: "Bearer ${API_TOKEN}"
+            body:
+              service: "{{result.service}}"
+              environment: "{{deployment.environment}}"
+              metrics_passed: true
+              timestamp: "{{result.timestamp}}"
+
+    # Example 5: Latency-Specific Alert
+    - name: "Latency Regression Alert"
+      description: "Special handling for latency regressions"
+      enabled: true
+      priority: 2
+      
+      trigger:
+        type: regression_detected
+        
+      conditions:
+        # Only for latency metrics
+        - field: metric
+          operator: contains
+          value: "latency"
+        - field: verdict
+          operator: equals
+          value: FAIL
+        # Significant degradation
+        - field: change_percent
+          operator: greater_than
+          value: 30
+          
+      actions:
+        - type: slack
+          config:
+            webhook_url: "${SLACK_WEBHOOK_URL}"
+            channel: "#performance"
+        - type: webhook
+          config:
+            url: "https://api.example.com/incidents/create"
+            method: POST
+            body:
+              type: "latency_regression"
+              service: "{{result.service}}"
+              metric: "{{result.metric}}"
+              change_percent: "{{result.change_percent}}"
+              
+      throttle:
+        duration_seconds: 3600
+
+    # Example 6: Error Handling
+    - name: "Analysis Error Notification"
+      description: "Alert when VITALS analysis fails"
+      enabled: true
+      priority: 1
+      
+      trigger:
+        type: error_occurred
+        
+      actions:
+        - type: slack
+          config:
+            webhook_url: "${SLACK_WEBHOOK_URL}"
+            channel: "#vitals-errors"
+            username: "VITALS Error Reporter"
+            icon_emoji: ":x:"
+
+# ============================================================================
+# HISTORICAL DATA STORAGE
+# ============================================================================
+
+historical_storage:
+  enabled: true
+  
+  # Base directory for historical data (JSONL format)
+  base_path: "~/.vitals/history"
+  
+  # Retention policy
+  retention_days: 90  # Keep data for 90 days
+  max_records_per_file: 10000
+  
+  # Automatic cleanup
+  auto_cleanup: true
+  cleanup_interval_hours: 24
+
+# ============================================================================
+# PATTERN DETECTION
+# ============================================================================
+
+pattern_detection:
+  enabled: true
+  
+  # Minimum samples required for pattern detection
+  min_samples: 10
+  
+  # Confidence threshold (0-1)
+  # Patterns with confidence < threshold are filtered out
+  confidence_threshold: 0.7
+  
+  # Pattern types to detect
+  detect_time_patterns: true  # Day-of-week, hour-of-day patterns
+  detect_trend_patterns: true  # Increasing/decreasing trends
+  detect_correlation_patterns: false  # Service correlation (future)
+  detect_team_patterns: false  # Team performance (future)
+
+# ============================================================================
+# PREDICTIVE ANALYTICS
+# ============================================================================
+
+predictive_analytics:
+  enabled: true
+  
+  # Forecast horizon
+  forecast_horizon_days: 7
+  
+  # Confidence level for predictions
+  confidence_level: 0.95  # 95% confidence interval
+  
+  # Minimum historical data required
+  min_historical_days: 30
+  
+  # Risk assessment weights
+  risk_assessment:
+    recent_regressions_weight: 0.30
+    deployment_timing_weight: 0.20
+    deployment_frequency_weight: 0.15
+    recent_incidents_weight: 0.35
+
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
+
+# Set these environment variables for notification integrations:
+#
+# Slack:
+#   SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+#
+# PagerDuty:
+#   PAGERDUTY_ROUTING_KEY=your_integration_key
+#
+# Rollback API:
+#   ROLLBACK_WEBHOOK_URL=https://your-deployment-system.com/api/rollback
+#   ROLLBACK_API_TOKEN=your_api_token
+#
+# Generic webhooks:
+#   API_TOKEN=your_generic_api_token
+
+# ============================================================================
+# USAGE
+# ============================================================================
+
+# 1. Copy this file to your project:
+#    cp vitals.automation.example.yaml vitals.yaml
+#
+# 2. Set environment variables:
+#    export SLACK_WEBHOOK_URL="..."
+#    export PAGERDUTY_ROUTING_KEY="..."
+#
+# 3. Run VITALS with automation:
+#    vitals batch run --config vitals.yaml
+#
+# 4. Test automation policies:
+#    vitals automation test --config vitals.yaml
+#
+# 5. Check historical data:
+#    vitals history list --service api-service
+#
+# 6. Detect patterns:
+#    vitals patterns detect --service api-service --days 30
+#
+# 7. Assess deployment risk:
+#    vitals risk assess --service api-service
+#
+# 8. Get deployment window recommendations:
+#    vitals risk windows --service api-service --days 7
+
+# ============================================================================
+# ADVANCED EXAMPLES
+# ============================================================================
+
+# Example: Friday Freeze Policy
+# - name: "Friday Deployment Block"
+#   trigger:
+#     type: regression_detected
+#   conditions:
+#     - field: day_of_week
+#       operator: equals
+#       value: 5  # Friday
+#   actions:
+#     - type: slack
+#       config:
+#         webhook_url: "${SLACK_WEBHOOK_URL}"
+#         message: "⚠️ Friday deployment detected. Consider delaying to Monday."
+
+# Example: Canary-Only on Weekends
+# - name: "Weekend Deployment Warning"
+#   trigger:
+#     type: regression_detected
+#   conditions:
+#     - field: day_of_week
+#       operator: greater_than
+#       value: 5  # Saturday/Sunday
+#     - field: deployment_type
+#       operator: not_equals
+#       value: canary
+#   actions:
+#     - type: slack
+#       config:
+#         webhook_url: "${SLACK_WEBHOOK_URL}"
+#         message: "⚠️ Full deployment on weekend. Only canary deployments recommended."
+
+# Example: Multi-Service Correlation
+# - name: "Correlated Service Failures"
+#   trigger:
+#     type: regression_detected
+#   conditions:
+#     - field: service
+#       operator: matches
+#       value: "^(api|database|cache)-service$"
+#   actions:
+#     - type: webhook
+#       config:
+#         url: "https://api.example.com/correlations/check"
+#         method: POST
+#         body:
+#           services: ["api-service", "database-service", "cache-service"]
+#           check_correlation: true

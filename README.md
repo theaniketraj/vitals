@@ -42,6 +42,39 @@
 
 📖 [CI/CD Integration Guide](https://theaniketraj.github.io/vitals/cicd_integration.html)
 
+### Intelligent Automation
+
+**NEW:** Closed-loop automation and predictive insights powered by historical learning.
+
+- **Automated Actions**: Auto-rollback, Slack/PagerDuty alerts, custom webhooks
+- **Pattern Detection**: "This service regresses every Friday" with statistical confidence
+- **Risk Assessment**: Multi-factor deployment risk scoring (0-100)
+- **Deployment Windows**: Optimal deployment time recommendations
+- **Metric Forecasting**: Predict future performance trends
+- **Historical Storage**: JSONL-based time-series storage for long-term analysis
+
+📖 [Automation Guide](docs/automation.md)
+
+**Example Configuration:**
+
+```yaml
+automation:
+  policies:
+    - name: "Critical Regression Alert"
+      trigger: regression_detected
+      conditions:
+        - field: change_percent
+          operator: greater_than
+          value: 20
+      actions:
+        - type: slack
+          config:
+            webhook_url: "${SLACK_WEBHOOK_URL}"
+        - type: rollback
+          config:
+            webhook_url: "${ROLLBACK_WEBHOOK}"
+```
+
 ### Distributed Tracing & Performance Profiling
 
 - Visual flame graphs and service dependency maps
@@ -138,7 +171,16 @@ Key settings (access via `Ctrl+,` → search "vitals"):
 - `Vitals: Connect Feature Flag Provider` - Integrate LaunchDarkly/Split.io
 - `Vitals: Generate Release Notes` - Auto-generate from commits
 
-📖 [Full API Reference](https://theaniketraj.github.io/vitals/api.html)
+**Automation & Intelligence:**
+
+- `Vitals: Execute Automation` - Run automation policies on regression detection
+- `Vitals: Detect Patterns` - Run pattern detection on historical data
+- `Vitals: Assess Deployment Risk` - Calculate deployment risk score
+- `Vitals: Recommend Deployment Windows` - Find optimal deployment times
+- `Vitals: Forecast Metrics` - Generate predictive metric forecasts
+- `Vitals: View Historical Data` - Browse stored regression history
+
+📖 [Full API Reference](https://theaniketraj.github.io/vitals/api.html) | [Automation Guide](docs/automation.md)
 
 ---
 
@@ -174,15 +216,12 @@ Contributions welcome! Fork the repo, create a feature branch, and open a PR.
 
 ## Roadmap
 
-- [✓] Prometheus, Jaeger, OpenTelemetry integration
-- [✓] Multi-cloud support (Datadog, New Relic, AWS, Azure)
-- [✓] Distributed tracing and flame graphs
-- [⁘] Historical data analysis
-- [⁘] Custom dashboards and saved queries
-
-📖 [Full Roadmap](https://theaniketraj.github.io/vitals/vision.html)
-
----
+- ✅ Prometheus, Jaeger, OpenTelemetry integration
+- ✅ Multi-cloud support (Datadog, New Relic, AWS, Azure)
+- ✅ Distributed tracing and flame graphs
+- ✅ **Intelligence Layer** - Closed-loop automation and historical learning
+- 🔄 Custom dashboards and saved queries
+- ⏳ **VITALS-Owned Data** - Regression database, incident knowledge graph
 
 ## Troubleshooting
 
