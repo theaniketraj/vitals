@@ -1,0 +1,72 @@
+name: VITALS Performance Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  vitals-regression-check:
+    runs-on: ubuntu-latest
+    name: Performance Regression Detection
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: VITALS Regression Check
+        id: vitals
+        uses: vitals-dev/vitals-action@v1
+        with:
+          # Required: Prometheus configuration
+          prometheus-url: ${{ secrets.PROMETHEUS_URL }}
+          baseline-label: 'prod-baseline'
+          candidate-label: 'prod-candidate'
+          
+          # Optional: Configuration file (default: vitals.yaml)
+          config-file: 'vitals.yaml'
+          
+          # Optional: Inline metrics (if not using config file)
+          # metrics: 'http_request_duration_p95,error_rate,throughput'
+          
+          # Optional: Thresholds (override config file)
+          threshold: 10
+          p-value: 0.05
+          effect-size: 0.5
+          test-type: 'auto'
+          
+          # Optional: Features
+          post-comment: true
+          fail-on-regression: true
+          dashboard-url: 'https://grafana.example.com/d/vitals'
+          
+          # Optional: Performance
+          cache-enabled: true
+          cache-ttl: 300
+      
+      - name: Upload Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitals-results
+          path: vitals-results/
+          retention-days: 30
+      
+      - name: Check Results
+        run: |
+          echo "Verdict: ${{ steps.vitals.outputs.verdict }}"
+          echo "Failed: ${{ steps.vitals.outputs.failed-count }}"
+          echo "Warned: ${{ steps.vitals.outputs.warned-count }}"
+          echo "Passed: ${{ steps.vitals.outputs.passed-count }}"
+      
+      # Optional: Conditional steps based on results
+      - name: Notify on Failure
+        if: steps.vitals.outputs.verdict == 'FAIL'
+        run: |
+          echo "Performance regression detected!"
+          # Add notification logic here (Slack, email, etc.)

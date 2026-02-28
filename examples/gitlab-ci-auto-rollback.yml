@@ -1,0 +1,122 @@
+# GitLab CI - Auto-Rollback Pipeline
+stages:
+  - test
+  - deploy-staging
+  - performance
+  - rollback
+  - deploy-prod
+
+variables:
+  PROMETHEUS_URL: "https://prometheus.example.com"
+
+# Deploy to staging
+deploy-staging:
+  stage: deploy-staging
+  script:
+    - echo "Deploying to staging..."
+    - ./deploy.sh staging
+  
+  environment:
+    name: staging
+    url: https://staging.example.com
+    action: start
+  
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# VITALS performance check
+vitals-check:
+  stage: performance
+  image: node:20
+  
+  before_script:
+    - npm install -g @vitals/cli
+    - sleep 60  # Wait for metrics to stabilize
+  
+  script:
+    - |
+      vitals batch regression \
+        --config vitals.yaml \
+        --prometheus-url $PROMETHEUS_URL \
+        --baseline-label "prod-baseline" \
+        --candidate-label "staging-${CI_COMMIT_SHA}" \
+        --post-mr-comment \
+        --dashboard-url "https://grafana.example.com/d/vitals" \
+        --fail-on-regression false
+  
+  artifacts:
+    paths:
+      - vitals-results/
+    reports:
+      dotenv: vitals-results/verdict.env
+    when: always
+  
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  
+  needs:
+    - deploy-staging
+
+# Auto-rollback on regression
+auto-rollback:
+  stage: rollback
+  script:
+    - echo "Performance regression detected, rolling back..."
+    - ./rollback.sh staging
+  
+  environment:
+    name: staging
+    action: rollback
+  
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: on_failure
+  
+  needs:
+    - vitals-check
+
+# Create issue on regression
+create-issue:
+  stage: rollback
+  image: alpine:latest
+  
+  before_script:
+    - apk add --no-cache curl jq
+  
+  script:
+    - |
+      curl -X POST \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/issues" \
+        -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "title": "Performance regression detected in '"${CI_COMMIT_SHA}"'",
+          "description": "Automatic rollback triggered due to performance regression.\n\nPipeline: '"${CI_PIPELINE_URL}"'",
+          "labels": ["performance", "regression", "auto-rollback"]
+        }'
+  
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: on_failure
+  
+  needs:
+    - vitals-check
+
+# Deploy to production only if no regression
+deploy-production:
+  stage: deploy-prod
+  script:
+    - echo "No regressions detected, deploying to production..."
+    - ./deploy.sh production
+  
+  environment:
+    name: production
+    url: https://example.com
+    action: start
+  
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: on_success
+  
+  needs:
+    - vitals-check

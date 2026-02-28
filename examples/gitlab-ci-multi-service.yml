@@ -1,0 +1,87 @@
+# GitLab CI - Multi-Service VITALS Check
+stages:
+  - test
+  - deploy-staging
+  - performance
+  - deploy-prod
+
+variables:
+  PROMETHEUS_URL: "https://prometheus.example.com"
+
+# Template for service-specific checks
+.vitals-template:
+  stage: performance
+  image: node:20
+  
+  before_script:
+    - npm install -g @vitals/cli
+  
+  cache:
+    key: vitals-cache-${SERVICE}
+    paths:
+      - .vitals-cache/
+  
+  script:
+    - |
+      vitals batch regression \
+        --config configs/${SERVICE}-vitals.yaml \
+        --prometheus-url $PROMETHEUS_URL \
+        --baseline-label "${SERVICE}-baseline" \
+        --candidate-label "${SERVICE}-candidate" \
+        --post-mr-comment \
+        --dashboard-url "https://grafana.example.com/d/${SERVICE}" \
+        --cache-enabled \
+        --cache-ttl 600
+  
+  artifacts:
+    paths:
+      - vitals-results/
+    when: always
+  
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# Service-specific jobs
+vitals-api:
+  extends: .vitals-template
+  variables:
+    SERVICE: "api"
+
+vitals-frontend:
+  extends: .vitals-template
+  variables:
+    SERVICE: "frontend"
+
+vitals-worker:
+  extends: .vitals-template
+  variables:
+    SERVICE: "worker"
+
+# Summary job
+vitals-summary:
+  stage: performance
+  image: alpine:latest
+  
+  dependencies:
+    - vitals-api
+    - vitals-frontend
+    - vitals-worker
+  
+  script:
+    - |
+      echo "=== VITALS Multi-Service Summary ==="
+      for service in api frontend worker; do
+        if [ -f vitals-results-${service}/summary.txt ]; then
+          echo ""
+          echo "--- ${service} ---"
+          cat vitals-results-${service}/summary.txt
+        fi
+      done
+  
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  
+  needs:
+    - vitals-api
+    - vitals-frontend
+    - vitals-worker

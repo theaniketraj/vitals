@@ -1,0 +1,64 @@
+name: Multi-Service VITALS Check
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  vitals-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api, frontend, worker]
+      fail-fast: false
+    
+    name: VITALS Check - ${{ matrix.service }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: VITALS Check - ${{ matrix.service }}
+        id: vitals
+        uses: vitals-dev/vitals-action@v1
+        with:
+          prometheus-url: ${{ secrets.PROMETHEUS_URL }}
+          baseline-label: '${{ matrix.service }}-baseline'
+          candidate-label: '${{ matrix.service }}-candidate'
+          config-file: 'configs/${{ matrix.service }}-vitals.yaml'
+          dashboard-url: 'https://grafana.example.com/d/${{ matrix.service }}'
+      
+      - name: Upload Results - ${{ matrix.service }}
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitals-results-${{ matrix.service }}
+          path: vitals-results/
+  
+  vitals-summary:
+    needs: vitals-matrix
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Download all results
+        uses: actions/download-artifact@v4
+        with:
+          path: all-results/
+      
+      - name: Generate Summary
+        run: |
+          echo "## VITALS Multi-Service Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          for service in api frontend worker; do
+            if [ -f "all-results/vitals-results-${service}/summary.json" ]; then
+              verdict=$(jq -r '.verdict' "all-results/vitals-results-${service}/summary.json")
+              echo "- **${service}**: ${verdict}" >> $GITHUB_STEP_SUMMARY
+            fi
+          done

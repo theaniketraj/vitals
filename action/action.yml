@@ -1,0 +1,93 @@
+name: 'VITALS Performance Regression Check'
+description: 'Detect performance regressions in your deployments with statistical analysis'
+author: 'VITALS Team'
+
+branding:
+  icon: 'activity'
+  color: 'blue'
+
+inputs:
+  prometheus-url:
+    description: 'Prometheus server URL'
+    required: true
+  
+  baseline-label:
+    description: 'Baseline deployment label (e.g., "prod-v1.0")'
+    required: true
+  
+  candidate-label:
+    description: 'Candidate deployment label (e.g., "prod-v1.1")'
+    required: true
+  
+  config-file:
+    description: 'Path to vitals.yaml configuration file'
+    required: false
+    default: 'vitals.yaml'
+  
+  metrics:
+    description: 'Comma-separated list of metrics to check (overrides config file)'
+    required: false
+  
+  threshold:
+    description: 'Default regression threshold percentage'
+    required: false
+    default: '10'
+  
+  p-value:
+    description: 'Statistical significance threshold (p-value)'
+    required: false
+    default: '0.05'
+  
+  effect-size:
+    description: 'Effect size threshold (Cohen''s d)'
+    required: false
+    default: '0.5'
+  
+  test-type:
+    description: 'Statistical test type: welch, mann-whitney, permutation, auto'
+    required: false
+    default: 'auto'
+  
+  post-comment:
+    description: 'Post results as PR comment (true/false)'
+    required: false
+    default: 'true'
+  
+  fail-on-regression:
+    description: 'Fail the action if regression detected (true/false)'
+    required: false
+    default: 'true'
+  
+  dashboard-url:
+    description: 'Optional dashboard URL to include in PR comment'
+    required: false
+  
+  cache-enabled:
+    description: 'Enable caching for faster subsequent runs (true/false)'
+    required: false
+    default: 'true'
+  
+  cache-ttl:
+    description: 'Cache TTL in seconds'
+    required: false
+    default: '300'
+
+outputs:
+  verdict:
+    description: 'Overall verdict: PASS, FAIL, WARN, or ERROR'
+  
+  failed-count:
+    description: 'Number of metrics that failed'
+  
+  warned-count:
+    description: 'Number of metrics with warnings'
+  
+  passed-count:
+    description: 'Number of metrics that passed'
+  
+  results-json:
+    description: 'Full results in JSON format'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
