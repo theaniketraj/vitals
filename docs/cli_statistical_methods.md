@@ -427,7 +427,366 @@ console.log(`95% CI: [${ci.lower}, ${ci.upper}]`);
 - Handles skewed distributions
 - Provides intuitive intervals
 
-## Data Preprocessing
+## Data Preprocessing Pipeline
+
+VITALS implements a comprehensive preprocessing pipeline to ensure reliable statistical analysis. Phase 2.1 enhancements provide multiple methods for each preprocessing step.
+
+### Preprocessing Overview
+
+```bash
+Raw Data → Validate → Fill Missing → Remove Outliers →
+Normalize → Smooth → Validate Size → Statistical Test
+```
+
+### Missing Value Handling
+
+**Problem**: NaN, Infinity, or missing data points compromise analysis.
+
+**Solutions** (Phase 2.1):
+
+1. **Interpolation** (Default): Linear interpolation between nearest valid values
+   - Best for: Continuous metrics with occasional gaps
+   - Example: `[1, NaN, 3] → [1, 2, 3]`
+
+2. **Forward Fill**: Use previous valid value
+   - Best for: Step-function metrics
+   - Example: `[1, NaN, 3] → [1, 1, 3]`
+
+3. **Backward Fill**: Use next valid value
+   - Best for: Predefined states
+   - Example: `[1, NaN, 3] → [1, 3, 3]`
+
+4. **Mean Imputation**: Replace with mean of valid values
+   - Best for: Random missing values
+   - Example: `[1, NaN, 3] → [1, 2, 3]`
+
+**Configuration**:
+
+```typescript
+preprocessData(data, {
+  fillStrategy: "interpolate", // or 'forward', 'backward', 'mean', 'none'
+});
+```
+
+### Outlier Detection Methods
+
+#### IQR Method (Default)
+
+**Algorithm**: Interquartile Range method
+
+```bash
+IQR = Q3 - Q1
+lower_bound = Q1 - 1.5 × IQR
+upper_bound = Q3 + 1.5 × IQR
+```
+
+**Advantages**:
+
+- Robust to extreme values
+- Non-parametric (no distribution assumptions)
+
+**When to use**: General purpose, balanced datasets
+
+**Configuration**:
+
+```typescript
+preprocessData(data, {
+  outlierMethod: "iqr",
+  iqrMultiplier: 1.5, // Adjust sensitivity (higher = less sensitive)
+});
+```
+
+#### Z-Score Method
+
+**Algorithm**: Standard score outlier detection
+
+```bash
+z = (x - μ) / σ
+outlier if |z| > threshold (typically 3)
+```
+
+**Advantages**:
+
+- Clear statistical interpretation
+- Adjustable threshold
+
+**When to use**: Normally distributed data
+
+**Disadvantages**:
+
+- Assumes normal distribution
+- Sensitive to extreme outliers
+
+**Configuration**:
+
+```typescript
+preprocessData(data, {
+  outlierMethod: "zscore",
+  zscoreThreshold: 3, // Typically 2.5-3.5
+});
+```
+
+#### MAD Method (Robust)
+
+**Algorithm**: Median Absolute Deviation
+
+```bash
+MAD = median(|x - median(x)|)
+modified_z = 0.6745 × |x - median(x)| / MAD
+outlier if modified_z > 3.5
+```
+
+**Advantages**:
+
+- Most robust to extreme outliers
+- Works with non-normal distributions
+- Not affected by small numbers of outliers
+
+**When to use**: Data with extreme outliers or unknown distribution
+
+**Configuration**:
+
+```typescript
+preprocessData(data, {
+  outlierMethod: "mad", // No additional parameters needed
+});
+```
+
+**Comparison**:
+
+| Method  | Robustness | Speed | Best For                 |
+| ------- | ---------- | ----- | ------------------------ |
+| IQR     | Medium     | Fast  | General purpose          |
+| Z-Score | Low        | Fast  | Normal distributions     |
+| MAD     | High       | Fast  | Extreme outliers, skewed |
+
+### Data Normalization
+
+**Problem**: Different sample sizes complicate comparison.
+
+**Solution**: Normalize to fixed target size (default: 50 points)
+
+**Algorithm**: Chunk averaging
+
+```bash
+chunk_size = len(data) / target_size
+For each chunk: avg(chunk) → normalized_point
+```
+
+**Why 50 points**:
+
+- Sufficient for statistical power
+- Reduces noise without losing signal
+- Fast computation
+
+**Configuration**:
+
+```typescript
+preprocessData(data, {
+  targetSampleSize: 50, // or 100 for more detail
+});
+```
+
+### Smoothing Techniques
+
+#### Moving Average (Default)
+
+**Algorithm**: Simple rolling window average
+
+```bash
+smoothed[i] = mean(data[i-w:i+w])
+```
+
+**Advantages**:
+
+- Simple, interpretable
+- Equal weights to all points in window
+
+**When to use**: General noise reduction
+
+**Configuration**:
+
+```typescript
+preprocessData(data, {
+  smoothingMethod: "moving-average",
+  smoothingWindow: 3, // Typically 3-7
+});
+```
+
+#### Exponential Smoothing (EWMA)
+
+**Algorithm**: Exponentially Weighted Moving Average
+
+```bash
+smoothed[0] = data[0]
+smoothed[i] = α × data[i] + (1-α) × smoothed[i-1]
+```
+
+**Advantages**:
+
+- Responds quickly to recent changes
+- Less lag than moving average
+- Customizable responsiveness (α)
+
+**When to use**: Trending data, recent values more important
+
+**Configuration**:
+
+```typescript
+preprocessData(data, {
+  smoothingMethod: "exponential",
+  exponentialAlpha: 0.3, // 0.1 = heavy smoothing, 0.5 = light smoothing
+});
+```
+
+#### Gaussian Smoothing
+
+**Algorithm**: Weighted average using Gaussian kernel
+
+```bash
+weight[i] = exp(-i² / (2σ²))
+smoothed[i] = Σ(data × normalized_weights)
+```
+
+**Advantages**:
+
+- Smooth, natural-looking curves
+- Preserves shape better than moving average
+- Reduces high-frequency noise
+
+**When to use**: Visual presentations, smooth curves needed
+
+**Configuration**:
+
+```typescript
+preprocessData(data, {
+  smoothingMethod: "gaussian",
+  smoothingWindow: 5, // Kernel size
+});
+```
+
+**Comparison**:
+
+| Method         | Lag  | Edge Effects | Best For             |
+| -------------- | ---- | ------------ | -------------------- |
+| Moving Average | High | Moderate     | General smoothing    |
+| Exponential    | Low  | Low          | Trending data        |
+| Gaussian       | Med  | Moderate     | Presentation quality |
+
+### Time Series Alignment
+
+**Problem**: Baseline and candidate data may have different timestamps.
+
+**Solution**: Align to common time grid with interpolation.
+
+**Algorithm**:
+
+```bash
+1. Find common time range: [max(start1, start2), min(end1, end2)]
+2. Generate aligned timestamps at fixed intervals
+3. Interpolate values for each timestamp
+```
+
+**Use Case**:
+
+```typescript
+import { alignTimeWindows } from './core/preprocessing';
+
+const baseline: [number, number][] = [...]; // [timestamp, value]
+const candidate: [number, number][] = [...];
+
+const { aligned1, aligned2, timestamps } = alignTimeWindows(
+  baseline,
+  candidate,
+  15 // 15-second intervals
+);
+```
+
+### Sample Size Validation
+
+**Minimum Requirement**: 30 samples (Central Limit Theorem threshold)
+
+**Why 30**:
+
+- Ensures normal distribution approximation
+- Adequate statistical power
+- Standard in statistical practice
+
+**Behavior**:
+
+```bash
+if samples < 30:
+  return verdict: "INSUFFICIENT_DATA"
+```
+
+**Configuration**:
+
+```typescript
+preprocessData(data, {
+  minSampleSize: 30, // or higher for stricter requirements
+});
+```
+
+### Data Quality Metrics
+
+**Calculate Quality Indicators**:
+
+```typescript
+import { calculateDataQuality } from "./core/preprocessing";
+
+const quality = calculateDataQuality(data);
+
+console.log(quality);
+// {
+//   completeness: 0.95,  // 95% valid values
+//   variance: 12.5,       // Data spread
+//   stability: 0.85,      // Low coefficient of variation
+//   outlierRatio: 0.02    // 2% outliers detected
+// }
+```
+
+**Interpretation**:
+
+- **Completeness**: Ratio of valid values (>0.9 recommended)
+- **Variance**: Spread of data (context-dependent)
+- **Stability**: 1 - CV (>0.8 is stable)
+- **Outlier Ratio**: Proportion of outliers (<0.05 typical)
+
+### Complete Preprocessing Example
+
+```typescript
+import { preprocessData, PreprocessingOptions } from "./core/preprocessing";
+
+// High-quality preprocessing configuration
+const options: PreprocessingOptions = {
+  // Missing values
+  fillStrategy: "interpolate",
+
+  // Outliers
+  outlierMethod: "mad", // Robust method
+
+  // Normalization
+  targetSampleSize: 50,
+
+  // Smoothing
+  smoothingMethod: "exponential",
+  exponentialAlpha: 0.3,
+
+  // Validation
+  minSampleSize: 30,
+};
+
+const result = preprocessData(rawData, options);
+
+console.log(`Original: ${result.originalLength} points`);
+console.log(`Outliers removed: ${result.outliersRemoved}`);
+console.log(`Missing filled: ${result.missingValuesFilled}`);
+console.log(`Steps: ${result.stepsApplied.join(" → ")}`);
+console.log(`Final: ${result.data.length} points`);
+console.log(`Warnings: ${result.warnings.join(", ")}`);
+```
+
+## Data Preprocessing Pipeline
 
 ### Outlier Detection
 
