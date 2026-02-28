@@ -115,8 +115,8 @@ export class HistoricalStorage {
       change_percent: result.change_percent,
       p_value: result.p_value,
       effect_size: result.effect_size,
-      baseline_mean: result.baseline_mean,
-      candidate_mean: result.candidate_mean,
+      baseline_mean: result.baseline.mean,
+      candidate_mean: result.candidate.mean,
       metadata
     };
 
@@ -136,8 +136,8 @@ export class HistoricalStorage {
   async storeBatchResults(batchResult: BatchResult, metadata?: Record<string, any>): Promise<void> {
     const promises: Promise<void>[] = [];
 
-    for (const result of batchResult.results) {
-      if ('verdict' in result) {
+    for (const [, result] of batchResult.results) {
+      if (!(result instanceof Error) && 'verdict' in result) {
         promises.push(this.storeRegression(result as RegressionResult, metadata));
       }
     }

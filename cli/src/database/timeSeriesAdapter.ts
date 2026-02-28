@@ -204,7 +204,7 @@ export class FileTimeSeriesAdapter implements ITimeSeriesAdapter {
         service: r.service,
         metric: r.metric,
         verdict: r.verdict,
-        environment: r.environment,
+        ...(r.environment && { environment: r.environment }),
         ...(r.deployment_id && { deployment_id: r.deployment_id }),
         ...(r.commit_hash && { commit_hash: r.commit_hash })
       },
@@ -213,8 +213,8 @@ export class FileTimeSeriesAdapter implements ITimeSeriesAdapter {
         baseline_stddev: r.baseline_stddev,
         candidate_mean: r.candidate_mean,
         candidate_stddev: r.candidate_stddev,
-        p_value: r.p_value,
-        effect_size: r.effect_size,
+        ...(r.p_value !== undefined && { p_value: r.p_value }),
+        ...(r.effect_size !== undefined && { effect_size: r.effect_size }),
         change_percent: r.change_percent,
         verdict: r.verdict
       }
@@ -256,12 +256,12 @@ export class FileTimeSeriesAdapter implements ITimeSeriesAdapter {
       verdict: p.tags.verdict as 'PASS' | 'WARN' | 'FAIL',
       baseline_mean: p.fields.baseline_mean as number,
       baseline_stddev: p.fields.baseline_stddev as number,
-      baseline_count: 0,  // Not stored in time-series
+      baseline_sample_count: 0,  // Not stored in time-series
       candidate_mean: p.fields.candidate_mean as number,
       candidate_stddev: p.fields.candidate_stddev as number,
-      candidate_count: 0,  // Not stored in time-series
-      p_value: p.fields.p_value as number,
-      effect_size: p.fields.effect_size as number,
+      candidate_sample_count: 0,  // Not stored in time-series
+      p_value: p.fields.p_value as number | undefined,
+      effect_size: p.fields.effect_size as number | undefined,
       change_percent: p.fields.change_percent as number,
       is_significant: p.fields.p_value as number < 0.05,
       environment: p.tags.environment,
@@ -431,7 +431,7 @@ export class InfluxDBAdapter implements ITimeSeriesAdapter {
       fields: {
         baseline_mean: r.baseline_mean,
         candidate_mean: r.candidate_mean,
-        p_value: r.p_value
+        ...(r.p_value !== undefined && { p_value: r.p_value })
       }
     }));
     

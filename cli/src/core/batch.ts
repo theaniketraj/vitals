@@ -381,10 +381,7 @@ export function exportBatchResultsJSON(batchResult: BatchResult): string {
         verdict: 'ERROR'
       });
     } else {
-      output.results.push({
-        metric,
-        ...result
-      });
+      output.results.push(result);
     }
   }
 

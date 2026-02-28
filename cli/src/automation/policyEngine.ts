@@ -268,11 +268,11 @@ export class AutomationPolicyEngine {
       }
     } else {
       // Batch result
-      if (result.failed > 0) {
+      if ((result as BatchResult).summary.failed > 0) {
         return 'regression_detected';
-      } else if (result.warned > 0) {
+      } else if ((result as BatchResult).summary.warned > 0) {
         return 'warning_detected';
-      } else if (result.passed > 0) {
+      } else if ((result as BatchResult).summary.passed > 0) {
         return 'all_passed';
       } else {
         return 'error_occurred';

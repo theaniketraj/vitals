@@ -74,13 +74,13 @@ export class SlackExecutor implements ActionExecutor {
 
     // Auto-generate message based on result
     if ('verdict' in result) {
-      return this.formatSingleRegressionMessage(result as RegressionResult);
+      return this.formatSingleRegressionMessage(result as RegressionResult, context.timestamp);
     } else {
-      return this.formatBatchResultMessage(result as BatchResult);
+      return this.formatBatchResultMessage(result as BatchResult, context.timestamp);
     }
   }
 
-  private formatSingleRegressionMessage(result: RegressionResult): any {
+  private formatSingleRegressionMessage(result: RegressionResult, timestamp: Date): any {
     const icon = result.verdict === 'FAIL' ? ':x:' : 
                  result.verdict === 'WARN' ? ':warning:' : ':white_check_mark:';
     
@@ -98,29 +98,29 @@ export class SlackExecutor implements ActionExecutor {
           { title: 'p-value', value: result.p_value?.toFixed(4) || 'N/A', short: true },
           {
             title: 'Baseline Mean',
-            value: result.baseline_mean?.toFixed(2) || 'N/A',
+            value: result.baseline.mean?.toFixed(2) || 'N/A',
             short: true
           },
           {
             title: 'Candidate Mean',
-            value: result.candidate_mean?.toFixed(2) || 'N/A',
+            value: result.candidate.mean?.toFixed(2) || 'N/A',
             short: true
           }
         ],
         footer: 'VITALS Performance Monitoring',
-        ts: Math.floor(context.timestamp.getTime() / 1000)
+        ts: Math.floor(timestamp.getTime() / 1000)
       }]
     };
   }
 
-  private formatBatchResultMessage(result: BatchResult): any {
-    const icon = result.failed > 0 ? ':x:' : 
-                 result.warned > 0 ? ':warning:' : ':white_check_mark:';
+  private formatBatchResultMessage(result: BatchResult, timestamp: Date): any {
+    const icon = result.summary.failed > 0 ? ':x:' : 
+                 result.summary.warned > 0 ? ':warning:' : ':white_check_mark:';
     
-    const color = result.failed > 0 ? 'danger' :
-                  result.warned > 0 ? 'warning' : 'good';
+    const color = result.summary.failed > 0 ? 'danger' :
+                  result.summary.warned > 0 ? 'warning' : 'good';
 
-    const summary = `${result.passed} passed, ${result.failed} failed, ${result.warned} warned`;
+    const summary = `${result.summary.passed} passed, ${result.summary.failed} failed, ${result.summary.warned} warned`;
 
     return {
       text: `${icon} VITALS Batch Regression Results`,
@@ -128,11 +128,11 @@ export class SlackExecutor implements ActionExecutor {
         color,
         fields: [
           { title: 'Summary', value: summary, short: false },
-          { title: 'Total Metrics', value: result.total.toString(), short: true },
-          { title: 'Duration', value: `${result.duration_ms}ms`, short: true }
+          { title: 'Total Metrics', value: result.summary.total.toString(), short: true },
+          { title: 'Duration', value: `${result.executionTime}ms`, short: true }
         ],
         footer: 'VITALS Performance Monitoring',
-        ts: Math.floor(result.timestamp.getTime() / 1000)
+        ts: Math.floor(timestamp.getTime() / 1000)
       }]
     };
   }
@@ -230,21 +230,21 @@ export class PagerDutyExecutor implements ActionExecutor {
           verdict: regression.verdict,
           change_percent: regression.change_percent,
           p_value: regression.p_value,
-          baseline_mean: regression.baseline_mean,
-          candidate_mean: regression.candidate_mean,
+          baseline_mean: regression.baseline.mean,
+          candidate_mean: regression.candidate.mean,
           policy: context.policy.name
         }
       };
     } else {
       const batch = result as BatchResult;
       return {
-        summary: `Batch regression detected: ${batch.failed} metrics failed`,
+        summary: `Batch regression detected: ${batch.summary.failed} metrics failed`,
         custom_details: {
-          total: batch.total,
-          passed: batch.passed,
-          failed: batch.failed,
-          warned: batch.warned,
-          duration_ms: batch.duration_ms,
+          total: batch.summary.total,
+          passed: batch.summary.passed,
+          failed: batch.summary.failed,
+          warned: batch.summary.warned,
+          duration_ms: batch.executionTime,
           policy: context.policy.name
         }
       };
@@ -376,10 +376,10 @@ export class EmailExecutor implements ActionExecutor {
       content += `p-value: ${regression.p_value?.toFixed(4)}\n`;
     } else {
       const batch = result as BatchResult;
-      content += `Total Metrics: ${batch.total}\n`;
-      content += `Passed: ${batch.passed}\n`;
-      content += `Failed: ${batch.failed}\n`;
-      content += `Warned: ${batch.warned}\n`;
+      content += `Total Metrics: ${batch.summary.total}\n`;
+      content += `Passed: ${batch.summary.passed}\n`;
+      content += `Failed: ${batch.summary.failed}\n`;
+      content += `Warned: ${batch.summary.warned}\n`;
     }
 
     return content;

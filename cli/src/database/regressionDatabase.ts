@@ -138,10 +138,10 @@ export interface IRegressionDatabase {
  * For production, this could be replaced with actual SQLite, PostgreSQL, or TimescaleDB.
  */
 export class RegressionDatabase implements IRegressionDatabase {
-  private basePath: string;
-  private indexPath: string;
-  private dataPath: string;
-  private index: Map<string, RegressionRecord>;
+  private readonly basePath: string;
+  private readonly indexPath: string;
+  private readonly dataPath: string;
+  private readonly index: Map<string, RegressionRecord>;
   private loaded: boolean = false;
 
   constructor(basePath: string = '~/.vitals/database') {

@@ -120,7 +120,7 @@ export interface TraceSpan {
  * Service Dependency Mapper
  */
 export class ServiceDependencyMapper {
-  private basePath: string;
+  private readonly basePath: string;
   private services: Map<string, ServiceNode>;
   private dependencies: Map<string, ServiceDependency>;
   private loaded: boolean = false;

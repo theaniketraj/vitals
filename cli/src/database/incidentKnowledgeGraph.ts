@@ -141,11 +141,11 @@ export interface RootCauseAnalysis {
  * For production, consider using Neo4j, ArangoDB, or Neptune.
  */
 export class IncidentKnowledgeGraph {
-  private basePath: string;
-  private nodes: Map<string, GraphNode>;
-  private edges: Map<string, GraphEdge>;
-  private adjacencyList: Map<string, Set<string>>;  // node_id -> Set of edge_ids
-  private reverseAdjacencyList: Map<string, Set<string>>;  // For incoming edges
+  private readonly basePath: string;
+  private readonly nodes: Map<string, GraphNode>;
+  private readonly edges: Map<string, GraphEdge>;
+  private readonly adjacencyList: Map<string, Set<string>>;  // node_id -> Set of edge_ids
+  private readonly reverseAdjacencyList: Map<string, Set<string>>;  // For incoming edges
   private loaded: boolean = false;
 
   constructor(basePath: string = '~/.vitals/knowledge-graph') {
