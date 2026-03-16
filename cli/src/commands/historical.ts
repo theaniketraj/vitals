@@ -3,6 +3,17 @@ import { runRegression } from '../core/regression';
 import { fetchMetric } from '../services/prometheus';
 import { loadPolicy, findPolicyConfig, getServiceMetricPolicy, evaluateRegression, getDefaultOptions } from '../services/policyLoaderV2';
 import { mean } from '../core/stats/welch';
+import { persistRegressionToPhase5 } from '../services/persistence';
+
+function calculateStdDev(values: number[]): number {
+  if (values.length < 2) {
+    return 0;
+  }
+
+  const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
+  const variance = values.reduce((sum, value) => sum + ((value - avg) ** 2), 0) / (values.length - 1);
+  return Math.sqrt(variance);
+}
 
 interface HistoricalResult {
   deployment: string;
@@ -26,6 +37,8 @@ export function registerHistoricalCommand(program: Command) {
     .option('--format <format>', 'Output format: json or pretty', 'pretty')
     .option('--aggregate <method>', 'Aggregation method for baselines: mean, median, last', 'last')
     .option('--min-baselines <count>', 'Minimum number of baselines required', '3')
+    .option('--no-phase5-persist', 'Disable persisting results into the Phase 5 regression database')
+    .option('--data-root <path>', 'Phase 5 data root', '~/.vitals')
     .option('--no-color', 'Disable colored output')
     .action(async (options) => {
       try {
@@ -135,6 +148,38 @@ export function registerHistoricalCommand(program: Command) {
           finalVerdict = 'FAIL';
         } else if (evaluation.action === 'warn' && result.verdict === 'PASS') {
           finalVerdict = 'WARN';
+        }
+
+        if (options.phase5Persist) {
+          try {
+            await persistRegressionToPhase5({
+              dataRoot: options.dataRoot,
+              service: options.service,
+              metric: options.metric,
+              baselineLabel: `historical-${options.aggregate}`,
+              candidateLabel: options.candidate,
+              verdict: finalVerdict,
+              baselineMean: result.baseline.mean,
+              baselineSamples: result.baseline.samples,
+              baselineStdDev: calculateStdDev(aggregatedBaseline),
+              candidateMean: result.candidate.mean,
+              candidateSamples: result.candidate.samples,
+              candidateStdDev: calculateStdDev(candidateData),
+              changePercent: result.change_percent,
+              pValue: result.p_value,
+              effectSize: result.effect_size,
+              threshold,
+              metadata: {
+                policy_action: evaluation.action,
+                policy_reason: evaluation.reason,
+                historical_baselines: baselineDeployments,
+                aggregation: options.aggregate
+              }
+            });
+            console.error('✓ Persisted historical analysis result into Phase 5 database');
+          } catch (persistError) {
+            console.error(`⚠ Failed to persist Phase 5 regression record: ${(persistError as Error).message}`);
+          }
         }
 
         // Output results

@@ -6,6 +6,7 @@ import { registerIncidentCommand } from './commands/incident';
 import { registerBatchCommand } from './commands/batch';
 import { registerValidateCommand } from './commands/validate';
 import { registerHistoricalCommand } from './commands/historical';
+import { registerDataCommand } from './commands/data';
 
 const program = new Command();
 
@@ -22,5 +23,6 @@ registerIncidentCommand(program);
 registerBatchCommand(program);
 registerValidateCommand(program);
 registerHistoricalCommand(program);
+registerDataCommand(program);
 
 program.parse(process.argv);

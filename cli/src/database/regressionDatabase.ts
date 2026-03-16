@@ -568,11 +568,62 @@ export async function migrateFromHistoricalStorage(
   historicalStoragePath: string,
   database: RegressionDatabase
 ): Promise<number> {
-  // This would read JSONL files and insert into database
-  // Implementation depends on historical storage format
   let count = 0;
-  
-  // TODO: Implement migration logic
+
+  const regressionsDir = path.join(historicalStoragePath, 'regressions');
+  if (!fs.existsSync(regressionsDir)) {
+    return count;
+  }
+
+  const files = await readdir(regressionsDir);
+  for (const file of files) {
+    if (!file.endsWith('.jsonl')) {
+      continue;
+    }
+
+    const metric = file.replace(/\.jsonl$/, '').replace(/_/g, ':');
+    const filePath = path.join(regressionsDir, file);
+    const fileStats = await stat(filePath);
+    if (!fileStats.isFile()) {
+      continue;
+    }
+
+    const content = await readFile(filePath, 'utf8');
+    const records = content
+      .split('\n')
+      .map(line => line.trim())
+      .filter(Boolean)
+      .map(line => JSON.parse(line) as Record<string, unknown>);
+
+    for (const record of records) {
+      await database.insert({
+        id: typeof record.id === 'string' ? record.id : '',
+        timestamp: new Date((record.timestamp as string | number | Date | undefined) || Date.now()),
+        service: typeof record.metadata === 'object' && record.metadata !== null && typeof (record.metadata as Record<string, unknown>).service === 'string'
+          ? (record.metadata as Record<string, unknown>).service as string
+          : 'unknown',
+        metric: typeof record.metric === 'string' ? record.metric : metric,
+        verdict: (record.verdict as 'PASS' | 'WARN' | 'FAIL') || 'WARN',
+        baseline_mean: typeof record.baseline_mean === 'number' ? record.baseline_mean : 0,
+        baseline_stddev: 0,
+        baseline_sample_count: 0,
+        candidate_mean: typeof record.candidate_mean === 'number' ? record.candidate_mean : 0,
+        candidate_stddev: 0,
+        candidate_sample_count: 0,
+        change_percent: typeof record.change_percent === 'number' ? record.change_percent : 0,
+        p_value: typeof record.p_value === 'number' ? record.p_value : undefined,
+        effect_size: typeof record.effect_size === 'number' ? record.effect_size : undefined,
+        deployment_id: typeof record.candidate_label === 'string' ? record.candidate_label : undefined,
+        tags: typeof record.metadata === 'object' && record.metadata !== null && Array.isArray((record.metadata as Record<string, unknown>).tags)
+          ? (record.metadata as Record<string, unknown>).tags as string[]
+          : undefined,
+        metadata: typeof record.metadata === 'object' && record.metadata !== null
+          ? record.metadata as Record<string, any>
+          : undefined
+      });
+      count += 1;
+    }
+  }
   
   return count;
 }

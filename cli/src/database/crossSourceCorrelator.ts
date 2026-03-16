@@ -241,7 +241,6 @@ export class CrossSourceCorrelator {
    * Correlate events for a specific regression
    */
   async correlateRegression(regressionId: string): Promise<CorrelationResult> {
-    // Get regression from database
     const regression = await this.regressionDb.getById(regressionId);
     if (!regression) {
       throw new Error(`Regression not found: ${regressionId}`);
@@ -262,13 +261,44 @@ export class CrossSourceCorrelator {
       }
     };
     
-    // Define time window (±30 minutes)
     const timeWindow: TimeWindow = {
       start: new Date(regression.timestamp.getTime() - 30 * 60 * 1000),
       end: new Date(regression.timestamp.getTime() + 30 * 60 * 1000)
     };
-    
-    return await this.correlateIncident(regressionId, timeWindow);
+
+    const candidates = this.eventsByTime.filter(event =>
+      event.id !== regressionId &&
+      event.timestamp >= timeWindow.start &&
+      event.timestamp <= timeWindow.end
+    );
+
+    const correlatedEvents: CorrelationResult['correlated_events'] = [];
+    const affectedServices = new Set<string>([primaryEvent.service]);
+
+    for (const event of candidates) {
+      const correlation = this.calculateCorrelation(primaryEvent, event);
+      if (correlation.score > 0.5) {
+        correlatedEvents.push({
+          event,
+          correlation_score: correlation.score,
+          correlation_type: correlation.type,
+          explanation: correlation.explanation
+        });
+        affectedServices.add(event.service);
+      }
+    }
+
+    correlatedEvents.sort((a, b) => b.correlation_score - a.correlation_score);
+
+    return {
+      primary_event: primaryEvent,
+      correlated_events: correlatedEvents,
+      timeline: [primaryEvent, ...correlatedEvents.map(item => item.event)]
+        .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()),
+      affected_services: Array.from(affectedServices),
+      likely_root_cause: this.determineLikelyRootCause(correlatedEvents),
+      recommendations: this.generateRecommendations(primaryEvent, correlatedEvents)
+    };
   }
 
   /**

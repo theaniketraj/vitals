@@ -2,14 +2,14 @@
   "name": "vitals-cli",
   "version": "0.1.0",
   "description": "VITALS CLI - Performance decision engine for CI/CD",
-  "main": "dist/cli/index.js",
+  "main": "dist/index.js",
   "bin": {
     "vitals": "./bin/vitals"
   },
   "scripts": {
     "build": "tsc -p tsconfig.cli.json",
     "dev": "tsc -p tsconfig.cli.json --watch",
-    "test": "jest --config jest.cli.config.js"
+    "test": "npm run build && node --test \"tests/**/*.test.mjs\""
   },
   "keywords": [
     "vitals",
