@@ -131,8 +131,8 @@ automation:
       Authorization: "Bearer ${API_TOKEN}"
     body:
       event: "regression_detected"
-      service: "{{result.service}}"
-      metric: "{{result.metric}}"
+      service: "&#123;&#123;result.service&#125;&#125;"
+      metric: "&#123;&#123;result.metric&#125;&#125;"
 ```
 
 #### Email Notification
@@ -141,7 +141,7 @@ automation:
 - type: email
   config:
     to: ["oncall@example.com"]
-    subject: "VITALS Alert: {{result.metric}}"
+    subject: "VITALS Alert: &#123;&#123;result.metric&#125;&#125;"
     smtp_host: "smtp.example.com"
     smtp_port: 587
 ```
@@ -152,7 +152,7 @@ automation:
 - type: rollback
   config:
     webhook_url: "${ROLLBACK_WEBHOOK_URL}"
-    deployment_id: "{{deployment.id}}"
+    deployment_id: "&#123;&#123;deployment.id&#125;&#125;"
     confirmation_required: true
 ```
 
@@ -162,25 +162,25 @@ automation:
 - type: script
   config:
     command: "/path/to/script.sh"
-    args: ["{{result.service}}", "{{result.metric}}"]
+    args: ["&#123;&#123;result.service&#125;&#125;", "&#123;&#123;result.metric&#125;&#125;"]
     timeout: 30
 ```
 
 ### Template Variables
 
-Actions support template variable substitution using `{{...}}` syntax:
+Actions support template variable substitution using `&#123;&#123;...&#125;&#125;` syntax:
 
 | Variable                     | Description                    |
 | ---------------------------- | ------------------------------ |
-| `{{policy.name}}`            | Policy name                    |
-| `{{result.metric}}`          | Metric name                    |
-| `{{result.service}}`         | Service name                   |
-| `{{result.verdict}}`         | PASS/WARN/FAIL                 |
-| `{{result.change_percent}}`  | Percentage change              |
-| `{{result.baseline_mean}}`   | Baseline mean value            |
-| `{{result.candidate_mean}}`  | Candidate mean value           |
-| `{{deployment.id}}`          | Deployment ID (if available)   |
-| `{{deployment.environment}}` | Environment (prod/staging/etc) |
+| `&#123;&#123;policy.name&#125;&#125;`            | Policy name                    |
+| `&#123;&#123;result.metric&#125;&#125;`          | Metric name                    |
+| `&#123;&#123;result.service&#125;&#125;`         | Service name                   |
+| `&#123;&#123;result.verdict&#125;&#125;`         | PASS/WARN/FAIL                 |
+| `&#123;&#123;result.change_percent&#125;&#125;`  | Percentage change              |
+| `&#123;&#123;result.baseline_mean&#125;&#125;`   | Baseline mean value            |
+| `&#123;&#123;result.candidate_mean&#125;&#125;`  | Candidate mean value           |
+| `&#123;&#123;deployment.id&#125;&#125;`          | Deployment ID (if available)   |
+| `&#123;&#123;deployment.environment&#125;&#125;` | Environment (prod/staging/etc) |
 
 ### Environment Variables
 
@@ -244,7 +244,7 @@ automation:
             channel: "#incidents"
         - type: rollback
           config:
-            webhook_url: "${ROLLBACK_API}/deployments/{{deployment.id}}/rollback"
+            webhook_url: "${ROLLBACK_API}/deployments/&#123;&#123;deployment.id&#125;&#125;/rollback"
             method: POST
       on_failure: abort
 ```
@@ -263,8 +263,8 @@ automation:
             url: "https://api.example.com/deployments/success"
             method: POST
             body:
-              service: "{{result.service}}"
-              timestamp: "{{result.timestamp}}"
+              service: "&#123;&#123;result.service&#125;&#125;"
+              timestamp: "&#123;&#123;result.timestamp&#125;&#125;"
 ```
 
 ## Historical Data Storage
@@ -358,7 +358,7 @@ historical_storage:
 
 Identify regressions that occur at specific times:
 
-```
+```bash
 Pattern: High failure rate on Fridays
 - Day of Week: Friday
 - Failure Rate: 45% (baseline: 15%)
@@ -370,7 +370,7 @@ Pattern: High failure rate on Fridays
 
 Identify increasing or decreasing trends:
 
-```
+```bash
 Pattern: Increasing latency trend
 - Metric: latency_p99
 - Trend: Increasing
@@ -383,7 +383,7 @@ Pattern: Increasing latency trend
 
 Identify services that fail together:
 
-```
+```bash
 Pattern: Correlated failures
 - Services: api-service, database-service
 - Correlation: 0.82
@@ -420,7 +420,7 @@ const risk = await predictive.assessDeploymentRisk("api-service");
 
 Output:
 
-```
+```bash
 ✅ Risk Level: LOW (25/100)
 
 Risk Factors:
@@ -443,7 +443,7 @@ const windows = await predictive.recommendDeploymentWindows("api-service", 7);
 
 Output:
 
-```
+```bash
 Recommended Deployment Windows:
 
 ✅ 2024-01-16 10:00 AM - 4:00 PM [low]
@@ -469,7 +469,7 @@ const forecast = await predictive.forecastMetric(
 
 Output:
 
-```
+```bash
 Forecast for latency_p99 (7 days):
 - Day 1: 125ms (115-135ms)
 - Day 2: 128ms (118-138ms)
@@ -697,6 +697,5 @@ vitals automation validate
 
 ## Related Documentation
 
-- [ROADMAP.md](../ROADMAP.md) - Phase 4 requirements
 - [API Documentation](api.md) - Integration APIs
 - [Development Guide](development.md) - Contributing guidelines
