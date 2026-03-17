@@ -9,6 +9,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.cli.json",
     "dev": "tsc -p tsconfig.cli.json --watch",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "test": "npm run build && node --test \"tests/**/*.test.mjs\""
   },
   "keywords": [

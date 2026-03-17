@@ -95,29 +95,51 @@ async function run() {
     let exitCode = 0;
 
     try {
-      await exec('vitals', args, {
+      exitCode = await exec('vitals', args, {
         listeners: {
           stdout: (data: Buffer) => {
             output += data.toString();
           },
           stderr: (data: Buffer) => {
-            core.info(data.toString());
+            core.debug(`[stderr] ${data.toString()}`);
           }
         },
         ignoreReturnCode: true
-      }).then(code => {
-        exitCode = code;
       });
     } catch (error) {
       core.warning(`Command execution error: ${error}`);
+      throw error;
     }
 
-    // Parse result
+    // Parse result - filter out progress bars and noise
     let result: VitalsResult;
     try {
-      result = JSON.parse(output);
-    } catch (error) {
-      throw new Error(`Failed to parse vitals output: ${output}`);
+      if (!output || output.trim().length === 0) {
+        throw new Error(`No output from vitals CLI (exit code: ${exitCode})`);
+      }
+
+      // Extract JSON from output (skip progress bars and other noise)
+      const jsonMatch = output.match(/\{[\s\S]*\}(?:\s*$|\s*\n)/);
+      if (!jsonMatch) {
+        // Try to extract any JSON object, even if not at the end
+        const anyJsonMatch = output.match(/\{[\s\S]*\}/);
+        if (!anyJsonMatch) {
+          core.debug(`Full output (length: ${output.length}): ${output}`);
+          throw new Error(`No JSON object found in output. First 200 chars: ${output.slice(0, 200)}`);
+        }
+        result = JSON.parse(anyJsonMatch[0]);
+      } else {
+        result = JSON.parse(jsonMatch[0]);
+      }
+    } catch (parseError) {
+      // If we got output and JSON parsing failed, provide detailed error
+      if (output) {
+        const errorMsg = exitCode !== 0 
+          ? `Vitals CLI failed with exit code ${exitCode}. Output: ${output.slice(0, 500)}`
+          : `Failed to parse vitals output: ${(parseError as Error).message}. Output: ${output.slice(0, 500)}`;
+        throw new Error(errorMsg);
+      }
+      throw parseError;
     }
 
     // Set outputs
