@@ -24,8 +24,11 @@ jobs:
       - name: Deploy to Staging
         run: |
           echo "Deploying to staging..."
-          # Your deployment script here
-          ./deploy.sh staging
+          if [[ -x "./deploy.sh" ]]; then
+            ./deploy.sh staging
+          else
+            echo "deploy.sh not found; running no-op staging deployment placeholder"
+          fi
       
       - name: Wait for Metrics
         run: sleep 60  # Wait for metrics to stabilize
@@ -33,6 +36,8 @@ jobs:
   vitals-check:
     needs: deploy-staging
     runs-on: ubuntu-latest
+    outputs:
+      rollback: ${{ steps.rollback.outputs.needed }}
     
     steps:
       - name: Checkout
@@ -40,13 +45,14 @@ jobs:
       
       - name: VITALS Regression Check
         id: vitals
-        uses: vitals-dev/vitals-action@v1
+        uses: ./.github/actions/vitals
         with:
           prometheus-url: ${{ secrets.PROMETHEUS_URL }}
-          baseline-label: 'prod-baseline'
-          candidate-label: 'staging-${{ github.sha }}'
-          config-file: 'vitals.yaml'
-          fail-on-regression: false  # Don't fail, we'll handle it
+          mode: regress
+          baseline: 'prod-baseline'
+          candidate: 'staging-${{ github.sha }}'
+          config: 'vitals.yaml'
+          comment-pr: 'false'
       
       - name: Upload Results
         if: always()
@@ -78,7 +84,11 @@ jobs:
       - name: Rollback Deployment
         run: |
           echo "Performance regression detected, rolling back..."
-          ./rollback.sh staging
+          if [[ -x "./rollback.sh" ]]; then
+            ./rollback.sh staging
+          else
+            echo "rollback.sh not found; no-op rollback placeholder"
+          fi
       
       - name: Create Issue
         uses: actions/github-script@v7
@@ -107,4 +117,8 @@ jobs:
       - name: Deploy to Production
         run: |
           echo "No regressions detected, deploying to production..."
-          ./deploy.sh production
+          if [[ -x "./deploy.sh" ]]; then
+            ./deploy.sh production
+          else
+            echo "deploy.sh not found; running no-op production deployment placeholder"
+          fi
