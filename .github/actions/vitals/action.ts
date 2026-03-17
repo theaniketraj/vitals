@@ -118,18 +118,18 @@ async function run() {
         throw new Error(`No output from vitals CLI (exit code: ${exitCode})`);
       }
 
-      // Extract JSON from output (skip progress bars and other noise)
-      const jsonMatch = output.match(/\{[\s\S]*\}(?:\s*$|\s*\n)/);
+      // Extract JSON from output, ignoring all other logging/progress indicators
+      const jsonMatch = output.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        // Try to extract any JSON object, even if not at the end
-        const anyJsonMatch = output.match(/\{[\s\S]*\}/);
-        if (!anyJsonMatch) {
-          core.debug(`Full output (length: ${output.length}): ${output}`);
-          throw new Error(`No JSON object found in output. First 200 chars: ${output.slice(0, 200)}`);
-        }
-        result = JSON.parse(anyJsonMatch[0]);
-      } else {
+        core.debug(`Full output (length: ${output.length}): ${output}`);
+        const cleanOutput = output.replace(/[^a-zA-Z0-9\s.,{}[\]":-]/g, '');
+        throw new Error(`No JSON object found in output. First 200 chars of cleaned output: ${cleanOutput.slice(0, 200)}`);
+      }
+      
+      try {
         result = JSON.parse(jsonMatch[0]);
+      } catch (e) {
+        throw new Error(`Failed to parse extracted JSON: ${e}. Extracted content: ${jsonMatch[0].slice(0, 500)}`);
       }
     } catch (parseError) {
       // If we got output and JSON parsing failed, provide detailed error
