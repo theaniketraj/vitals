@@ -37,11 +37,19 @@ export function registerRegressCommand(program: Command) {
     .option('--no-color', 'Disable colored output')
     .action(async (options) => {
       try {
+        // Suppress progress when outputting JSON
+        const isJsonFormat = options.format === 'json';
+        const logProgress = (msg: string) => {
+          if (!isJsonFormat) {
+            console.error(msg);
+          }
+        };
+
         // Load policy config
         const configPath = options.config || findPolicyConfig();
         const policy = configPath ? loadPolicy(configPath) : null;
 
-        if (configPath && policy) {
+        if (configPath && policy && !isJsonFormat) {
           console.error(`✓ Loaded policy from: ${configPath}\n`);
         }
 
@@ -68,7 +76,7 @@ export function registerRegressCommand(program: Command) {
         };
 
         // Fetch baseline data
-        console.error(`Fetching baseline data for ${options.baseline}...`);
+        logProgress(`Fetching baseline data for ${options.baseline}...`);
         const baselineData = await fetchMetric(prometheusConfig, {
           metric: options.metric,
           label: options.baseline,
@@ -76,7 +84,7 @@ export function registerRegressCommand(program: Command) {
         });
 
         // Fetch candidate data
-        console.error(`Fetching candidate data for ${options.candidate}...`);
+        logProgress(`Fetching candidate data for ${options.candidate}...`);
         const candidateData = await fetchMetric(prometheusConfig, {
           metric: options.metric,
           label: options.candidate,
@@ -84,7 +92,7 @@ export function registerRegressCommand(program: Command) {
         });
 
         // Run regression analysis (with test selection)
-        console.error(`Running regression analysis (test: ${options.test})...\n`);
+        logProgress(`Running regression analysis (test: ${options.test})...\n`);
         const result = await runRegression(
           {
             baseline: options.baseline,
@@ -154,9 +162,9 @@ export function registerRegressCommand(program: Command) {
                 policy_reason: evaluation.reason
               }
             });
-            console.error('✓ Persisted regression result into Phase 5 database');
+            logProgress('✓ Persisted regression result into Phase 5 database');
           } catch (persistError) {
-            console.error(`⚠ Failed to persist Phase 5 regression record: ${(persistError as Error).message}`);
+            logProgress(`⚠ Failed to persist Phase 5 regression record: ${(persistError as Error).message}`);
           }
         }
 

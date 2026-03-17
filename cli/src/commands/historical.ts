@@ -42,11 +42,19 @@ export function registerHistoricalCommand(program: Command) {
     .option('--no-color', 'Disable colored output')
     .action(async (options) => {
       try {
+        // Suppress progress when outputting JSON
+        const isJsonFormat = options.format === 'json';
+        const logProgress = (msg: string) => {
+          if (!isJsonFormat) {
+            console.error(msg);
+          }
+        };
+
         // Load policy config
         const configPath = options.config || findPolicyConfig();
         const policy = configPath ? loadPolicy(configPath) : null;
 
-        if (configPath && policy) {
+        if (configPath && policy && !isJsonFormat) {
           console.error(`✓ Loaded policy from: ${configPath}\n`);
         }
 
@@ -73,10 +81,10 @@ export function registerHistoricalCommand(program: Command) {
           process.exit(2);
         }
 
-        console.error(`Analyzing against ${baselineDeployments.length} historical baselines...\n`);
+        logProgress(`Analyzing against ${baselineDeployments.length} historical baselines...\n`);
 
         // Fetch baseline data for all deployments
-        console.error('Fetching historical baseline data...');
+        logProgress('Fetching historical baseline data...');
         const baselineDataSets: { deployment: string; data: number[] }[] = [];
 
         for (const deployment of baselineDeployments) {
@@ -89,12 +97,12 @@ export function registerHistoricalCommand(program: Command) {
 
             if (data.length > 0) {
               baselineDataSets.push({ deployment, data });
-              console.error(`  ✓ ${deployment}: ${data.length} samples`);
+              logProgress(`  ✓ ${deployment}: ${data.length} samples`);
             } else {
-              console.error(`  ⚠ ${deployment}: No data`);
+              logProgress(`  ⚠ ${deployment}: No data`);
             }
           } catch (error) {
-            console.error(`  ✗ ${deployment}: ${(error as Error).message}`);
+            logProgress(`  ✗ ${deployment}: ${(error as Error).message}`);
           }
         }
 
@@ -105,19 +113,19 @@ export function registerHistoricalCommand(program: Command) {
 
         // Aggregate baseline data
         const aggregatedBaseline = aggregateBaselines(baselineDataSets, options.aggregate);
-        console.error(`\nAggregated baseline (${options.aggregate}): ${aggregatedBaseline.length} samples\n`);
+        logProgress(`\nAggregated baseline (${options.aggregate}): ${aggregatedBaseline.length} samples\n`);
 
         // Fetch candidate data
-        console.error(`Fetching candidate data for ${options.candidate}...`);
+        logProgress(`Fetching candidate data for ${options.candidate}...`);
         const candidateData = await fetchMetric(prometheusConfig, {
           metric: options.metric,
           label: options.candidate,
           timeRange: options.timeRange
         });
-        console.error(`  ✓ ${candidateData.length} samples\n`);
+        logProgress(`  ✓ ${candidateData.length} samples\n`);
 
         // Run regression analysis
-        console.error('Running regression analysis...\n');
+        logProgress('Running regression analysis...\n');
         const result = await runRegression(
           {
             baseline: `historical-${options.aggregate}`,
@@ -176,9 +184,9 @@ export function registerHistoricalCommand(program: Command) {
                 aggregation: options.aggregate
               }
             });
-            console.error('✓ Persisted historical analysis result into Phase 5 database');
+            logProgress('✓ Persisted historical analysis result into Phase 5 database');
           } catch (persistError) {
-            console.error(`⚠ Failed to persist Phase 5 regression record: ${(persistError as Error).message}`);
+            logProgress(`⚠ Failed to persist Phase 5 regression record: ${(persistError as Error).message}`);
           }
         }
 
