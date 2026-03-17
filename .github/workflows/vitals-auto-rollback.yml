@@ -53,12 +53,12 @@ jobs:
           cd .github/actions/vitals
           npm install
           npm run build
-      
+
       - name: VITALS Regression Check
         id: vitals
         uses: ./.github/actions/vitals
         with:
-          prometheus-url: ${{ secrets.PROMETHEUS_URL }}
+          prometheus-url: https://prometheus.demo.do.prometheus.io:9090
           mode: regress
           baseline: 'prod-baseline'
           candidate: 'staging-${{ github.sha }}'

@@ -37,7 +37,7 @@ async function run() {
     const metric = core.getInput('metric') || 'latency_p95';
     const metrics = core.getInput('metrics');
     const config = core.getInput('config') || 'vitals.yaml';
-    const prometheusUrl = core.getInput('prometheus-url', { required: true });
+    const prometheusUrl = core.getInput('prometheus-url') || 'https://prometheus.demo.do.prometheus.io:9090';
     const threshold = core.getInput('threshold');
     const pvalue = core.getInput('pvalue') || '0.05';
     const effectSize = core.getInput('effect-size') || '0.5';

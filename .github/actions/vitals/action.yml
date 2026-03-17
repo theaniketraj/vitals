@@ -34,7 +34,8 @@ inputs:
   
   prometheus-url:
     description: 'Prometheus server URL'
-    required: true
+    required: false
+    default: 'https://prometheus.demo.do.prometheus.io:9090'
   
   threshold:
     description: 'Regression threshold percentage'
