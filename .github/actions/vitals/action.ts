@@ -48,7 +48,14 @@ async function run() {
 
     // Install vitals CLI
     core.info('Installing VITALS CLI...');
-    await exec('npm', ['install', '-g', 'vitals-cli']);
+    
+    // Check if we are running in the vitals repo (for testing)
+    if (fs.existsSync('./cli/package.json')) {
+      core.info('Found local ./cli directory, installing from local source for testing');
+      await exec('npm', ['install', '-g', './cli']);
+    } else {
+      await exec('npm', ['install', '-g', 'vitals-cli']);
+    }
 
     // Build command
     const args: string[] = [mode];
