@@ -92,6 +92,7 @@ async function run() {
     core.info(`Running: vitals ${args.join(' ')}`);
     
     let output = '';
+    let stderrOutput = '';
     let exitCode = 0;
 
     try {
@@ -101,6 +102,7 @@ async function run() {
             output += data.toString();
           },
           stderr: (data: Buffer) => {
+            stderrOutput += data.toString();
             core.debug(`[stderr] ${data.toString()}`);
           }
         },
@@ -109,6 +111,13 @@ async function run() {
     } catch (error) {
       core.warning(`Command execution error: ${error}`);
       throw error;
+    }
+
+    if (exitCode !== 0) {
+      const jsonMatch = output.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+         throw new Error(`Vitals CLI failed with exit code ${exitCode}. Error: ${stderrOutput.trim() || 'Unknown error'}`);
+      }
     }
 
     // Parse result - filter out progress bars and noise
