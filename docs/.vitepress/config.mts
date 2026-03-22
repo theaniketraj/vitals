@@ -3,6 +3,10 @@ import { withMermaid } from "vitepress-plugin-mermaid";
 
 export default withMermaid(
   defineConfig({
+    sitemap: {
+      hostname: "https://theaniketraj.github.io/vitals/",
+    },
+
     base: "/vitals/",
     title: "Vitals",
     description: "Real-time Observability for VS Code",
@@ -27,7 +31,13 @@ export default withMermaid(
 
     head: [
       ["link", { rel: "icon", href: "/vitals/icon.png" }],
-      ["link", { rel: "stylesheet", href: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" }],
+      [
+        "link",
+        {
+          rel: "stylesheet",
+          href: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css",
+        },
+      ],
       ["meta", { name: "theme-color", content: "#3b82f6" }],
       ["meta", { name: "author", content: "Aniket Raj" }],
       [
@@ -103,14 +113,36 @@ export default withMermaid(
       // Enhanced Open Graph with image dimensions
       ["meta", { property: "og:image:width", content: "1200" }],
       ["meta", { property: "og:image:height", content: "630" }],
-      ["meta", { property: "og:image:alt", content: "Vitals - Real-time Observability Dashboard for VS Code" }],
+      [
+        "meta",
+        {
+          property: "og:image:alt",
+          content: "Vitals - Real-time Observability Dashboard for VS Code",
+        },
+      ],
       ["meta", { property: "og:locale", content: "en_US" }],
       // Performance optimization
       ["link", { rel: "dns-prefetch", href: "https://github.com" }],
-      ["link", { rel: "preconnect", href: "https://github.com", crossorigin: "" }],
-      ["link", { rel: "preconnect", href: "https://marketplace.visualstudio.com", crossorigin: "" }],
+      [
+        "link",
+        { rel: "preconnect", href: "https://github.com", crossorigin: "" },
+      ],
+      [
+        "link",
+        {
+          rel: "preconnect",
+          href: "https://marketplace.visualstudio.com",
+          crossorigin: "",
+        },
+      ],
       // Search engine verification tags (replace with your actual verification codes)
-      ["meta", { name: "google-site-verification", content: "GOOGLE_VERIFICATION_CODE" }],
+      [
+        "meta",
+        {
+          name: "google-site-verification",
+          content: "GOOGLE_VERIFICATION_CODE",
+        },
+      ],
       ["meta", { name: "msvalidate.01", content: "BING_VERIFICATION_CODE" }],
       // Structured Data (JSON-LD) for rich snippets
       [
@@ -123,84 +155,89 @@ export default withMermaid(
               {
                 "@type": "WebSite",
                 "@id": "https://theaniketraj.github.io/vitals/#website",
-                "url": "https://theaniketraj.github.io/vitals/",
-                "name": "Vitals - Real-time Observability for VS Code",
-                "description": "Monitor application metrics, logs, and alerts directly in Visual Studio Code. Integrated with Prometheus for seamless developer experience.",
-                "publisher": {
-                  "@id": "https://theaniketraj.github.io/vitals/#organization"
+                url: "https://theaniketraj.github.io/vitals/",
+                name: "Vitals - Real-time Observability for VS Code",
+                description:
+                  "Monitor application metrics, logs, and alerts directly in Visual Studio Code. Integrated with Prometheus for seamless developer experience.",
+                publisher: {
+                  "@id": "https://theaniketraj.github.io/vitals/#organization",
                 },
-                "inLanguage": "en-US",
-                "potentialAction": {
+                inLanguage: "en-US",
+                potentialAction: {
                   "@type": "SearchAction",
-                  "target": "https://theaniketraj.github.io/vitals/?s={search_term_string}",
-                  "query-input": "required name=search_term_string"
-                }
+                  target:
+                    "https://theaniketraj.github.io/vitals/?s={search_term_string}",
+                  "query-input": "required name=search_term_string",
+                },
               },
               {
                 "@type": "Organization",
                 "@id": "https://theaniketraj.github.io/vitals/#organization",
-                "name": "Vitals",
-                "url": "https://theaniketraj.github.io/vitals/",
-                "logo": {
+                name: "Vitals",
+                url: "https://theaniketraj.github.io/vitals/",
+                logo: {
                   "@type": "ImageObject",
-                  "url": "https://theaniketraj.github.io/vitals/icon.png",
-                  "width": 512,
-                  "height": 512
+                  url: "https://theaniketraj.github.io/vitals/icon.png",
+                  width: 512,
+                  height: 512,
                 },
-                "sameAs": [
+                sameAs: [
                   "https://github.com/theaniketraj/vitals",
-                  "https://marketplace.visualstudio.com/items?itemName=theaniketraj.vitals"
-                ]
+                  "https://marketplace.visualstudio.com/items?itemName=theaniketraj.vitals",
+                ],
               },
               {
                 "@type": "SoftwareApplication",
-                "@id": "https://theaniketraj.github.io/vitals/#softwareapplication",
-                "name": "Vitals",
-                "alternateName": "Vitals VS Code Extension",
-                "description": "Monitor application metrics, logs, and alerts directly in Visual Studio Code. Real-time observability powered by Prometheus.",
-                "url": "https://theaniketraj.github.io/vitals/",
-                "applicationCategory": "DeveloperApplication",
-                "operatingSystem": "Windows, macOS, Linux",
-                "offers": {
+                "@id":
+                  "https://theaniketraj.github.io/vitals/#softwareapplication",
+                name: "Vitals",
+                alternateName: "Vitals VS Code Extension",
+                description:
+                  "Monitor application metrics, logs, and alerts directly in Visual Studio Code. Real-time observability powered by Prometheus.",
+                url: "https://theaniketraj.github.io/vitals/",
+                applicationCategory: "DeveloperApplication",
+                operatingSystem: "Windows, macOS, Linux",
+                offers: {
                   "@type": "Offer",
-                  "price": "0",
-                  "priceCurrency": "USD"
+                  price: "0",
+                  priceCurrency: "USD",
                 },
-                "author": {
+                author: {
                   "@type": "Person",
-                  "name": "Aniket Raj",
-                  "url": "https://github.com/theaniketraj"
+                  name: "Aniket Raj",
+                  url: "https://github.com/theaniketraj",
                 },
-                "downloadUrl": "https://marketplace.visualstudio.com/items?itemName=theaniketraj.vitals",
-                "screenshot": "https://theaniketraj.github.io/vitals/icon.png",
-                "softwareVersion": "0.3.1",
-                "aggregateRating": {
+                downloadUrl:
+                  "https://marketplace.visualstudio.com/items?itemName=theaniketraj.vitals",
+                screenshot: "https://theaniketraj.github.io/vitals/icon.png",
+                softwareVersion: "0.3.1",
+                aggregateRating: {
                   "@type": "AggregateRating",
-                  "ratingValue": "4.8",
-                  "ratingCount": "100",
-                  "bestRating": "5",
-                  "worstRating": "1"
+                  ratingValue: "4.8",
+                  ratingCount: "100",
+                  bestRating: "5",
+                  worstRating: "1",
                 },
-                "featureList": [
+                featureList: [
                   "Real-time metrics visualization",
                   "Live log streaming",
                   "Prometheus alerts integration",
-                  "Zero configuration setup"
-                ]
+                  "Zero configuration setup",
+                ],
               },
               {
                 "@type": "BreadcrumbList",
                 "@id": "https://theaniketraj.github.io/vitals/#breadcrumb",
-                "itemListElement": [
+                itemListElement: [
                   {
                     "@type": "ListItem",
-                    "position": 1,
-                    "name": "Home",
-                    "item": "https://theaniketraj.github.io/vitals/"
-                  }
-                ]
-              }
-            ]
+                    position: 1,
+                    name: "Home",
+                    item: "https://theaniketraj.github.io/vitals/",
+                  },
+                ],
+              },
+            ],
           }),
         },
       ],
@@ -310,5 +347,5 @@ export default withMermaid(
         text: "Edit this page on GitHub",
       },
     },
-  })
+  }),
 );
