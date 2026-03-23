@@ -275,7 +275,7 @@ export default withMermaid(
         },
         { text: "API", link: "/api" },
         {
-          text: "v0.3.1",
+          text: "v0.4.0",
           items: [
             {
               text: "Changelog",

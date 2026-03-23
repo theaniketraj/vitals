@@ -114,13 +114,13 @@ case 'fetchNewData':
   break;
 ```
 
-2. Add webview message sender in React hook:
+1. Add webview message sender in React hook:
 
 ```typescript
 vscode.postMessage({ command: "fetchNewData", query: "your_query" });
 ```
 
-3. Handle response in component
+1. Handle response in component
 
 #### New UI Component
 
@@ -217,9 +217,9 @@ For manual publishing, see [Publishing Extensions](https://code.visualstudio.com
 
 We use GitHub Actions to automate releases. To create a new release with an attached `.vsix` file:
 
-1.  Update the version in `package.json`.
-2.  Push a new tag starting with `v` (e.g., `git tag v0.3.1 && git push origin v0.3.1`).
-3.  The workflow will automatically build the extension and create a release on GitHub.
+1. Update the version in `package.json`.
+2. Push a new tag starting with `v` (e.g., `git tag v0.4.0 && git push origin v0.4.0`).
+3. The workflow will automatically build the extension and create a release on GitHub.
 
 ## Common Issues
 
