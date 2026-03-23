@@ -14,7 +14,7 @@
   "homepage": "https://theaniketraj.github.io/vitals/",
   "icon": "icon.png",
   "engines": {
-    "vscode": "^1.94.0"
+    "vscode": "^1.108.1"
   },
   "categories": [
     "Programming Languages",
