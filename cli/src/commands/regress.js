@@ -1,0 +1,180 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.registerRegressCommand = registerRegressCommand;
+const regression_1 = require("../core/regression");
+const prometheus_1 = require("../services/prometheus");
+const formatter_1 = require("../utils/formatter");
+const policyLoaderV2_1 = require("../services/policyLoaderV2");
+const persistence_1 = require("../services/persistence");
+function calculateStdDev(values) {
+    if (values.length < 2) {
+        return 0;
+    }
+    const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+    const variance = values.reduce((sum, value) => sum + ((value - mean) ** 2), 0) / (values.length - 1);
+    return Math.sqrt(variance);
+}
+function registerRegressCommand(program) {
+    program
+        .command('regress')
+        .description('Detect performance regression between deployments')
+        .requiredOption('--baseline <deployment>', 'Baseline deployment identifier')
+        .requiredOption('--candidate <deployment>', 'Candidate deployment identifier')
+        .option('--metric <metric>', 'Metric to analyze', 'latency_p95')
+        .option('--service <service>', 'Service name for service-specific policies')
+        .option('--config <path>', 'Path to vitals.yaml config file')
+        .option('--prometheus-url <url>', 'Prometheus server URL', process.env.PROMETHEUS_URL)
+        .option('--threshold <percent>', 'Regression threshold percentage')
+        .option('--pvalue <value>', 'Statistical significance threshold (p-value)')
+        .option('--effect-size <value>', 'Minimum effect size threshold')
+        .option('--min-samples <count>', 'Minimum sample size required', '30')
+        .option('--time-range <range>', 'Time range for metrics (e.g., 10m, 1h)', '10m')
+        .option('--test <test>', 'Statistical test: welch, mann-whitney, permutation, auto', 'welch')
+        .option('--no-phase5-persist', 'Disable persisting results into the Phase 5 regression database')
+        .option('--data-root <path>', 'Phase 5 data root', '~/.vitals')
+        .option('--format <format>', 'Output format: json or pretty', 'pretty')
+        .option('--no-color', 'Disable colored output')
+        .action(async (options) => {
+        try {
+            // Suppress progress when outputting JSON
+            const isJsonFormat = options.format === 'json';
+            const logProgress = (msg) => {
+                if (!isJsonFormat) {
+                    console.error(msg);
+                }
+            };
+            // Load policy config
+            const configPath = options.config || (0, policyLoaderV2_1.findPolicyConfig)();
+            const policy = configPath ? (0, policyLoaderV2_1.loadPolicy)(configPath) : null;
+            if (configPath && policy && !isJsonFormat) {
+                console.error(`✓ Loaded policy from: ${configPath}\n`);
+            }
+            // Get metric-specific policy (with service support)
+            const metricPolicy = policy
+                ? (0, policyLoaderV2_1.getServiceMetricPolicy)(policy, options.service || null, options.metric)
+                : null;
+            // Get defaults from policy or use command defaults
+            const defaults = (0, policyLoaderV2_1.getDefaultOptions)(policy, options.service);
+            const prometheusUrl = options.prometheusUrl || defaults.prometheusUrl;
+            const threshold = options.threshold
+                ? parseFloat(options.threshold)
+                : (metricPolicy?.regression?.max_increase_percent || 10);
+            const pValue = options.pvalue
+                ? parseFloat(options.pvalue)
+                : (metricPolicy?.regression?.p_value || 0.05);
+            const effectSize = options.effectSize
+                ? parseFloat(options.effectSize)
+                : (metricPolicy?.regression?.effect_size || 0.5);
+            const prometheusConfig = {
+                url: prometheusUrl
+            };
+            // Fetch baseline data
+            logProgress(`Fetching baseline data for ${options.baseline}...`);
+            const baselineData = await (0, prometheus_1.fetchMetric)(prometheusConfig, {
+                metric: options.metric,
+                label: options.baseline,
+                timeRange: options.timeRange
+            });
+            // Fetch candidate data
+            logProgress(`Fetching candidate data for ${options.candidate}...`);
+            const candidateData = await (0, prometheus_1.fetchMetric)(prometheusConfig, {
+                metric: options.metric,
+                label: options.candidate,
+                timeRange: options.timeRange
+            });
+            // Run regression analysis (with test selection)
+            logProgress(`Running regression analysis (test: ${options.test})...\n`);
+            const result = await (0, regression_1.runRegression)({
+                baseline: options.baseline,
+                candidate: options.candidate,
+                metric: options.metric,
+                threshold,
+                pValue,
+                effectSizeThreshold: effectSize,
+                minSamples: parseInt(options.minSamples),
+                testType: options.test
+            }, baselineData, candidateData);
+            // Evaluate against policy
+            const evaluation = (0, policyLoaderV2_1.evaluateRegression)(options.metric, result.change_percent, result.p_value, result.effect_size, result.significant, metricPolicy);
+            // Determine final verdict based on policy
+            let finalVerdict = result.verdict;
+            if (evaluation.action === 'fail' && result.verdict !== 'INSUFFICIENT_DATA') {
+                finalVerdict = 'FAIL';
+            }
+            else if (evaluation.action === 'warn' && result.verdict === 'PASS') {
+                finalVerdict = 'WARN';
+            }
+            // Add policy information to result
+            const enrichedResult = {
+                ...result,
+                verdict: finalVerdict,
+                policy: {
+                    action: evaluation.action,
+                    reason: evaluation.reason,
+                    should_rollback: evaluation.shouldRollback
+                }
+            };
+            if (options.phase5Persist) {
+                try {
+                    await (0, persistence_1.persistRegressionToPhase5)({
+                        dataRoot: options.dataRoot,
+                        service: options.service,
+                        metric: options.metric,
+                        baselineLabel: options.baseline,
+                        candidateLabel: options.candidate,
+                        verdict: finalVerdict,
+                        baselineMean: result.baseline.mean,
+                        baselineSamples: result.baseline.samples,
+                        baselineStdDev: calculateStdDev(baselineData),
+                        candidateMean: result.candidate.mean,
+                        candidateSamples: result.candidate.samples,
+                        candidateStdDev: calculateStdDev(candidateData),
+                        changePercent: result.change_percent,
+                        pValue: result.p_value,
+                        effectSize: result.effect_size,
+                        threshold,
+                        metadata: {
+                            test_type: options.test,
+                            policy_action: evaluation.action,
+                            policy_reason: evaluation.reason
+                        }
+                    });
+                    logProgress('✓ Persisted regression result into Phase 5 database');
+                }
+                catch (persistError) {
+                    logProgress(`⚠ Failed to persist Phase 5 regression record: ${persistError.message}`);
+                }
+            }
+            // Format and output result
+            const output = (0, formatter_1.formatResult)(enrichedResult, {
+                format: options.format,
+                color: options.color
+            });
+            console.log(output);
+            // Exit with appropriate code
+            const exitCode = getExitCode(finalVerdict);
+            process.exit(exitCode);
+        }
+        catch (error) {
+            console.error('\n' + '✗ Error:'.padEnd(20), error.message);
+            process.exit(2);
+        }
+    });
+}
+/**
+ * Map verdict to exit code
+ */
+function getExitCode(verdict) {
+    switch (verdict) {
+        case 'PASS':
+            return 0;
+        case 'WARN':
+            return 0; // Don't fail CI on warnings
+        case 'FAIL':
+            return 1;
+        case 'INSUFFICIENT_DATA':
+            return 2;
+        default:
+            return 2;
+    }
+}

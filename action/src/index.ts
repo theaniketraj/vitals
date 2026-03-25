@@ -7,13 +7,13 @@
 
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import { batchRegression, formatBatchResults, exportBatchResultsJSON } from '../cli/src/core/batch';
-import { PrometheusConfig } from '../cli/src/services/prometheus';
+import { batchRegression, formatBatchResults, exportBatchResultsJSON } from '../../cli/src/core/batch';
+import { PrometheusConfig } from '../../cli/src/services/prometheus';
 import { 
   formatBatchResultsForPR, 
   upsertGitHubPRComment, 
   getGitHubConfigFromEnv 
-} from '../cli/src/integrations/github';
+} from '../../cli/src/integrations/github';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
@@ -109,10 +109,8 @@ async function run(): Promise<void> {
     let metrics = config.metrics?.map(name => ({ name, threshold: config.threshold }));
     
     if (!metrics || metrics.length === 0) {
-      core.info(`Loading metrics from config file: ${config.configFile}`);
-      metrics = loadMetricsFromConfig(config.configFile);
-    }
-
+      core.info(`Loading metrics from config file: ${config.configFile || "vitals.yaml"}`);      
+      metrics = loadMetricsFromConfig(config.configFile || "vitals.yaml");    }
     if (metrics.length === 0) {
       core.setFailed('No metrics specified. Provide metrics via input or config file.');
       return;
