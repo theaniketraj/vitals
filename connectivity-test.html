@@ -289,7 +289,14 @@
             const time = new Date().toLocaleTimeString();
             const entry = document.createElement('div');
             entry.className = 'log-entry';
-            entry.innerHTML = `<span class="log-time">${time}</span><span class="log-msg ${type}">${msg}</span>`;
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'log-time';
+            timeSpan.textContent = time;
+            const msgSpan = document.createElement('span');
+            msgSpan.className = 'log-msg ' + type;
+            msgSpan.textContent = msg;
+            entry.appendChild(timeSpan);
+            entry.appendChild(msgSpan);
             consoleEl.appendChild(entry);
             consoleEl.scrollTop = consoleEl.scrollHeight;
         }
