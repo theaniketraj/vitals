@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as os from 'os';
 import { vitalsApi } from '../api/vitalsApi';
 import { CustomGitHubAuth } from '../auth/customGitHubAuth';
+import * as crypto from 'crypto';
 
 export interface UsageStatistics {
   // Session info
@@ -77,7 +78,9 @@ export class UsageStatsCollector {
   }
 
   private generateSessionId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Use cryptographically secure random bytes for the session ID suffix
+    const randomSuffix = crypto.randomBytes(16).toString('hex');
+    return `${Date.now()}-${randomSuffix}`;
   }
 
   private startAutoSave() {
