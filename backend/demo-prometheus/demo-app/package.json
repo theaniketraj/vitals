@@ -7,7 +7,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "prom-client": "^15.1.0"
+    "express": "^5.2.1",
+    "prom-client": "^15.1.3"
   }
 }
