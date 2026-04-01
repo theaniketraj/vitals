@@ -23,7 +23,7 @@
     "@octokit/rest": "^22.0.1",
     "axios": "^1.14.0",
     "js-yaml": "^4.1.1",
-    "undici": "^7.24.6"
+    "undici": "^7.24.7"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
