@@ -457,7 +457,7 @@
     "@aws-sdk/client-xray": "^3.1020.0",
     "@fortawesome/fontawesome-free": "^7.2.0",
     "@observablehq/plot": "^0.6.17",
-    "axios": "^1.14.0",
+    "axios": "^1.15.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },
