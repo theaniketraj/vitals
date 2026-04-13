@@ -479,7 +479,7 @@
     "postcss-loader": "^8.2.1",
     "style-loader": "^4.0.0",
     "ts-jest": "^29.4.9",
-    "ts-loader": "^9.5.4",
+    "ts-loader": "^9.5.7",
     "typescript": "^5.9.3",
     "vitepress": "^1.6.4",
     "vitepress-plugin-mermaid": "^2.0.17",
