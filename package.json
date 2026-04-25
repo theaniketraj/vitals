@@ -459,7 +459,7 @@
     "@observablehq/plot": "^0.6.17",
     "axios": "^1.15.0",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.5"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
