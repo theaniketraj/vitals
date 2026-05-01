@@ -484,7 +484,7 @@
     "vitepress": "^1.6.4",
     "vitepress-plugin-mermaid": "^2.0.17",
     "vscode-test": "^1.6.1",
-    "vue": "^3.5.32",
+    "vue": "^3.5.33",
     "webpack": "^5.106.2",
     "webpack-cli": "^7.0.2"
   }
