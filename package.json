@@ -453,11 +453,11 @@
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudwatch": "^3.1024.0",
-    "@aws-sdk/client-xray": "^3.1037.0",
+    "@aws-sdk/client-cloudwatch": "^3.1041.0",
+    "@aws-sdk/client-xray": "^3.1041.0",
     "@fortawesome/fontawesome-free": "^7.2.0",
     "@observablehq/plot": "^0.6.17",
-    "axios": "^1.15.0",
+    "axios": "^1.15.2",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"
   },
@@ -470,7 +470,7 @@
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@types/vscode": "^1.116.0",
+    "@types/vscode": "^1.118.0",
     "babel-loader": "^10.1.1",
     "css-loader": "^7.1.4",
     "jest": "^30.3.0",
@@ -483,7 +483,7 @@
     "typescript": "^6.0.3",
     "vitepress": "^1.6.4",
     "vitepress-plugin-mermaid": "^2.0.17",
-    "vscode-test": "^1.6.1",
+    "vscode-test": "^",
     "vue": "^3.5.33",
     "webpack": "^5.106.2",
     "webpack-cli": "^7.0.2"
