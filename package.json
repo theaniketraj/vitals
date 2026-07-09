@@ -483,7 +483,7 @@
     "typescript": "^7.0.2",
     "vitepress": "^1.6.4",
     "vitepress-plugin-mermaid": "^2.0.17",
-    "vscode-test": "^",
+    "vscode-test": "^3.0.0",
     "vue": "^3.5.39",
     "webpack": "^5.108.4",
     "webpack-cli": "^7.2.1"
