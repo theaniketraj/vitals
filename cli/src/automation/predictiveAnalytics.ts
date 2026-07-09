@@ -1,19 +1,19 @@
 /**
  * VITALS Predictive Analytics
- * 
+ *
  * Provides forecasting and predictive insights for performance metrics,
  * deployment risks, and resource utilization.
  */
 
-import { HistoricalStorage, TimeSeriesPoint } from './historicalStorage';
-import { PatternDetectionEngine, DetectedPattern } from './patternDetection';
+import { HistoricalStorage, TimeSeriesPoint } from "./historicalStorage";
+import { PatternDetectionEngine, DetectedPattern } from "./patternDetection";
 
 /**
  * Forecast result
  */
 export interface Forecast {
   metric: string;
-  forecast_type: 'linear' | 'exponential' | 'seasonal';
+  forecast_type: "linear" | "exponential" | "seasonal";
   predictions: TimeSeriesPoint[];
   confidence_interval: {
     lower: number[];
@@ -27,8 +27,8 @@ export interface Forecast {
  * Risk assessment
  */
 export interface RiskAssessment {
-  risk_level: 'low' | 'medium' | 'high' | 'critical';
-  risk_score: number;  // 0-100
+  risk_level: "low" | "medium" | "high" | "critical";
+  risk_score: number; // 0-100
   factors: RiskFactor[];
   recommendations: string[];
   predicted_incidents?: number;
@@ -50,7 +50,7 @@ export interface RiskFactor {
 export interface DeploymentWindow {
   start_time: Date;
   end_time: Date;
-  risk_level: 'low' | 'medium' | 'high';
+  risk_level: "low" | "medium" | "high";
   confidence: number;
   reasons: string[];
 }
@@ -80,14 +80,14 @@ export interface PredictiveConfig {
  * Predictive analytics engine
  */
 export class PredictiveAnalytics {
-  private storage: HistoricalStorage;
-  private patternEngine: PatternDetectionEngine;
-  private config: PredictiveConfig;
+  private readonly storage: HistoricalStorage;
+  private readonly patternEngine: PatternDetectionEngine;
+  private readonly config: PredictiveConfig;
 
   constructor(
     storage: HistoricalStorage,
     patternEngine: PatternDetectionEngine,
-    config?: PredictiveConfig
+    config?: PredictiveConfig,
   ) {
     this.storage = storage;
     this.patternEngine = patternEngine;
@@ -95,7 +95,7 @@ export class PredictiveAnalytics {
       forecast_horizon_days: 7,
       confidence_level: 0.95,
       min_historical_days: 30,
-      ...config
+      ...config,
     };
   }
 
@@ -104,40 +104,53 @@ export class PredictiveAnalytics {
    */
   async forecastMetric(
     metric: string,
-    field: 'change_percent' | 'baseline_mean' | 'candidate_mean' = 'change_percent'
+    field:
+      | "change_percent"
+      | "baseline_mean"
+      | "candidate_mean" = "change_percent",
   ): Promise<Forecast> {
     // Get historical data
-    const startDate = new Date(Date.now() - this.config.min_historical_days! * 24 * 60 * 60 * 1000);
-    const timeSeries = await this.storage.getTimeSeries(metric, field, { start_date: startDate });
+    const startDate = new Date(
+      Date.now() - this.config.min_historical_days! * 24 * 60 * 60 * 1000,
+    );
+    const timeSeries = await this.storage.getTimeSeries(metric, field, {
+      start_date: startDate,
+    });
 
     if (timeSeries.length < 10) {
-      throw new Error(`Insufficient historical data for ${metric}. Need at least 10 data points.`);
+      throw new Error(
+        `Insufficient historical data for ${metric}. Need at least 10 data points.`,
+      );
     }
 
     // Use simple linear forecast for now
     const forecast = this.linearForecast(
-      timeSeries.map(p => p.value),
-      this.config.forecast_horizon_days!
+      timeSeries.map((p) => p.value),
+      this.config.forecast_horizon_days!,
     );
 
     // Generate timestamps for predictions
     const lastTimestamp = timeSeries[timeSeries.length - 1].timestamp;
-    const predictions: TimeSeriesPoint[] = forecast.predictions.map((value, i) => ({
-      timestamp: new Date(lastTimestamp.getTime() + (i + 1) * 24 * 60 * 60 * 1000),
-      value
-    }));
+    const predictions: TimeSeriesPoint[] = forecast.predictions.map(
+      (value, i) => ({
+        timestamp: new Date(
+          lastTimestamp.getTime() + (i + 1) * 24 * 60 * 60 * 1000,
+        ),
+        value,
+      }),
+    );
 
     return {
       metric,
-      forecast_type: 'linear',
+      forecast_type: "linear",
       predictions,
       confidence_interval: forecast.confidence_interval,
       accuracy_score: forecast.r_squared,
       metadata: {
         historical_points: timeSeries.length,
         slope: forecast.slope,
-        r_squared: forecast.r_squared
-      }
+        r_squared: forecast.r_squared,
+      },
     };
   }
 
@@ -146,7 +159,7 @@ export class PredictiveAnalytics {
    */
   async assessDeploymentRisk(
     service: string,
-    deployment_time?: Date
+    deployment_time?: Date,
   ): Promise<RiskAssessment> {
     const factors: RiskFactor[] = [];
     let totalScore = 0;
@@ -155,16 +168,16 @@ export class PredictiveAnalytics {
     // Factor 1: Recent regression history
     const recentRegressions = await this.storage.queryRegressions(service, {
       start_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      verdict: 'FAIL'
+      verdict: "FAIL",
     });
 
     const regressionScore = Math.min(100, recentRegressions.length * 20);
     const regressionWeight = 0.3;
     factors.push({
-      factor: 'recent_regressions',
+      factor: "recent_regressions",
       weight: regressionWeight,
       score: regressionScore,
-      description: `${recentRegressions.length} regressions in last 7 days`
+      description: `${recentRegressions.length} regressions in last 7 days`,
     });
     totalScore += regressionScore * regressionWeight;
     totalWeight += regressionWeight;
@@ -173,30 +186,30 @@ export class PredictiveAnalytics {
     if (deployment_time) {
       const dayOfWeek = deployment_time.getDay();
       const hourOfDay = deployment_time.getHours();
-      
+
       // Fridays and weekends are higher risk
       let timeScore = 0;
-      let timeDescription = '';
+      let timeDescription = "";
       if (dayOfWeek === 5) {
         timeScore = 60;
-        timeDescription = 'Friday deployment - reduced coverage';
+        timeDescription = "Friday deployment - reduced coverage";
       } else if (dayOfWeek === 0 || dayOfWeek === 6) {
         timeScore = 80;
-        timeDescription = 'Weekend deployment - minimal coverage';
+        timeDescription = "Weekend deployment - minimal coverage";
       } else if (hourOfDay < 8 || hourOfDay > 18) {
         timeScore = 50;
-        timeDescription = 'Off-hours deployment';
+        timeDescription = "Off-hours deployment";
       } else {
         timeScore = 20;
-        timeDescription = 'Business hours deployment';
+        timeDescription = "Business hours deployment";
       }
 
       const timeWeight = 0.2;
       factors.push({
-        factor: 'deployment_timing',
+        factor: "deployment_timing",
         weight: timeWeight,
         score: timeScore,
-        description: timeDescription
+        description: timeDescription,
       });
       totalScore += timeScore * timeWeight;
       totalWeight += timeWeight;
@@ -204,44 +217,44 @@ export class PredictiveAnalytics {
 
     // Factor 3: Deployment frequency (too frequent = risky)
     const recentDeployments = await this.storage.queryDeployments(service, {
-      start_date: new Date(Date.now() - 24 * 60 * 60 * 1000)
+      start_date: new Date(Date.now() - 24 * 60 * 60 * 1000),
     });
 
     let frequencyScore = 0;
-    let frequencyDescription = '';
+    let frequencyDescription = "";
     if (recentDeployments.length > 5) {
       frequencyScore = 70;
-      frequencyDescription = 'Very high deployment frequency (>5/day)';
+      frequencyDescription = "Very high deployment frequency (>5/day)";
     } else if (recentDeployments.length > 3) {
       frequencyScore = 50;
-      frequencyDescription = 'High deployment frequency (3-5/day)';
+      frequencyDescription = "High deployment frequency (3-5/day)";
     } else {
       frequencyScore = 20;
-      frequencyDescription = 'Normal deployment frequency';
+      frequencyDescription = "Normal deployment frequency";
     }
 
     const frequencyWeight = 0.15;
     factors.push({
-      factor: 'deployment_frequency',
+      factor: "deployment_frequency",
       weight: frequencyWeight,
       score: frequencyScore,
-      description: frequencyDescription
+      description: frequencyDescription,
     });
     totalScore += frequencyScore * frequencyWeight;
     totalWeight += frequencyWeight;
 
     // Factor 4: Recent incident history
     const recentIncidents = await this.storage.queryIncidents(service, {
-      start_date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
+      start_date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
     });
 
     const incidentScore = Math.min(100, recentIncidents.length * 30);
     const incidentWeight = 0.35;
     factors.push({
-      factor: 'recent_incidents',
+      factor: "recent_incidents",
       weight: incidentWeight,
       score: incidentScore,
-      description: `${recentIncidents.length} incidents in last 14 days`
+      description: `${recentIncidents.length} incidents in last 14 days`,
     });
     totalScore += incidentScore * incidentWeight;
     totalWeight += incidentWeight;
@@ -250,44 +263,53 @@ export class PredictiveAnalytics {
     const riskScore = totalWeight > 0 ? totalScore / totalWeight : 0;
 
     // Determine risk level
-    let riskLevel: 'low' | 'medium' | 'high' | 'critical';
+    let riskLevel: "low" | "medium" | "high" | "critical";
     if (riskScore < 30) {
-      riskLevel = 'low';
+      riskLevel = "low";
     } else if (riskScore < 50) {
-      riskLevel = 'medium';
+      riskLevel = "medium";
     } else if (riskScore < 70) {
-      riskLevel = 'high';
+      riskLevel = "high";
     } else {
-      riskLevel = 'critical';
+      riskLevel = "critical";
     }
 
     // Generate recommendations
     const recommendations: string[] = [];
     if (riskScore >= 50) {
-      recommendations.push('Consider delaying deployment or using canary rollout');
+      recommendations.push(
+        "Consider delaying deployment or using canary rollout",
+      );
     }
     if (recentRegressions.length > 2) {
-      recommendations.push('High regression rate - review recent changes');
+      recommendations.push("High regression rate - review recent changes");
     }
     if (recentIncidents.length > 1) {
-      recommendations.push('Recent incidents detected - ensure issues are resolved');
+      recommendations.push(
+        "Recent incidents detected - ensure issues are resolved",
+      );
     }
-    if (deployment_time && (deployment_time.getDay() === 0 || deployment_time.getDay() === 6)) {
-      recommendations.push('Avoid weekend deployments when possible');
+    if (
+      deployment_time &&
+      (deployment_time.getDay() === 0 || deployment_time.getDay() === 6)
+    ) {
+      recommendations.push("Avoid weekend deployments when possible");
     }
     if (recentDeployments.length > 5) {
-      recommendations.push('High deployment frequency - ensure each change is necessary');
+      recommendations.push(
+        "High deployment frequency - ensure each change is necessary",
+      );
     }
 
     if (recommendations.length === 0) {
-      recommendations.push('Risk level acceptable for deployment');
+      recommendations.push("Risk level acceptable for deployment");
     }
 
     return {
       risk_level: riskLevel,
       risk_score: Math.round(riskScore),
       factors,
-      recommendations
+      recommendations,
     };
   }
 
@@ -296,14 +318,16 @@ export class PredictiveAnalytics {
    */
   async recommendDeploymentWindows(
     service: string,
-    days_ahead: number = 7
+    days_ahead: number = 7,
   ): Promise<DeploymentWindow[]> {
     const windows: DeploymentWindow[] = [];
     const now = new Date();
 
     // Detect time-based patterns first
     const patterns = await this.patternEngine.detectPatterns(service);
-    const timePatterns = patterns.filter(p => p.pattern_type === 'time_based');
+    const timePatterns = patterns.filter(
+      (p) => p.pattern_type === "time_based",
+    );
 
     // Generate windows for each day
     for (let day = 0; day < days_ahead; day++) {
@@ -318,32 +342,31 @@ export class PredictiveAnalytics {
       // Business hours window: 10 AM - 4 PM
       const startTime = new Date(date);
       startTime.setHours(10, 0, 0, 0);
-      
+
       const endTime = new Date(date);
       endTime.setHours(16, 0, 0, 0);
 
       // Check if this day/time has known issues
-      const hasTimePattern = timePatterns.some(p => 
-        'day_of_week' in p && p.day_of_week === dayOfWeek
+      const hasTimePattern = timePatterns.some(
+        (p) => "day_of_week" in p && p.day_of_week === dayOfWeek,
       );
 
-      let riskLevel: 'low' | 'medium' | 'high';
+      let riskLevel: "low" | "medium" | "high";
       let confidence: number;
       const reasons: string[] = [];
 
       if (dayOfWeek === 5) {
-        riskLevel = 'medium';
+        riskLevel = "medium";
         confidence = 0.7;
-        reasons.push('Friday deployment - reduced on-call coverage');
+        reasons.push("Friday deployment - reduced on-call coverage");
       } else if (hasTimePattern) {
-        riskLevel = 'high';
+        riskLevel = "high";
         confidence = 0.8;
-        reasons.push('Historical pattern detected for this day');
+        reasons.push("Historical pattern detected for this day");
       } else {
-        riskLevel = 'low';
+        riskLevel = "low";
         confidence = 0.9;
-        reasons.push('Normal business hours');
-        reasons.push('No historical issues detected');
+        reasons.push("Normal business hours", "No historical issues detected");
       }
 
       windows.push({
@@ -351,7 +374,7 @@ export class PredictiveAnalytics {
         end_time: endTime,
         risk_level: riskLevel,
         confidence,
-        reasons
+        reasons,
       });
     }
 
@@ -367,29 +390,38 @@ export class PredictiveAnalytics {
    */
   async forecastResourceUsage(
     resource: string,
-    threshold: number
+    threshold: number,
   ): Promise<ResourceForecast> {
     // This would typically integrate with metrics like CPU, memory, etc.
     // For now, return a placeholder implementation
 
-    const predictions = [threshold * 0.7, threshold * 0.75, threshold * 0.8, threshold * 0.85, threshold * 0.9];
-    const timestamps = predictions.map((_, i) => 
-      new Date(Date.now() + (i + 1) * 24 * 60 * 60 * 1000)
+    const predictions = [
+      threshold * 0.7,
+      threshold * 0.75,
+      threshold * 0.8,
+      threshold * 0.85,
+      threshold * 0.9,
+    ];
+    const timestamps = predictions.map(
+      (_, i) => new Date(Date.now() + (i + 1) * 24 * 60 * 60 * 1000),
     );
 
     // Check if threshold will be breached
-    const breachIndex = predictions.findIndex(p => p >= threshold);
-    const thresholdBreachDate = breachIndex >= 0 ? timestamps[breachIndex] : undefined;
+    const breachIndex = predictions.findIndex((p) => p >= threshold);
+    const thresholdBreachDate =
+      breachIndex >= 0 ? timestamps[breachIndex] : undefined;
 
     const recommendations: string[] = [];
     if (thresholdBreachDate) {
       const daysUntilBreach = Math.ceil(
-        (thresholdBreachDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)
+        (thresholdBreachDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000),
       );
-      recommendations.push(`Threshold will be breached in ~${daysUntilBreach} days`);
-      recommendations.push('Consider scaling resources proactively');
+      recommendations.push(
+        `Threshold will be breached in ~${daysUntilBreach} days`,
+        "Consider scaling resources proactively",
+      );
     } else {
-      recommendations.push('Resource usage trending safely below threshold');
+      recommendations.push("Resource usage trending safely below threshold");
     }
 
     return {
@@ -398,7 +430,7 @@ export class PredictiveAnalytics {
       predicted_usage: predictions,
       timestamps,
       threshold_breach_date: thresholdBreachDate,
-      recommendations
+      recommendations,
     };
   }
 
@@ -407,34 +439,39 @@ export class PredictiveAnalytics {
    */
   async generateInsightsReport(services: string[]): Promise<string> {
     const lines: string[] = [];
-    lines.push('═══════════════════════════════════════════════════════');
-    lines.push('VITALS Predictive Insights Report');
-    lines.push('═══════════════════════════════════════════════════════');
-    lines.push('');
+    lines.push(
+      "═══════════════════════════════════════════════════════",
+      "VITALS Predictive Insights Report",
+      "═══════════════════════════════════════════════════════",
+      "",
+    );
 
     for (const service of services) {
-      lines.push(`Service: ${service}`);
-      lines.push('─────────────────────────────────────────────────────');
+      lines.push(
+        `Service: ${service}`,
+        "─────────────────────────────────────────────────────",
+      );
 
       // Risk assessment
       const risk = await this.assessDeploymentRisk(service);
-      lines.push(`Current Risk Level: ${risk.risk_level.toUpperCase()} (${risk.risk_score}/100)`);
-      lines.push('');
-      lines.push('Risk Factors:');
+      lines.push(
+        `Current Risk Level: ${risk.risk_level.toUpperCase()} (${risk.risk_score}/100)`,
+        "",
+        "Risk Factors:",
+      );
       for (const factor of risk.factors) {
         lines.push(`  • ${factor.description}: ${factor.score}/100`);
       }
-      lines.push('');
-      lines.push('Recommendations:');
+      lines.push("", "Recommendations:");
       for (const rec of risk.recommendations) {
         lines.push(`  • ${rec}`);
       }
-      lines.push('');
+      lines.push("");
 
       // Deployment windows
       const windows = await this.recommendDeploymentWindows(service, 3);
       if (windows.length > 0) {
-        lines.push('Recommended Deployment Windows:');
+        lines.push("Recommended Deployment Windows:");
         for (const window of windows.slice(0, 3)) {
           const dateStr = window.start_time.toLocaleDateString();
           const timeStr = `${window.start_time.toLocaleTimeString()} - ${window.end_time.toLocaleTimeString()}`;
@@ -444,21 +481,20 @@ export class PredictiveAnalytics {
           }
         }
       }
-      
-      lines.push('');
-      lines.push('');
+
+      lines.push("", "");
     }
 
-    lines.push('═══════════════════════════════════════════════════════');
+    lines.push("═══════════════════════════════════════════════════════");
 
-    return lines.join('\n');
+    return lines.join("\n");
   }
 
   // Helper methods
 
   private linearForecast(
     values: number[],
-    horizonDays: number
+    horizonDays: number,
   ): {
     predictions: number[];
     confidence_interval: { lower: number[]; upper: number[] };
@@ -467,7 +503,7 @@ export class PredictiveAnalytics {
   } {
     const n = values.length;
     const x = Array.from({ length: n }, (_, i) => i);
-    
+
     // Calculate linear regression
     const sumX = x.reduce((a, b) => a + b, 0);
     const sumY = values.reduce((a, b) => a + b, 0);
@@ -480,21 +516,24 @@ export class PredictiveAnalytics {
 
     // Calculate R²
     const meanY = sumY / n;
-    const ssTotal = values.reduce((sum, yi) => sum + Math.pow(yi - meanY, 2), 0);
+    const ssTotal = values.reduce(
+      (sum, yi) => sum + Math.pow(yi - meanY, 2),
+      0,
+    );
     const ssResidual = values.reduce((sum, yi, i) => {
       const predicted = slope * x[i] + intercept;
       return sum + Math.pow(yi - predicted, 2);
     }, 0);
-    const r_squared = ssTotal === 0 ? 0 : 1 - (ssResidual / ssTotal);
+    const r_squared = ssTotal === 0 ? 0 : 1 - ssResidual / ssTotal;
 
     // Generate predictions
     const predictions: number[] = [];
     const lower: number[] = [];
     const upper: number[] = [];
-    
+
     // Calculate standard error
     const stdError = Math.sqrt(ssResidual / (n - 2));
-    const margin = 1.96 * stdError;  // 95% confidence interval
+    const margin = 1.96 * stdError; // 95% confidence interval
 
     for (let i = 0; i < horizonDays; i++) {
       const xi = n + i;
@@ -508,7 +547,7 @@ export class PredictiveAnalytics {
       predictions,
       confidence_interval: { lower, upper },
       slope,
-      r_squared
+      r_squared,
     };
   }
 }
@@ -518,43 +557,63 @@ export class PredictiveAnalytics {
  */
 export function formatRiskAssessment(risk: RiskAssessment): string {
   const lines: string[] = [];
-  
-  const riskIcon = risk.risk_level === 'low' ? '✅' :
-                   risk.risk_level === 'medium' ? '⚠️' :
-                   risk.risk_level === 'high' ? '❌' : '🚨';
-  
-  lines.push(`${riskIcon} Risk Level: ${risk.risk_level.toUpperCase()} (${risk.risk_score}/100)`);
-  lines.push('');
-  lines.push('Risk Factors:');
+
+  const riskIcon =
+    risk.risk_level === "low"
+      ? "✅"
+      : risk.risk_level === "medium"
+        ? "⚠️"
+        : risk.risk_level === "high"
+          ? "❌"
+          : "🚨";
+
+  lines.push(
+    `${riskIcon} Risk Level: ${risk.risk_level.toUpperCase()} (${risk.risk_score}/100)`,
+    "",
+    "Risk Factors:",
+  );
   for (const factor of risk.factors) {
-    lines.push(`  • ${factor.description}: ${factor.score}/100 (weight: ${(factor.weight * 100).toFixed(0)}%)`);
+    lines.push(
+      `  • ${factor.description}: ${factor.score}/100 (weight: ${(factor.weight * 100).toFixed(0)}%)`,
+    );
   }
-  lines.push('');
-  lines.push('Recommendations:');
+  lines.push("", "Recommendations:");
   for (const rec of risk.recommendations) {
     lines.push(`  • ${rec}`);
   }
 
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
 /**
  * Format deployment window for display
  */
 export function formatDeploymentWindow(window: DeploymentWindow): string {
-  const riskIcon = window.risk_level === 'low' ? '✅' :
-                   window.risk_level === 'medium' ? '⚠️' : '❌';
-  
+  const riskIcon =
+    window.risk_level === "low"
+      ? "✅"
+      : window.risk_level === "medium"
+        ? "⚠️"
+        : "❌";
+
   const dateStr = window.start_time.toLocaleDateString();
-  const startTime = window.start_time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  const endTime = window.end_time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  
+  const startTime = window.start_time.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const endTime = window.end_time.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
   const lines: string[] = [];
-  lines.push(`${riskIcon} ${dateStr} ${startTime} - ${endTime} [${window.risk_level}]`);
-  lines.push(`Confidence: ${(window.confidence * 100).toFixed(0)}%`);
+  lines.push(
+    `${riskIcon} ${dateStr} ${startTime} - ${endTime} [${window.risk_level}]`,
+    `Confidence: ${(window.confidence * 100).toFixed(0)}%`,
+  );
   for (const reason of window.reasons) {
     lines.push(`  • ${reason}`);
   }
 
-  return lines.join('\n');
+  return lines.join("\n");
 }

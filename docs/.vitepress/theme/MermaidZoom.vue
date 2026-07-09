@@ -1,25 +1,27 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted } from "vue";
 
 onMounted(() => {
   // Add zoom and pan controls to mermaid diagrams
   const addControlsToMermaid = () => {
-    const mermaidDivs = document.querySelectorAll('.mermaid-wrapper, pre.mermaid')
-    
+    const mermaidDivs = document.querySelectorAll(
+      ".mermaid-wrapper, pre.mermaid",
+    );
+
     mermaidDivs.forEach((wrapper) => {
       // Skip if controls already added
-      if (wrapper.querySelector('.mermaid-controls')) return
-      
-      const svg = wrapper.querySelector('svg')
-      if (!svg) return
+      if (wrapper.querySelector(".mermaid-controls")) return;
+
+      const svg = wrapper.querySelector("svg");
+      if (!svg) return;
 
       // Make SVG responsive
-      svg.style.maxWidth = '100%'
-      svg.style.height = 'auto'
-      
+      svg.style.maxWidth = "100%";
+      svg.style.height = "auto";
+
       // Create controls container
-      const controls = document.createElement('div')
-      controls.className = 'mermaid-controls'
+      const controls = document.createElement("div");
+      controls.className = "mermaid-controls";
       controls.innerHTML = `
         <button class="mermaid-btn" data-action="zoom-in" title="Zoom In">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -42,96 +44,96 @@ onMounted(() => {
             <path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1h-4zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zM.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z"/>
           </svg>
         </button>
-      `
-      
-      wrapper.appendChild(controls)
-      
+      `;
+
+      wrapper.appendChild(controls);
+
       // Add interactive functionality
-      let scale = 1
-      let isDragging = false
-      let startX = 0
-      let startY = 0
-      let translateX = 0
-      let translateY = 0
-      
+      let scale = 1;
+      let isDragging = false;
+      let startX = 0;
+      let startY = 0;
+      let translateX = 0;
+      let translateY = 0;
+
       const updateTransform = () => {
-        svg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`
-      }
-      
+        svg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+      };
+
       // Zoom controls
-      controls.querySelectorAll('button').forEach((btn) => {
-        btn.addEventListener('click', (e) => {
-          const action = (e.currentTarget as HTMLElement).dataset.action
-          
+      controls.querySelectorAll("button").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const action = (e.currentTarget as HTMLElement).dataset.action;
+
           switch (action) {
-            case 'zoom-in':
-              scale = Math.min(scale * 1.2, 3)
-              break
-            case 'zoom-out':
-              scale = Math.max(scale / 1.2, 0.5)
-              break
-            case 'reset':
-              scale = 1
-              translateX = 0
-              translateY = 0
-              break
-            case 'fullscreen':
-              if (!document.fullscreenElement) {
-                wrapper.requestFullscreen?.()
+            case "zoom-in":
+              scale = Math.min(scale * 1.2, 3);
+              break;
+            case "zoom-out":
+              scale = Math.max(scale / 1.2, 0.5);
+              break;
+            case "reset":
+              scale = 1;
+              translateX = 0;
+              translateY = 0;
+              break;
+            case "fullscreen":
+              if (document.fullscreenElement) {
+                document.exitFullscreen?.();
               } else {
-                document.exitFullscreen?.()
+                wrapper.requestFullscreen?.();
               }
-              return
+              return;
           }
-          
-          updateTransform()
-        })
-      })
-      
+
+          updateTransform();
+        });
+      });
+
       // Mouse wheel zoom
-      wrapper.addEventListener('wheel', (e: WheelEvent) => {
-        e.preventDefault()
-        const delta = e.deltaY > 0 ? 0.9 : 1.1
-        scale = Math.min(Math.max(scale * delta, 0.5), 3)
-        updateTransform()
-      })
-      
+      wrapper.addEventListener("wheel", (e: WheelEvent) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        scale = Math.min(Math.max(scale * delta, 0.5), 3);
+        updateTransform();
+      });
+
       // Pan on drag
-      svg.style.cursor = 'grab'
-      
-      svg.addEventListener('mousedown', (e: MouseEvent) => {
-        isDragging = true
-        svg.style.cursor = 'grabbing'
-        startX = e.clientX - translateX
-        startY = e.clientY - translateY
-      })
-      
-      document.addEventListener('mousemove', (e: MouseEvent) => {
-        if (!isDragging) return
-        translateX = e.clientX - startX
-        translateY = e.clientY - startY
-        updateTransform()
-      })
-      
-      document.addEventListener('mouseup', () => {
+      svg.style.cursor = "grab";
+
+      svg.addEventListener("mousedown", (e: MouseEvent) => {
+        isDragging = true;
+        svg.style.cursor = "grabbing";
+        startX = e.clientX - translateX;
+        startY = e.clientY - translateY;
+      });
+
+      document.addEventListener("mousemove", (e: MouseEvent) => {
+        if (!isDragging) return;
+        translateX = e.clientX - startX;
+        translateY = e.clientY - startY;
+        updateTransform();
+      });
+
+      document.addEventListener("mouseup", () => {
         if (isDragging) {
-          isDragging = false
-          svg.style.cursor = 'grab'
+          isDragging = false;
+          svg.style.cursor = "grab";
         }
-      })
-    })
-  }
-  
+      });
+    });
+  };
+
   // Run after mermaid renders
-  setTimeout(addControlsToMermaid, 100)
-  
+  setTimeout(addControlsToMermaid, 100);
+
   // Also run when route changes
-  if (typeof window !== 'undefined') {
-    window.addEventListener('hashchange', () => {
-      setTimeout(addControlsToMermaid, 100)
-    })
+  if (globalThis.window !== undefined) {
+    globalThis.addEventListener("hashchange", () => {
+      setTimeout(addControlsToMermaid, 100);
+    });
   }
-})
+});
 </script>
 
 <template>

@@ -4,8 +4,8 @@
  *
  * Action executors for various notification channels (Slack, PagerDuty, Email, Webhook)
  */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+let __importDefault = (this && __importDefault) || function (mod) {
+    return (mod?.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ScriptExecutor = exports.RollbackExecutor = exports.EmailExecutor = exports.WebhookExecutor = exports.PagerDutyExecutor = exports.SlackExecutor = void 0;
@@ -123,15 +123,15 @@ class SlackExecutor {
     substituteVariables(template, context) {
         let message = template;
         // Replace common variables
-        message = message.replace(/\{\{policy\.name\}\}/g, context.policy.name);
-        message = message.replace(/\{\{timestamp\}\}/g, context.timestamp.toISOString());
+        message = message.replaceAll('{{policy.name}}', context.policy.name);
+        message = message.replaceAll('{{timestamp}}', context.timestamp.toISOString());
         // Replace result fields
         if ('verdict' in context.result) {
             const result = context.result;
-            message = message.replace(/\{\{result\.verdict\}\}/g, result.verdict);
-            message = message.replace(/\{\{result\.metric\}\}/g, result.metric);
+            message = message.replaceAll('{{result.verdict}}', result.verdict);
+            message = message.replaceAll('{{result.metric}}', result.metric);
             if (result.change_percent !== undefined) {
-                message = message.replace(/\{\{result\.change_percent\}\}/g, result.change_percent.toFixed(2));
+                message = message.replaceAll('{{result.change_percent}}', result.change_percent.toFixed(2));
             }
         }
         return message;
@@ -348,8 +348,8 @@ class EmailExecutor {
     }
     substituteVariables(template, context) {
         let content = template;
-        content = content.replace(/\{\{policy\.name\}\}/g, context.policy.name);
-        content = content.replace(/\{\{timestamp\}\}/g, context.timestamp.toISOString());
+        content = content.replaceAll('{{policy.name}}', context.policy.name);
+        content = content.replaceAll('{{timestamp}}', context.timestamp.toISOString());
         return content;
     }
 }

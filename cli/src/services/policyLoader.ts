@@ -2,21 +2,21 @@
  * Policy loader and evaluator for vitals.yaml configuration
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as yaml from 'js-yaml';
+import * as fs from "node:fs";
+import * as path from "node:path";
+import * as yaml from "js-yaml";
 
 export interface MetricPolicy {
   regression?: {
     max_increase_percent?: number;
     p_value?: number;
     effect_size?: number;
-    action?: 'fail' | 'warn' | 'ignore';
+    action?: "fail" | "warn" | "ignore";
   };
   threshold?: {
     max?: number;
     min?: number;
-    action?: 'fail' | 'warn' | 'ignore';
+    action?: "fail" | "warn" | "ignore";
   };
 }
 
@@ -28,7 +28,7 @@ export interface PrometheusConfig {
 export interface DeploymentConfig {
   rollback?: {
     enabled?: boolean;
-    strategy?: 'canary' | 'blue-green' | 'immediate';
+    strategy?: "canary" | "blue-green" | "immediate";
   };
 }
 
@@ -42,7 +42,7 @@ export interface PolicyConfig {
 }
 
 export interface PolicyEvaluation {
-  action: 'fail' | 'warn' | 'pass';
+  action: "fail" | "warn" | "pass";
   reason: string;
   shouldRollback: boolean;
 }
@@ -56,7 +56,7 @@ export function loadPolicy(configPath: string): PolicyConfig | null {
       return null;
     }
 
-    const content = fs.readFileSync(configPath, 'utf-8');
+    const content = fs.readFileSync(configPath, "utf-8");
     const config = yaml.load(content) as PolicyConfig;
 
     // Validate version
@@ -74,8 +74,10 @@ export function loadPolicy(configPath: string): PolicyConfig | null {
 /**
  * Find policy config file in current directory or parent directories
  */
-export function findPolicyConfig(startDir: string = process.cwd()): string | null {
-  const fileName = 'vitals.yaml';
+export function findPolicyConfig(
+  startDir: string = process.cwd(),
+): string | null {
+  const fileName = "vitals.yaml";
   let currentDir = startDir;
 
   // Search up to 5 levels
@@ -98,8 +100,11 @@ export function findPolicyConfig(startDir: string = process.cwd()): string | nul
 /**
  * Get metric policy from configuration
  */
-export function getMetricPolicy(config: PolicyConfig, metricName: string): MetricPolicy | null {
-  if (!config.metrics || !config.metrics[metricName]) {
+export function getMetricPolicy(
+  config: PolicyConfig,
+  metricName: string,
+): MetricPolicy | null {
+  if (!config.metrics?.[metricName]) {
     return null;
   }
   return config.metrics[metricName];
@@ -114,7 +119,7 @@ export function evaluateRegression(
   pValue: number,
   effectSize: number,
   significant: boolean,
-  policy: MetricPolicy | null
+  policy: MetricPolicy | null,
 ): PolicyEvaluation {
   // Default policy if none specified
   const defaultPolicy: MetricPolicy = {
@@ -122,15 +127,15 @@ export function evaluateRegression(
       max_increase_percent: 10,
       p_value: 0.05,
       effect_size: 0.5,
-      action: 'fail'
-    }
+      action: "fail",
+    },
   };
 
   const activePolicy = policy || defaultPolicy;
   const regressionPolicy = activePolicy.regression || defaultPolicy.regression!;
 
   const maxIncrease = regressionPolicy.max_increase_percent || 10;
-  const action = regressionPolicy.action || 'fail';
+  const action = regressionPolicy.action || "fail";
 
   // Check if regression exceeds threshold
   const exceedsThreshold = Math.abs(changePercent) > maxIncrease;
@@ -138,25 +143,26 @@ export function evaluateRegression(
 
   if (significant && exceedsThreshold && isRegression) {
     const reason = `Regression detected: ${changePercent.toFixed(1)}% increase (threshold: ${maxIncrease}%, p=${pValue.toFixed(3)}, effect=${effectSize.toFixed(2)})`;
-    
+
     return {
-      action: action === 'ignore' ? 'pass' : action,
+      action: action === "ignore" ? "pass" : action,
       reason,
-      shouldRollback: action === 'fail' && (activePolicy.regression?.action === 'fail')
+      shouldRollback:
+        action === "fail" && activePolicy.regression?.action === "fail",
     };
   } else if (exceedsThreshold && isRegression) {
     // Exceeds threshold but not statistically significant
     return {
-      action: 'warn',
+      action: "warn",
       reason: `Possible regression: ${changePercent.toFixed(1)}% increase, but not statistically significant (p=${pValue.toFixed(3)})`,
-      shouldRollback: false
+      shouldRollback: false,
     };
   }
 
   return {
-    action: 'pass',
+    action: "pass",
     reason: `No significant regression detected (change: ${changePercent.toFixed(1)}%)`,
-    shouldRollback: false
+    shouldRollback: false,
   };
 }
 
@@ -166,38 +172,38 @@ export function evaluateRegression(
 export function evaluateThreshold(
   metricName: string,
   value: number,
-  policy: MetricPolicy | null
+  policy: MetricPolicy | null,
 ): PolicyEvaluation {
-  if (!policy || !policy.threshold) {
+  if (!policy?.threshold) {
     return {
-      action: 'pass',
-      reason: 'No threshold policy defined',
-      shouldRollback: false
+      action: "pass",
+      reason: "No threshold policy defined",
+      shouldRollback: false,
     };
   }
 
-  const { max, min, action = 'fail' } = policy.threshold;
+  const { max, min, action = "fail" } = policy.threshold;
 
   if (max !== undefined && value > max) {
     return {
-      action: action === 'ignore' ? 'pass' : action,
+      action: action === "ignore" ? "pass" : action,
       reason: `Value ${value.toFixed(2)} exceeds maximum threshold ${max}`,
-      shouldRollback: action === 'fail'
+      shouldRollback: action === "fail",
     };
   }
 
   if (min !== undefined && value < min) {
     return {
-      action: action === 'ignore' ? 'pass' : action,
+      action: action === "ignore" ? "pass" : action,
       reason: `Value ${value.toFixed(2)} below minimum threshold ${min}`,
-      shouldRollback: action === 'fail'
+      shouldRollback: action === "fail",
     };
   }
 
   return {
-    action: 'pass',
-    reason: 'Within threshold limits',
-    shouldRollback: false
+    action: "pass",
+    reason: "Within threshold limits",
+    shouldRollback: false,
   };
 }
 
@@ -209,7 +215,7 @@ export function getDefaultOptions(config: PolicyConfig | null): {
   timeout: number;
 } {
   return {
-    prometheusUrl: config?.prometheus?.url || 'http://localhost:9090',
-    timeout: config?.prometheus?.timeout || 10000
+    prometheusUrl: config?.prometheus?.url || "http://localhost:9090",
+    timeout: config?.prometheus?.timeout || 10000,
   };
 }

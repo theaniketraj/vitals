@@ -12,7 +12,12 @@ export interface IDataSource {
    * @param end End timestamp in seconds.
    * @param step Query resolution step width in seconds.
    */
-  queryRange(query: string, start: number, end: number, step: number): Promise<any>;
+  queryRange(
+    query: string,
+    start: number,
+    end: number,
+    step: number,
+  ): Promise<any>;
 
   /**
    * Fetches alerts from the data source.

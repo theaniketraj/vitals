@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { getCache, MetricCache } from './cache';
+import axios from "axios";
+import { getCache, MetricCache } from "./cache";
 
 export interface MetricQuery {
   metric: string;
@@ -21,17 +21,27 @@ export interface PrometheusConfig {
  */
 export async function fetchMetric(
   config: PrometheusConfig,
-  query: MetricQuery
+  query: MetricQuery,
 ): Promise<number[]> {
-  const { url, timeout = 10000, cache: useCache = true, cacheTTL = 300 } = config;
-  const { metric, label, timeRange = '10m' } = query;
+  const {
+    url,
+    timeout = 10000,
+    cache: useCache = true,
+    cacheTTL = 300,
+  } = config;
+  const { metric, label, timeRange = "10m" } = query;
 
   // Check cache first
   if (useCache) {
     const cacheInstance = getCache({ ttl: cacheTTL });
-    const cacheKey = MetricCache.generateMetricKey(url, metric, label, timeRange);
+    const cacheKey = MetricCache.generateMetricKey(
+      url,
+      metric,
+      label,
+      timeRange,
+    );
     const cached = await cacheInstance.get<number[]>(cacheKey);
-    
+
     if (cached) {
       return cached;
     }
@@ -43,7 +53,7 @@ export async function fetchMetric(
   }
 
   // Use rate for counter metrics
-  if (metric.includes('_total') || metric.includes('_count')) {
+  if (metric.includes("_total") || metric.includes("_count")) {
     promQuery = `rate(${promQuery}[${timeRange}])`;
   }
 
@@ -53,13 +63,15 @@ export async function fetchMetric(
         query: promQuery,
         start: Math.floor(Date.now() / 1000) - parseTimeRange(timeRange),
         end: Math.floor(Date.now() / 1000),
-        step: '15s'
+        step: "15s",
       },
-      timeout
+      timeout,
     });
 
-    if (response.data.status !== 'success') {
-      throw new Error(`Prometheus query failed: ${response.data.error || 'Unknown error'}`);
+    if (response.data.status !== "success") {
+      throw new Error(
+        `Prometheus query failed: ${response.data.error || "Unknown error"}`,
+      );
     }
 
     const results = response.data.data.result;
@@ -68,12 +80,19 @@ export async function fetchMetric(
     }
 
     // Extract values from the first result series
-    const values = results[0].values.map((v: [number, string]) => parseFloat(v[1]));
+    const values = results[0].values.map((v: [number, string]) =>
+      Number.parseFloat(v[1]),
+    );
 
     // Cache the result
     if (useCache) {
       const cacheInstance = getCache({ ttl: cacheTTL });
-      const cacheKey = MetricCache.generateMetricKey(url, metric, label, timeRange);
+      const cacheKey = MetricCache.generateMetricKey(
+        url,
+        metric,
+        label,
+        timeRange,
+      );
       await cacheInstance.set(cacheKey, values);
     }
 
@@ -90,19 +109,19 @@ export async function fetchMetric(
  * Parse time range string to seconds
  */
 function parseTimeRange(range: string): number {
-  const match = range.match(/^(\d+)([smhd])$/);
+  const match = new RegExp(/^(\d+)([smhd])$/).exec(range);
   if (!match) {
     throw new Error(`Invalid time range format: ${range}`);
   }
 
-  const value = parseInt(match[1]);
+  const value = Number.parseInt(match[1]);
   const unit = match[2];
 
   const multipliers: Record<string, number> = {
-    's': 1,
-    'm': 60,
-    'h': 3600,
-    'd': 86400
+    s: 1,
+    m: 60,
+    h: 3600,
+    d: 86400,
   };
 
   return value * multipliers[unit];
@@ -113,17 +132,28 @@ function parseTimeRange(range: string): number {
  */
 export async function fetchRangeMetrics(
   config: PrometheusConfig,
-  query: MetricQuery & { start: string; end: string }
+  query: MetricQuery & { start: string; end: string },
 ): Promise<number[]> {
-  const { url, timeout = 10000, cache: useCache = true, cacheTTL = 300 } = config;
+  const {
+    url,
+    timeout = 10000,
+    cache: useCache = true,
+    cacheTTL = 300,
+  } = config;
   const { metric, label, start, end } = query;
 
   // Check cache first
   if (useCache) {
     const cacheInstance = getCache({ ttl: cacheTTL });
-    const cacheKey = MetricCache.generateRangeKey(url, metric, label, start, end);
+    const cacheKey = MetricCache.generateRangeKey(
+      url,
+      metric,
+      label,
+      start,
+      end,
+    );
     const cached = await cacheInstance.get<number[]>(cacheKey);
-    
+
     if (cached) {
       return cached;
     }
@@ -140,13 +170,15 @@ export async function fetchRangeMetrics(
         query: promQuery,
         start,
         end,
-        step: '15s'
+        step: "15s",
       },
-      timeout
+      timeout,
     });
 
-    if (response.data.status !== 'success') {
-      throw new Error(`Prometheus query failed: ${response.data.error || 'Unknown error'}`);
+    if (response.data.status !== "success") {
+      throw new Error(
+        `Prometheus query failed: ${response.data.error || "Unknown error"}`,
+      );
     }
 
     const results = response.data.data.result;
@@ -155,13 +187,21 @@ export async function fetchRangeMetrics(
     }
 
     // Extract values from the first result
-    const values = results[0].values.map((v: [number, string]) => parseFloat(v[1]));
-    const filteredValues = values.filter((v: number) => !isNaN(v));
+    const values = results[0].values.map((v: [number, string]) =>
+      Number.parseFloat(v[1]),
+    );
+    const filteredValues = values.filter((v: number) => !Number.isNaN(v));
 
     // Cache the result
     if (useCache) {
       const cacheInstance = getCache({ ttl: cacheTTL });
-      const cacheKey = MetricCache.generateRangeKey(url, metric, label, start, end);
+      const cacheKey = MetricCache.generateRangeKey(
+        url,
+        metric,
+        label,
+        start,
+        end,
+      );
       await cacheInstance.set(cacheKey, filteredValues);
     }
 
@@ -176,7 +216,7 @@ export async function fetchRangeMetrics(
  */
 export async function fetchInstantMetric(
   config: PrometheusConfig,
-  query: MetricQuery
+  query: MetricQuery,
 ): Promise<number> {
   const { url, timeout = 10000 } = config;
   const { metric, label } = query;
@@ -189,11 +229,13 @@ export async function fetchInstantMetric(
   try {
     const response = await axios.get(`${url}/api/v1/query`, {
       params: { query: promQuery },
-      timeout
+      timeout,
     });
 
-    if (response.data.status !== 'success') {
-      throw new Error(`Prometheus query failed: ${response.data.error || 'Unknown error'}`);
+    if (response.data.status !== "success") {
+      throw new Error(
+        `Prometheus query failed: ${response.data.error || "Unknown error"}`,
+      );
     }
 
     const results = response.data.data.result;
@@ -201,7 +243,7 @@ export async function fetchInstantMetric(
       throw new Error(`No data found for query: ${promQuery}`);
     }
 
-    return parseFloat(results[0].value[1]);
+    return Number.parseFloat(results[0].value[1]);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(`Failed to fetch instant metric: ${error.message}`);

@@ -5,13 +5,13 @@ import {
   normalizeSeries,
   smooth,
   validateSampleSize,
-  mean
-} from './stats/welch';
+  mean,
+} from "./stats/welch";
 import {
   mannWhitneyUTest,
   permutationTest,
-  selectStatisticalTest
-} from './stats/advanced';
+  selectStatisticalTest,
+} from "./stats/advanced";
 
 export interface RegressionOptions {
   baseline: string;
@@ -21,7 +21,7 @@ export interface RegressionOptions {
   pValue?: number;
   effectSizeThreshold?: number;
   minSamples?: number;
-  testType?: 'welch' | 'mann-whitney' | 'permutation' | 'auto';
+  testType?: "welch" | "mann-whitney" | "permutation" | "auto";
 }
 
 export interface RegressionResult {
@@ -38,7 +38,7 @@ export interface RegressionResult {
   p_value: number;
   effect_size: number;
   significant: boolean;
-  verdict: 'PASS' | 'FAIL' | 'WARN' | 'INSUFFICIENT_DATA';
+  verdict: "PASS" | "FAIL" | "WARN" | "INSUFFICIENT_DATA";
   details?: string;
 }
 
@@ -48,7 +48,7 @@ export interface RegressionResult {
 export async function runRegression(
   options: RegressionOptions,
   baselineData: number[],
-  candidateData: number[]
+  candidateData: number[],
 ): Promise<RegressionResult> {
   const {
     metric,
@@ -56,11 +56,14 @@ export async function runRegression(
     pValue: pValueThreshold = 0.05,
     effectSizeThreshold = 0.5,
     minSamples = 30,
-    testType = 'welch'
+    testType = "welch",
   } = options;
 
   // Step 1: Validate sample sizes
-  if (!validateSampleSize(baselineData, minSamples) || !validateSampleSize(candidateData, minSamples)) {
+  if (
+    !validateSampleSize(baselineData, minSamples) ||
+    !validateSampleSize(candidateData, minSamples)
+  ) {
     return {
       metric,
       baseline: { mean: 0, samples: baselineData.length },
@@ -69,8 +72,8 @@ export async function runRegression(
       p_value: 1,
       effect_size: 0,
       significant: false,
-      verdict: 'INSUFFICIENT_DATA',
-      details: `Insufficient data: baseline=${baselineData.length}, candidate=${candidateData.length}, required=${minSamples}`
+      verdict: "INSUFFICIENT_DATA",
+      details: `Insufficient data: baseline=${baselineData.length}, candidate=${candidateData.length}, required=${minSamples}`,
     };
   }
 
@@ -93,26 +96,29 @@ export async function runRegression(
 
   // Step 6: Statistical tests (with test selection)
   let pValue: number;
-  
-  if (testType === 'auto') {
+
+  if (testType === "auto") {
     // Automatically select the best test
-    const selectedTest = selectStatisticalTest(baselineSmoothed, candidateSmoothed);
-    
-    if (selectedTest === 'mann-whitney') {
+    const selectedTest = selectStatisticalTest(
+      baselineSmoothed,
+      candidateSmoothed,
+    );
+
+    if (selectedTest === "mann-whitney") {
       const result = mannWhitneyUTest(baselineSmoothed, candidateSmoothed);
       pValue = result.pValue;
-    } else if (selectedTest === 'permutation') {
+    } else if (selectedTest === "permutation") {
       const result = permutationTest(baselineSmoothed, candidateSmoothed, 1000);
       pValue = result.pValue;
     } else {
       const result = welchTest(baselineSmoothed, candidateSmoothed);
       pValue = result.pValue;
     }
-  } else if (testType === 'mann-whitney') {
+  } else if (testType === "mann-whitney") {
     // Non-parametric test (doesn't assume normal distribution)
     const result = mannWhitneyUTest(baselineSmoothed, candidateSmoothed);
     pValue = result.pValue;
-  } else if (testType === 'permutation') {
+  } else if (testType === "permutation") {
     // Exact test (good for small samples)
     const result = permutationTest(baselineSmoothed, candidateSmoothed, 1000);
     pValue = result.pValue;
@@ -121,7 +127,7 @@ export async function runRegression(
     const result = welchTest(baselineSmoothed, candidateSmoothed);
     pValue = result.pValue;
   }
-  
+
   const effectSize = Math.abs(cohensD(baselineSmoothed, candidateSmoothed));
 
   // Step 7: Determine significance
@@ -132,28 +138,28 @@ export async function runRegression(
   const significant = isStatisticallySignificant && isPracticallySignificant;
 
   // Step 8: Make decision
-  let verdict: 'PASS' | 'FAIL' | 'WARN' = 'PASS';
+  let verdict: "PASS" | "FAIL" | "WARN" = "PASS";
 
   if (significant && exceedsThreshold) {
-    verdict = changePercent > 0 ? 'FAIL' : 'PASS'; // Regression is an increase
+    verdict = changePercent > 0 ? "FAIL" : "PASS"; // Regression is an increase
   } else if (isStatisticallySignificant && exceedsThreshold) {
-    verdict = 'WARN';
+    verdict = "WARN";
   }
 
   return {
     metric,
     baseline: {
       mean: baselineMean,
-      samples: baselineData.length
+      samples: baselineData.length,
     },
     candidate: {
       mean: candidateMean,
-      samples: candidateData.length
+      samples: candidateData.length,
     },
     change_percent: changePercent,
     p_value: pValue,
     effect_size: effectSize,
     significant,
-    verdict
+    verdict,
   };
 }

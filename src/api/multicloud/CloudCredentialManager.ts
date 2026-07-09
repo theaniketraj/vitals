@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import { CloudCredentials } from './ICloudProvider';
+import * as vscode from "vscode";
+import { CloudCredentials } from "./ICloudProvider";
 
 /**
  * Secure credential storage for cloud providers using VS Code secrets API
@@ -14,16 +14,23 @@ export class CloudCredentialManager {
   /**
    * Store credentials for a provider
    */
-  public async storeCredentials(providerId: string, credentials: CloudCredentials): Promise<void> {
+  public async storeCredentials(
+    providerId: string,
+    credentials: CloudCredentials,
+  ): Promise<void> {
     try {
       const key = this.getStorageKey(providerId);
       const serialized = JSON.stringify(credentials);
-      
+
       await this.context.secrets.store(key, serialized);
-      
-      vscode.window.showInformationMessage(`Credentials saved for ${providerId} ✅`);
+
+      vscode.window.showInformationMessage(
+        `Credentials saved for ${providerId} ✅`,
+      );
     } catch (error: any) {
-      vscode.window.showErrorMessage(`Failed to store credentials: ${error.message}`);
+      vscode.window.showErrorMessage(
+        `Failed to store credentials: ${error.message}`,
+      );
       throw error;
     }
   }
@@ -31,15 +38,17 @@ export class CloudCredentialManager {
   /**
    * Retrieve credentials for a provider
    */
-  public async getCredentials(providerId: string): Promise<CloudCredentials | undefined> {
+  public async getCredentials(
+    providerId: string,
+  ): Promise<CloudCredentials | undefined> {
     try {
       const key = this.getStorageKey(providerId);
       const serialized = await this.context.secrets.get(key);
-      
+
       if (!serialized) {
         return undefined;
       }
-      
+
       return JSON.parse(serialized) as CloudCredentials;
     } catch (error: any) {
       console.error(`Failed to retrieve credentials for ${providerId}:`, error);
@@ -62,10 +71,14 @@ export class CloudCredentialManager {
     try {
       const key = this.getStorageKey(providerId);
       await this.context.secrets.delete(key);
-      
-      vscode.window.showInformationMessage(`Credentials deleted for ${providerId}`);
+
+      vscode.window.showInformationMessage(
+        `Credentials deleted for ${providerId}`,
+      );
     } catch (error: any) {
-      vscode.window.showErrorMessage(`Failed to delete credentials: ${error.message}`);
+      vscode.window.showErrorMessage(
+        `Failed to delete credentials: ${error.message}`,
+      );
       throw error;
     }
   }
@@ -76,7 +89,10 @@ export class CloudCredentialManager {
   public async getAllConfiguredProviders(): Promise<string[]> {
     // VS Code secrets API doesn't provide a list method
     // We'll maintain a list in global state
-    return this.context.globalState.get<string[]>('vitals.configuredProviders', []);
+    return this.context.globalState.get<string[]>(
+      "vitals.configuredProviders",
+      [],
+    );
   }
 
   /**
@@ -84,10 +100,13 @@ export class CloudCredentialManager {
    */
   private async addToConfiguredList(providerId: string): Promise<void> {
     const configured = await this.getAllConfiguredProviders();
-    
+
     if (!configured.includes(providerId)) {
       configured.push(providerId);
-      await this.context.globalState.update('vitals.configuredProviders', configured);
+      await this.context.globalState.update(
+        "vitals.configuredProviders",
+        configured,
+      );
     }
   }
 
@@ -96,54 +115,85 @@ export class CloudCredentialManager {
    */
   private async removeFromConfiguredList(providerId: string): Promise<void> {
     const configured = await this.getAllConfiguredProviders();
-    const filtered = configured.filter(id => id !== providerId);
-    await this.context.globalState.update('vitals.configuredProviders', filtered);
+    const filtered = configured.filter((id) => id !== providerId);
+    await this.context.globalState.update(
+      "vitals.configuredProviders",
+      filtered,
+    );
   }
 
   /**
    * Interactive credential configuration wizard
    */
-  public async configureProviderInteractive(providerId: string): Promise<CloudCredentials | undefined> {
+  public async configureProviderInteractive(
+    providerId: string,
+  ): Promise<CloudCredentials | undefined> {
     try {
       const providerConfigs: Record<string, ProviderConfig> = {
         datadog: {
-          name: 'Datadog',
+          name: "Datadog",
           fields: [
-            { key: 'apiKey', label: 'API Key', password: true },
-            { key: 'appKey', label: 'Application Key', password: true },
-            { key: 'site', label: 'Site (e.g., datadoghq.com)', password: false, optional: true },
+            { key: "apiKey", label: "API Key", password: true },
+            { key: "appKey", label: "Application Key", password: true },
+            {
+              key: "site",
+              label: "Site (e.g., datadoghq.com)",
+              password: false,
+              optional: true,
+            },
           ],
         },
         newrelic: {
-          name: 'New Relic',
+          name: "New Relic",
           fields: [
-            { key: 'apiKey', label: 'API Key', password: true },
-            { key: 'accountId', label: 'Account ID', password: false },
-            { key: 'region', label: 'Region (US or EU)', password: false, optional: true },
+            { key: "apiKey", label: "API Key", password: true },
+            { key: "accountId", label: "Account ID", password: false },
+            {
+              key: "region",
+              label: "Region (US or EU)",
+              password: false,
+              optional: true,
+            },
           ],
         },
         aws: {
-          name: 'AWS CloudWatch',
+          name: "AWS CloudWatch",
           fields: [
-            { key: 'accessKeyId', label: 'Access Key ID', password: true },
-            { key: 'secretAccessKey', label: 'Secret Access Key', password: true },
-            { key: 'region', label: 'Region (e.g., us-east-1)', password: false },
+            { key: "accessKeyId", label: "Access Key ID", password: true },
+            {
+              key: "secretAccessKey",
+              label: "Secret Access Key",
+              password: true,
+            },
+            {
+              key: "region",
+              label: "Region (e.g., us-east-1)",
+              password: false,
+            },
           ],
         },
         azure: {
-          name: 'Azure Monitor',
+          name: "Azure Monitor",
           fields: [
-            { key: 'tenantId', label: 'Tenant ID', password: false },
-            { key: 'clientId', label: 'Client ID', password: false },
-            { key: 'clientSecret', label: 'Client Secret', password: true },
-            { key: 'subscriptionId', label: 'Subscription ID', password: false },
+            { key: "tenantId", label: "Tenant ID", password: false },
+            { key: "clientId", label: "Client ID", password: false },
+            { key: "clientSecret", label: "Client Secret", password: true },
+            {
+              key: "subscriptionId",
+              label: "Subscription ID",
+              password: false,
+            },
           ],
         },
         gcp: {
-          name: 'Google Cloud Operations',
+          name: "Google Cloud Operations",
           fields: [
-            { key: 'projectId', label: 'Project ID', password: false },
-            { key: 'serviceAccountKey', label: 'Service Account Key (JSON)', password: true },
+            { key: "projectId", label: "Project ID", password: false },
+            {
+              key: "serviceAccountKey",
+              label: "Service Account Key (JSON)",
+              password: true,
+            },
           ],
         },
       };
@@ -157,7 +207,7 @@ export class CloudCredentialManager {
       vscode.window.showInformationMessage(`Configuring ${config.name}...`);
 
       const credentials: any = {
-        type: 'apiKey',
+        type: "apiKey",
         additionalConfig: {},
       };
 
@@ -181,27 +231,27 @@ export class CloudCredentialManager {
 
         // Map to CloudCredentials structure
         switch (field.key) {
-          case 'apiKey':
-          case 'accessKeyId':
+          case "apiKey":
+          case "accessKeyId":
             credentials.apiKey = value;
             break;
-          case 'appKey':
-          case 'secretAccessKey':
-          case 'clientSecret':
-          case 'serviceAccountKey':
+          case "appKey":
+          case "secretAccessKey":
+          case "clientSecret":
+          case "serviceAccountKey":
             credentials.apiSecret = value;
             break;
-          case 'region':
+          case "region":
             credentials.region = value;
             break;
-          case 'accountId':
-          case 'projectId':
-          case 'subscriptionId':
-          case 'tenantId':
-          case 'clientId':
+          case "accountId":
+          case "projectId":
+          case "subscriptionId":
+          case "tenantId":
+          case "clientId":
             credentials.additionalConfig![field.key] = value;
             break;
-          case 'site':
+          case "site":
             credentials.additionalConfig!.site = value;
             break;
         }

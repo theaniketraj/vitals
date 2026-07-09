@@ -1,15 +1,15 @@
 /**
  * Performance Caching Layer
- * 
+ *
  * Implements local file-based caching to reduce API load and improve performance:
  * - Cache metric queries with configurable TTL
  * - Invalidation strategies
  * - Size management
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as crypto from 'crypto';
+import * as fs from "node:fs";
+import * as path from "node:path";
+import * as crypto from "node:crypto";
 
 export interface CacheOptions {
   /** Cache directory path (default: .vitals-cache) */
@@ -34,13 +34,14 @@ export interface CacheEntry<T> {
 }
 
 export class MetricCache {
-  private cacheDir: string;
-  private ttl: number;
-  private maxSizeMB: number;
-  private enabled: boolean;
+  private readonly cacheDir: string;
+  private readonly ttl: number;
+  private readonly maxSizeMB: number;
+  private readonly enabled: boolean;
 
   constructor(options: CacheOptions = {}) {
-    this.cacheDir = options.cacheDir || path.join(process.cwd(), '.vitals-cache');
+    this.cacheDir =
+      options.cacheDir || path.join(process.cwd(), ".vitals-cache");
     this.ttl = options.ttl || 300; // 5 minutes default
     this.maxSizeMB = options.maxSizeMB || 100;
     this.enabled = options.enabled !== false;
@@ -65,7 +66,7 @@ export class MetricCache {
         return null;
       }
 
-      const cacheData = fs.readFileSync(cachePath, 'utf-8');
+      const cacheData = fs.readFileSync(cachePath, "utf-8");
       const entry: CacheEntry<T> = JSON.parse(cacheData);
 
       // Check if expired
@@ -96,7 +97,7 @@ export class MetricCache {
       data,
       timestamp: Date.now(),
       key: cacheKey,
-      size: 0
+      size: 0,
     };
 
     const cacheData = JSON.stringify(entry);
@@ -105,7 +106,7 @@ export class MetricCache {
     try {
       // Check cache size before writing
       await this.ensureCacheSize(entry.size);
-      fs.writeFileSync(cachePath, cacheData, 'utf-8');
+      fs.writeFileSync(cachePath, cacheData, "utf-8");
     } catch (error) {
       // If cache write fails, just continue without caching
       console.warn(`Failed to write cache: ${error}`);
@@ -171,11 +172,11 @@ export class MetricCache {
 
     try {
       const files = fs.readdirSync(this.cacheDir);
-      
+
       for (const file of files) {
         const filePath = path.join(this.cacheDir, file);
         const stats = fs.statSync(filePath);
-        
+
         if (stats.isFile()) {
           entries++;
           totalSize += stats.size;
@@ -209,14 +210,14 @@ export class MetricCache {
 
     try {
       const files = fs.readdirSync(this.cacheDir);
-      
+
       for (const file of files) {
         const filePath = path.join(this.cacheDir, file);
-        
+
         try {
-          const cacheData = fs.readFileSync(filePath, 'utf-8');
+          const cacheData = fs.readFileSync(filePath, "utf-8");
           const entry: CacheEntry<any> = JSON.parse(cacheData);
-          
+
           const age = now - entry.timestamp;
           if (age > this.ttl * 1000) {
             fs.unlinkSync(filePath);
@@ -249,11 +250,13 @@ export class MetricCache {
     // Remove oldest entries until we have space
     try {
       const files = fs.readdirSync(this.cacheDir);
-      const fileStats = files.map(file => {
-        const filePath = path.join(this.cacheDir, file);
-        const stat = fs.statSync(filePath);
-        return { file, filePath, mtime: stat.mtimeMs, size: stat.size };
-      }).sort((a, b) => a.mtime - b.mtime); // Oldest first
+      const fileStats = files
+        .map((file) => {
+          const filePath = path.join(this.cacheDir, file);
+          const stat = fs.statSync(filePath);
+          return { file, filePath, mtime: stat.mtimeMs, size: stat.size };
+        })
+        .sort((a, b) => a.mtime - b.mtime); // Oldest first
 
       let currentSize = stats.totalSize;
       for (const { filePath, size } of fileStats) {
@@ -272,7 +275,7 @@ export class MetricCache {
    * Generate cache key hash
    */
   private hashKey(key: string): string {
-    return crypto.createHash('md5').update(key).digest('hex');
+    return crypto.createHash("md5").update(key).digest("hex");
   }
 
   /**
@@ -289,9 +292,9 @@ export class MetricCache {
     prometheusUrl: string,
     metric: string,
     label: string | undefined,
-    timeRange: string
+    timeRange: string,
   ): string {
-    return `metric:${prometheusUrl}:${metric}:${label || 'none'}:${timeRange}`;
+    return `metric:${prometheusUrl}:${metric}:${label || "none"}:${timeRange}`;
   }
 
   /**
@@ -302,9 +305,9 @@ export class MetricCache {
     metric: string,
     label: string | undefined,
     start: string,
-    end: string
+    end: string,
   ): string {
-    return `range:${prometheusUrl}:${metric}:${label || 'none'}:${start}:${end}`;
+    return `range:${prometheusUrl}:${metric}:${label || "none"}:${start}:${end}`;
   }
 }
 
@@ -317,9 +320,7 @@ let globalCache: MetricCache | null = null;
  * Get or create global cache instance
  */
 export function getCache(options?: CacheOptions): MetricCache {
-  if (!globalCache) {
-    globalCache = new MetricCache(options);
-  }
+  globalCache ??= new MetricCache(options);
   return globalCache;
 }
 

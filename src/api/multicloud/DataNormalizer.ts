@@ -1,4 +1,4 @@
-import { DataPoint, QueryResult } from './ICloudProvider';
+import { DataPoint, QueryResult } from "./ICloudProvider";
 
 /**
  * Normalizes data from different providers into a standard format
@@ -15,7 +15,7 @@ export class DataNormalizer {
 
     for (const [providerId, result] of results) {
       // Tag each data point with provider ID
-      const taggedPoints = result.data.map(dp => ({
+      const taggedPoints = result.data.map((dp) => ({
         ...dp,
         labels: {
           ...dp.labels,
@@ -36,7 +36,7 @@ export class DataNormalizer {
     allDataPoints.sort((a, b) => a.timestamp - b.timestamp);
 
     return {
-      providerId: 'unified',
+      providerId: "unified",
       timestamp: Date.now(),
       data: allDataPoints,
       metadata: {
@@ -52,7 +52,7 @@ export class DataNormalizer {
    */
   public correlateByTimestamp(
     results: Map<string, QueryResult>,
-    tolerance: number = 60000 // 1 minute tolerance
+    tolerance: number = 60000, // 1 minute tolerance
   ): CorrelatedDataPoint[] {
     const allPoints = this.extractAllPoints(results);
     const correlated: CorrelatedDataPoint[] = [];
@@ -62,20 +62,20 @@ export class DataNormalizer {
 
     for (const point of allPoints) {
       const roundedTime = Math.floor(point.timestamp / tolerance) * tolerance;
-      
+
       if (!timeGroups.has(roundedTime)) {
         timeGroups.set(roundedTime, []);
       }
-      
+
       timeGroups.get(roundedTime)!.push(point);
     }
 
     // Create correlated points
     for (const [time, points] of timeGroups) {
       const byProvider = new Map<string, DataPoint[]>();
-      
+
       for (const point of points) {
-        const provider = point.labels.provider || 'unknown';
+        const provider = point.labels.provider || "unknown";
         if (!byProvider.has(provider)) {
           byProvider.set(provider, []);
         }
@@ -94,16 +94,18 @@ export class DataNormalizer {
   /**
    * Calculate aggregated statistics across providers
    */
-  public aggregateAcrossProviders(results: Map<string, QueryResult>): AggregatedStats {
+  public aggregateAcrossProviders(
+    results: Map<string, QueryResult>,
+  ): AggregatedStats {
     const allPoints = this.extractAllPoints(results);
-    
+
     if (allPoints.length === 0) {
       return this.emptyStats();
     }
 
     const values = allPoints
-      .map(p => p.value)
-      .filter(v => typeof v === 'number') as number[];
+      .map((p) => p.value)
+      .filter((v) => typeof v === "number") as number[];
 
     if (values.length === 0) {
       return this.emptyStats();
@@ -132,26 +134,30 @@ export class DataNormalizer {
 
     for (const point of correlated) {
       const providers = Object.keys(point.providers);
-      
+
       if (providers.length < 2) continue;
 
       // Get numeric values from each provider
-      const values = providers.map(p => {
-        const dataPoints = point.providers[p];
-        const numericValues = dataPoints
-          .map(dp => dp.value)
-          .filter(v => typeof v === 'number') as number[];
-        
-        return numericValues.length > 0 
-          ? numericValues.reduce((a, b) => a + b, 0) / numericValues.length
-          : null;
-      }).filter((v): v is number => v !== null);
+      const values = providers
+        .map((p) => {
+          const dataPoints = point.providers[p];
+          const numericValues = dataPoints
+            .map((dp) => dp.value)
+            .filter((v) => typeof v === "number") as number[];
+
+          return numericValues.length > 0
+            ? numericValues.reduce((a, b) => a + b, 0) / numericValues.length
+            : null;
+        })
+        .filter((v): v is number => v !== null);
 
       if (values.length < 2) continue;
 
       // Calculate variance
       const avg = values.reduce((a, b) => a + b, 0) / values.length;
-      const variance = values.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / values.length;
+      const variance =
+        values.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) /
+        values.length;
       const stdDev = Math.sqrt(variance);
 
       // Flag if standard deviation is high relative to mean
@@ -159,11 +165,9 @@ export class DataNormalizer {
         anomalies.push({
           timestamp: point.timestamp,
           providers,
-          values: Object.fromEntries(
-            providers.map((p, i) => [p, values[i]])
-          ),
+          values: Object.fromEntries(providers.map((p, i) => [p, values[i]])),
           deviation: stdDev,
-          severity: stdDev > avg * 0.5 ? 'high' : 'medium',
+          severity: stdDev > avg * 0.5 ? "high" : "medium",
           description: `High variance detected across providers at ${new Date(point.timestamp).toISOString()}`,
         });
       }
@@ -176,27 +180,27 @@ export class DataNormalizer {
    * Normalize units across different providers
    */
   public normalizeUnits(dataPoints: DataPoint[]): DataPoint[] {
-    return dataPoints.map(dp => {
-      if (typeof dp.value !== 'number') return dp;
+    return dataPoints.map((dp) => {
+      if (typeof dp.value !== "number") return dp;
 
       const normalized = { ...dp };
 
       // Convert common units to standard formats
       switch (dp.unit?.toLowerCase()) {
-        case 'ms':
-        case 'milliseconds':
+        case "ms":
+        case "milliseconds":
           normalized.value = dp.value / 1000;
-          normalized.unit = 'seconds';
+          normalized.unit = "seconds";
           break;
-        case 'kb':
-        case 'kilobytes':
+        case "kb":
+        case "kilobytes":
           normalized.value = dp.value / 1024;
-          normalized.unit = 'MB';
+          normalized.unit = "MB";
           break;
-        case 'gb':
-        case 'gigabytes':
+        case "gb":
+        case "gigabytes":
           normalized.value = dp.value * 1024;
-          normalized.unit = 'MB';
+          normalized.unit = "MB";
           break;
       }
 
@@ -209,11 +213,11 @@ export class DataNormalizer {
    */
   private extractAllPoints(results: Map<string, QueryResult>): DataPoint[] {
     const allPoints: DataPoint[] = [];
-    
+
     for (const result of results.values()) {
       allPoints.push(...result.data);
     }
-    
+
     return allPoints;
   }
 
@@ -264,6 +268,6 @@ export interface Anomaly {
   providers: string[];
   values: Record<string, number>;
   deviation: number;
-  severity: 'low' | 'medium' | 'high';
+  severity: "low" | "medium" | "high";
   description: string;
 }

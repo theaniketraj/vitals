@@ -1,6 +1,6 @@
 /**
  * Enhanced Data Preprocessing Module
- * 
+ *
  * Implements comprehensive data preprocessing pipeline:
  * - Time window alignment
  * - Outlier removal (IQR, Z-score, MAD methods)
@@ -11,7 +11,7 @@
 
 export interface PreprocessingOptions {
   /** Outlier removal method */
-  outlierMethod?: 'iqr' | 'zscore' | 'mad' | 'none';
+  outlierMethod?: "iqr" | "zscore" | "mad" | "none";
   /** IQR multiplier (default: 1.5) */
   iqrMultiplier?: number;
   /** Z-score threshold (default: 3) */
@@ -19,7 +19,7 @@ export interface PreprocessingOptions {
   /** Normalize to fixed sample size */
   targetSampleSize?: number;
   /** Smoothing method */
-  smoothingMethod?: 'moving-average' | 'exponential' | 'gaussian' | 'none';
+  smoothingMethod?: "moving-average" | "exponential" | "gaussian" | "none";
   /** Smoothing window size (default: 3) */
   smoothingWindow?: number;
   /** Exponential smoothing alpha (default: 0.3) */
@@ -27,7 +27,7 @@ export interface PreprocessingOptions {
   /** Minimum sample size required */
   minSampleSize?: number;
   /** Fill missing values strategy */
-  fillStrategy?: 'interpolate' | 'forward' | 'backward' | 'mean' | 'none';
+  fillStrategy?: "interpolate" | "forward" | "backward" | "mean" | "none";
 }
 
 export interface PreprocessingResult {
@@ -50,18 +50,18 @@ export interface PreprocessingResult {
  */
 export function preprocessData(
   data: number[],
-  options: PreprocessingOptions = {}
+  options: PreprocessingOptions = {},
 ): PreprocessingResult {
   const {
-    outlierMethod = 'iqr',
+    outlierMethod = "iqr",
     iqrMultiplier = 1.5,
     zscoreThreshold = 3,
     targetSampleSize = 50,
-    smoothingMethod = 'moving-average',
+    smoothingMethod = "moving-average",
     smoothingWindow = 3,
     exponentialAlpha = 0.3,
     minSampleSize = 30,
-    fillStrategy = 'interpolate'
+    fillStrategy = "interpolate",
   } = options;
 
   const result: PreprocessingResult = {
@@ -70,12 +70,12 @@ export function preprocessData(
     outliersRemoved: 0,
     missingValuesFilled: 0,
     stepsApplied: [],
-    warnings: []
+    warnings: [],
   };
 
   // Step 1: Validate input
   if (data.length === 0) {
-    result.warnings.push('Empty dataset provided');
+    result.warnings.push("Empty dataset provided");
     return result;
   }
 
@@ -89,25 +89,27 @@ export function preprocessData(
 
   // Step 3: Check minimum sample size
   if (result.data.length < minSampleSize) {
-    result.warnings.push(`Sample size ${result.data.length} below minimum ${minSampleSize}`);
+    result.warnings.push(
+      `Sample size ${result.data.length} below minimum ${minSampleSize}`,
+    );
   }
 
   // Step 4: Remove outliers
-  if (outlierMethod !== 'none') {
+  if (outlierMethod !== "none") {
     const beforeLength = result.data.length;
-    
+
     switch (outlierMethod) {
-      case 'iqr':
+      case "iqr":
         result.data = removeOutliersIQR(result.data, iqrMultiplier);
         break;
-      case 'zscore':
+      case "zscore":
         result.data = removeOutliersZScore(result.data, zscoreThreshold);
         break;
-      case 'mad':
+      case "mad":
         result.data = removeOutliersMAD(result.data);
         break;
     }
-    
+
     result.outliersRemoved = beforeLength - result.data.length;
     if (result.outliersRemoved > 0) {
       result.stepsApplied.push(`outliers_removed:${outlierMethod}`);
@@ -121,15 +123,15 @@ export function preprocessData(
   }
 
   // Step 6: Apply smoothing
-  if (smoothingMethod !== 'none' && result.data.length > smoothingWindow) {
+  if (smoothingMethod !== "none" && result.data.length > smoothingWindow) {
     switch (smoothingMethod) {
-      case 'moving-average':
+      case "moving-average":
         result.data = movingAverageSmooth(result.data, smoothingWindow);
         break;
-      case 'exponential':
+      case "exponential":
         result.data = exponentialSmooth(result.data, exponentialAlpha);
         break;
-      case 'gaussian':
+      case "gaussian":
         result.data = gaussianSmooth(result.data, smoothingWindow);
         break;
     }
@@ -144,38 +146,40 @@ export function preprocessData(
  */
 function fillMissingValues(
   data: number[],
-  strategy: 'interpolate' | 'forward' | 'backward' | 'mean' | 'none'
+  strategy: "interpolate" | "forward" | "backward" | "mean" | "none",
 ): { data: number[]; filled: number } {
   let filled = 0;
   const result = [...data];
-  
-  if (strategy === 'none') {
+
+  if (strategy === "none") {
     // Just filter out invalid values
-    const validData = result.filter(v => isFinite(v));
+    const validData = result.filter((v) => Number.isFinite(v));
     filled = result.length - validData.length;
     return { data: validData, filled };
   }
 
   // Find valid values for mean calculation
-  const validValues = result.filter(v => isFinite(v));
+  const validValues = result.filter((v) => Number.isFinite(v));
   if (validValues.length === 0) {
     return { data: [], filled: result.length };
   }
-  
-  const meanValue = validValues.reduce((sum, v) => sum + v, 0) / validValues.length;
+
+  const meanValue =
+    validValues.reduce((sum, v) => sum + v, 0) / validValues.length;
 
   for (let i = 0; i < result.length; i++) {
-    if (!isFinite(result[i])) {
+    if (!Number.isFinite(result[i])) {
       filled++;
-      
+
       switch (strategy) {
-        case 'interpolate':
-          // Find nearest valid values
+        case "interpolate": // Find nearest valid values
+        {
           let before = i - 1;
-          while (before >= 0 && !isFinite(result[before])) before--;
+          while (before >= 0 && !Number.isFinite(result[before])) before--;
           let after = i + 1;
-          while (after < result.length && !isFinite(result[after])) after++;
-          
+          while (after < result.length && !Number.isFinite(result[after]))
+            after++;
+
           if (before >= 0 && after < result.length) {
             result[i] = (result[before] + result[after]) / 2;
           } else if (before >= 0) {
@@ -186,20 +190,22 @@ function fillMissingValues(
             result[i] = meanValue;
           }
           break;
-          
-        case 'forward':
-          // Use previous valid value
+        }
+
+        case "forward": // Use previous valid value
+        {
           let prev = i - 1;
-          while (prev >= 0 && !isFinite(result[prev])) prev--;
+          while (prev >= 0 && !Number.isFinite(result[prev])) prev--;
           result[i] = prev >= 0 ? result[prev] : meanValue;
           break;
-          
-        case 'backward':
+        }
+
+        case "backward":
           // Use next valid value (requires second pass)
           result[i] = meanValue; // Temporary, will be fixed in second pass
           break;
-          
-        case 'mean':
+
+        case "mean":
           result[i] = meanValue;
           break;
       }
@@ -207,9 +213,10 @@ function fillMissingValues(
   }
 
   // Second pass for backward fill
-  if (strategy === 'backward') {
+  if (strategy === "backward") {
     for (let i = result.length - 1; i >= 0; i--) {
-      if (data[i] !== result[i]) { // Was filled in first pass
+      if (data[i] !== result[i]) {
+        // Was filled in first pass
         let next = i + 1;
         while (next < result.length && data[next] !== result[next]) next++;
         result[i] = next < result.length ? result[next] : meanValue;
@@ -225,11 +232,11 @@ function fillMissingValues(
  */
 export function removeOutliersIQR(data: number[], multiplier = 1.5): number[] {
   if (data.length < 4) return data;
-  
+
   const sorted = [...data].sort((a, b) => a - b);
   const q1Index = Math.floor(sorted.length * 0.25);
   const q3Index = Math.floor(sorted.length * 0.75);
-  
+
   const q1 = sorted[q1Index];
   const q3 = sorted[q3Index];
   const iqr = q3 - q1;
@@ -237,7 +244,7 @@ export function removeOutliersIQR(data: number[], multiplier = 1.5): number[] {
   const lowerBound = q1 - multiplier * iqr;
   const upperBound = q3 + multiplier * iqr;
 
-  return data.filter(x => x >= lowerBound && x <= upperBound);
+  return data.filter((x) => x >= lowerBound && x <= upperBound);
 }
 
 /**
@@ -245,14 +252,15 @@ export function removeOutliersIQR(data: number[], multiplier = 1.5): number[] {
  */
 export function removeOutliersZScore(data: number[], threshold = 3): number[] {
   if (data.length < 2) return data;
-  
+
   const mean = data.reduce((sum, v) => sum + v, 0) / data.length;
-  const variance = data.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / data.length;
+  const variance =
+    data.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / data.length;
   const stdDev = Math.sqrt(variance);
 
   if (stdDev === 0) return data;
 
-  return data.filter(x => Math.abs((x - mean) / stdDev) <= threshold);
+  return data.filter((x) => Math.abs((x - mean) / stdDev) <= threshold);
 }
 
 /**
@@ -261,22 +269,22 @@ export function removeOutliersZScore(data: number[], threshold = 3): number[] {
  */
 export function removeOutliersMAD(data: number[]): number[] {
   if (data.length < 2) return data;
-  
+
   // Calculate median
   const sorted = [...data].sort((a, b) => a - b);
   const median = sorted[Math.floor(sorted.length / 2)];
 
   // Calculate MAD
-  const deviations = data.map(x => Math.abs(x - median));
-  const madSorted = deviations.sort((a, b) => a - b);
+  const deviations = data.map((x) => Math.abs(x - median));
+  const madSorted = deviations.toSorted((a, b) => a - b);
   const mad = madSorted[Math.floor(madSorted.length / 2)];
 
   if (mad === 0) return data;
 
   // Modified Z-score using MAD
   const threshold = 3.5; // Standard threshold for MAD method
-  return data.filter(x => {
-    const modifiedZScore = 0.6745 * Math.abs(x - median) / mad;
+  return data.filter((x) => {
+    const modifiedZScore = (0.6745 * Math.abs(x - median)) / mad;
     return modifiedZScore <= threshold;
   });
 }
@@ -284,7 +292,10 @@ export function removeOutliersMAD(data: number[]): number[] {
 /**
  * Normalize time series to fixed sample size using averaging
  */
-export function normalizeToFixedSize(data: number[], targetSize: number): number[] {
+export function normalizeToFixedSize(
+  data: number[],
+  targetSize: number,
+): number[] {
   if (data.length <= targetSize) return data;
 
   const result: number[] = [];
@@ -306,7 +317,7 @@ export function normalizeToFixedSize(data: number[], targetSize: number): number
  */
 export function movingAverageSmooth(data: number[], windowSize = 3): number[] {
   if (data.length < windowSize) return data;
-  
+
   const result: number[] = [];
   const halfWindow = Math.floor(windowSize / 2);
 
@@ -326,9 +337,9 @@ export function movingAverageSmooth(data: number[], windowSize = 3): number[] {
  */
 export function exponentialSmooth(data: number[], alpha = 0.3): number[] {
   if (data.length === 0) return [];
-  
+
   const result: number[] = [data[0]];
-  
+
   for (let i = 1; i < data.length; i++) {
     const smoothed = alpha * data[i] + (1 - alpha) * result[i - 1];
     result.push(smoothed);
@@ -342,28 +353,28 @@ export function exponentialSmooth(data: number[], alpha = 0.3): number[] {
  */
 export function gaussianSmooth(data: number[], windowSize = 3): number[] {
   if (data.length < windowSize) return data;
-  
+
   // Generate gaussian kernel
   const sigma = windowSize / 6; // Standard deviation
   const halfWindow = Math.floor(windowSize / 2);
   const kernel: number[] = [];
-  
+
   for (let i = -halfWindow; i <= halfWindow; i++) {
     const weight = Math.exp(-(i * i) / (2 * sigma * sigma));
     kernel.push(weight);
   }
-  
+
   // Normalize kernel
   const kernelSum = kernel.reduce((sum, w) => sum + w, 0);
-  const normalizedKernel = kernel.map(w => w / kernelSum);
+  const normalizedKernel = kernel.map((w) => w / kernelSum);
 
   // Apply convolution
   const result: number[] = [];
-  
+
   for (let i = 0; i < data.length; i++) {
     let weighted = 0;
     let weightSum = 0;
-    
+
     for (let j = 0; j < kernel.length; j++) {
       const dataIndex = i - halfWindow + j;
       if (dataIndex >= 0 && dataIndex < data.length) {
@@ -371,7 +382,7 @@ export function gaussianSmooth(data: number[], windowSize = 3): number[] {
         weightSum += normalizedKernel[j];
       }
     }
-    
+
     result.push(weighted / weightSum);
   }
 
@@ -384,7 +395,7 @@ export function gaussianSmooth(data: number[], windowSize = 3): number[] {
 export function alignTimeWindows(
   data1: Array<[number, number]>, // [timestamp, value]
   data2: Array<[number, number]>,
-  intervalSeconds = 15
+  intervalSeconds = 15,
 ): { aligned1: number[]; aligned2: number[]; timestamps: number[] } {
   if (data1.length === 0 || data2.length === 0) {
     return { aligned1: [], aligned2: [], timestamps: [] };
@@ -401,8 +412,8 @@ export function alignTimeWindows(
   }
 
   // Interpolate values for each timestamp
-  const aligned1 = timestamps.map(t => interpolateValue(data1, t));
-  const aligned2 = timestamps.map(t => interpolateValue(data2, t));
+  const aligned1 = timestamps.map((t) => interpolateValue(data1, t));
+  const aligned2 = timestamps.map((t) => interpolateValue(data2, t));
 
   return { aligned1, aligned2, timestamps };
 }
@@ -410,7 +421,10 @@ export function alignTimeWindows(
 /**
  * Interpolate value at specific timestamp
  */
-function interpolateValue(data: Array<[number, number]>, timestamp: number): number {
+function interpolateValue(
+  data: Array<[number, number]>,
+  timestamp: number,
+): number {
   // Find nearest points
   let before = 0;
   let after = data.length - 1;
@@ -446,16 +460,17 @@ export function calculateDataQuality(data: number[]): {
   }
 
   // Completeness (ratio of valid values)
-  const validCount = data.filter(v => isFinite(v)).length;
+  const validCount = data.filter((v) => Number.isFinite(v)).length;
   const completeness = validCount / data.length;
 
   // Variance
   const mean = data.reduce((sum, v) => sum + v, 0) / data.length;
-  const variance = data.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / data.length;
+  const variance =
+    data.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / data.length;
 
   // Stability (coefficient of variation)
   const stdDev = Math.sqrt(variance);
-  const stability = mean !== 0 ? 1 - Math.min(1, stdDev / Math.abs(mean)) : 0;
+  const stability = mean === 0 ? 0 : 1 - Math.min(1, stdDev / Math.abs(mean));
 
   // Outlier ratio
   const withoutOutliers = removeOutliersIQR(data);

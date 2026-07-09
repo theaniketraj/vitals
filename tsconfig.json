@@ -6,12 +6,8 @@
     "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node", "jest"]
   },
-  "exclude": [
-    "node_modules",
-    "webview",
-    "cli",
-    "action"
-  ]
+  "exclude": ["node_modules", "webview", "cli", "action"]
 }

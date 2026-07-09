@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from "axios";
 import {
   ITraceProvider,
   Trace,
@@ -11,17 +11,17 @@ import {
   ServiceNode,
   ServiceDependency,
   OperationStats,
-} from './ITraceProvider';
+} from "./ITraceProvider";
 
 /**
  * Jaeger tracing provider
  */
 export class JaegerProvider implements ITraceProvider {
-  public readonly providerId = 'jaeger';
-  public readonly providerName = 'Jaeger';
+  public readonly providerId = "jaeger";
+  public readonly providerName = "Jaeger";
 
   private client?: AxiosInstance;
-  private endpoint: string = 'http://localhost:16686';
+  private endpoint: string = "http://localhost:16686";
 
   public async configureAuth(config: TraceProviderConfig): Promise<void> {
     this.endpoint = config.endpoint;
@@ -30,7 +30,7 @@ export class JaegerProvider implements ITraceProvider {
       baseURL: this.endpoint,
       timeout: 30000,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
@@ -49,17 +49,17 @@ export class JaegerProvider implements ITraceProvider {
     }
 
     try {
-      const response = await this.client.get('/api/services');
+      const response = await this.client.get("/api/services");
       return response.status === 200;
     } catch (error) {
-      console.error('Jaeger connection test failed:', error);
+      console.error("Jaeger connection test failed:", error);
       return false;
     }
   }
 
   public async searchTraces(query: TraceQuery): Promise<Trace[]> {
     if (!this.client) {
-      throw new Error('Jaeger provider not configured');
+      throw new Error("Jaeger provider not configured");
     }
 
     try {
@@ -89,7 +89,7 @@ export class JaegerProvider implements ITraceProvider {
         params.tags = JSON.stringify(query.tags);
       }
 
-      const response = await this.client.get('/api/traces', { params });
+      const response = await this.client.get("/api/traces", { params });
 
       return this.normalizeJaegerTraces(response.data.data || []);
     } catch (error: any) {
@@ -99,7 +99,7 @@ export class JaegerProvider implements ITraceProvider {
 
   public async getTrace(traceId: string): Promise<Trace | undefined> {
     if (!this.client) {
-      throw new Error('Jaeger provider not configured');
+      throw new Error("Jaeger provider not configured");
     }
 
     try {
@@ -114,7 +114,7 @@ export class JaegerProvider implements ITraceProvider {
 
   public async getServiceMap(timeRange: TimeRange): Promise<ServiceMap> {
     if (!this.client) {
-      throw new Error('Jaeger provider not configured');
+      throw new Error("Jaeger provider not configured");
     }
 
     try {
@@ -122,7 +122,7 @@ export class JaegerProvider implements ITraceProvider {
       const endTs = timeRange.end;
       const lookback = timeRange.end - timeRange.start;
 
-      const response = await this.client.get('/api/dependencies', {
+      const response = await this.client.get("/api/dependencies", {
         params: {
           endTs,
           lookback,
@@ -149,7 +149,7 @@ export class JaegerProvider implements ITraceProvider {
             avgDuration: 0,
             p95Duration: 0,
             p99Duration: 0,
-            health: 'healthy',
+            health: "healthy",
           });
         }
 
@@ -162,7 +162,7 @@ export class JaegerProvider implements ITraceProvider {
             avgDuration: 0,
             p95Duration: 0,
             p99Duration: 0,
-            health: 'healthy',
+            health: "healthy",
           });
         }
 
@@ -183,7 +183,8 @@ export class JaegerProvider implements ITraceProvider {
       // Enrich with metrics
       for (const [serviceName, node] of serviceMap) {
         const metrics = await this.getServiceMetrics(serviceName, timeRange);
-        node.requestCount = metrics.requestRate * (timeRange.end - timeRange.start) / 1000;
+        node.requestCount =
+          (metrics.requestRate * (timeRange.end - timeRange.start)) / 1000;
         node.errorCount = node.requestCount * metrics.errorRate;
         node.avgDuration = metrics.latency.p50;
         node.p95Duration = metrics.latency.p95;
@@ -191,9 +192,9 @@ export class JaegerProvider implements ITraceProvider {
 
         // Determine health
         if (metrics.errorRate > 0.1 || metrics.latency.p95 > 5000) {
-          node.health = 'critical';
+          node.health = "critical";
         } else if (metrics.errorRate > 0.05 || metrics.latency.p95 > 3000) {
-          node.health = 'degraded';
+          node.health = "degraded";
         }
       }
 
@@ -207,9 +208,12 @@ export class JaegerProvider implements ITraceProvider {
     }
   }
 
-  public async getServiceMetrics(serviceName: string, timeRange: TimeRange): Promise<ServiceMetrics> {
+  public async getServiceMetrics(
+    serviceName: string,
+    timeRange: TimeRange,
+  ): Promise<ServiceMetrics> {
     if (!this.client) {
-      throw new Error('Jaeger provider not configured');
+      throw new Error("Jaeger provider not configured");
     }
 
     try {
@@ -229,8 +233,8 @@ export class JaegerProvider implements ITraceProvider {
         durations.push(trace.duration / 1000); // Convert to ms
 
         // Check for errors
-        const hasError = trace.spans.some(s =>
-          s.tags['error'] === true || s.tags['http.status_code'] >= 400
+        const hasError = trace.spans.some(
+          (s) => s.tags["error"] === true || s.tags["http.status_code"] >= 400,
         );
         if (hasError) {
           errorCount++;
@@ -249,10 +253,12 @@ export class JaegerProvider implements ITraceProvider {
             };
 
             existing.requestCount++;
-            existing.avgDuration = (existing.avgDuration * (existing.requestCount - 1) +
-              span.duration / 1000) / existing.requestCount;
+            existing.avgDuration =
+              (existing.avgDuration * (existing.requestCount - 1) +
+                span.duration / 1000) /
+              existing.requestCount;
 
-            if (span.tags['error']) {
+            if (span.tags["error"]) {
               existing.errorCount++;
             }
 
@@ -274,10 +280,12 @@ export class JaegerProvider implements ITraceProvider {
 
       // Get slow and error traces
       const slowThreshold = p95 * 1.5;
-      const slowTraces = traces.filter(t => t.duration / 1000 > slowThreshold).slice(0, 10);
-      const errorTraces = traces.filter(t =>
-        t.spans.some(s => s.tags['error'] === true)
-      ).slice(0, 10);
+      const slowTraces = traces
+        .filter((t) => t.duration / 1000 > slowThreshold)
+        .slice(0, 10);
+      const errorTraces = traces
+        .filter((t) => t.spans.some((s) => s.tags["error"] === true))
+        .slice(0, 10);
 
       return {
         serviceName,
@@ -297,13 +305,14 @@ export class JaegerProvider implements ITraceProvider {
   }
 
   private normalizeJaegerTraces(jaegerTraces: any[]): Trace[] {
-    return jaegerTraces.map(jt => {
+    return jaegerTraces.map((jt) => {
       const spans: Span[] = jt.spans.map((js: any) => ({
         spanId: js.spanID,
         traceId: js.traceID,
-        parentSpanId: js.references?.find((r: any) => r.refType === 'CHILD_OF')?.spanID,
+        parentSpanId: js.references?.find((r: any) => r.refType === "CHILD_OF")
+          ?.spanID,
         operationName: js.operationName,
-        serviceName: jt.processes[js.processID]?.serviceName || 'unknown',
+        serviceName: jt.processes[js.processID]?.serviceName || "unknown",
         startTime: js.startTime,
         duration: js.duration,
         tags: this.tagsArrayToObject(js.tags || []),
@@ -321,10 +330,12 @@ export class JaegerProvider implements ITraceProvider {
       return {
         traceId: jt.traceID,
         spans,
-        duration: Math.max(...spans.map(s => s.startTime + s.duration)) - Math.min(...spans.map(s => s.startTime)),
+        duration:
+          Math.max(...spans.map((s) => s.startTime + s.duration)) -
+          Math.min(...spans.map((s) => s.startTime)),
         services: Array.from(services),
-        startTime: Math.min(...spans.map(s => s.startTime)),
-        endTime: Math.max(...spans.map(s => s.startTime + s.duration)),
+        startTime: Math.min(...spans.map((s) => s.startTime)),
+        endTime: Math.max(...spans.map((s) => s.startTime + s.duration)),
         processes: jt.processes,
         warnings: jt.warnings,
       };

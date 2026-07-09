@@ -9,7 +9,7 @@ import {
   NPlusOnePattern,
   Trace,
   Span,
-} from './ITraceProvider';
+} from "./ITraceProvider";
 
 /**
  * Performance profiler for CPU, memory, and database analysis
@@ -18,16 +18,19 @@ export class PerformanceProfiler {
   /**
    * Generate CPU flame graph from trace spans
    */
-  public generateCPUFlameGraph(trace: Trace, serviceName?: string): FlameGraphNode {
+  public generateCPUFlameGraph(
+    trace: Trace,
+    serviceName?: string,
+  ): FlameGraphNode {
     const relevantSpans = serviceName
-      ? trace.spans.filter(s => s.serviceName === serviceName)
+      ? trace.spans.filter((s) => s.serviceName === serviceName)
       : trace.spans;
 
-    const rootSpans = relevantSpans.filter(s => !s.parentSpanId);
+    const rootSpans = relevantSpans.filter((s) => !s.parentSpanId);
 
     if (rootSpans.length === 0) {
       return {
-        name: 'root',
+        name: "root",
         value: 0,
         children: [],
         percentage: 0,
@@ -36,7 +39,7 @@ export class PerformanceProfiler {
 
     // Build tree from root
     const root: FlameGraphNode = {
-      name: 'root',
+      name: "root",
       value: 0,
       children: [],
       percentage: 100,
@@ -59,13 +62,13 @@ export class PerformanceProfiler {
       name: `${span.serviceName}.${span.operationName}`,
       value: span.duration,
       children: [],
-      file: span.tags['code.filepath'] as string,
-      line: span.tags['code.lineno'] as number,
+      file: span.tags["code.filepath"] as string,
+      line: span.tags["code.lineno"] as number,
       percentage: 0,
     };
 
     // Find children
-    const children = allSpans.filter(s => s.parentSpanId === span.spanId);
+    const children = allSpans.filter((s) => s.parentSpanId === span.spanId);
 
     for (const child of children) {
       node.children.push(this.buildFlameGraphNode(child, allSpans));
@@ -85,26 +88,35 @@ export class PerformanceProfiler {
   /**
    * Extract hot functions from trace
    */
-  public extractHotFunctions(trace: Trace, serviceName?: string, threshold: number = 5): HotFunction[] {
+  public extractHotFunctions(
+    trace: Trace,
+    serviceName?: string,
+    threshold: number = 5,
+  ): HotFunction[] {
     const relevantSpans = serviceName
-      ? trace.spans.filter(s => s.serviceName === serviceName)
+      ? trace.spans.filter((s) => s.serviceName === serviceName)
       : trace.spans;
 
-    const functionMap = new Map<string, {
-      selfTime: number;
-      totalTime: number;
-      callCount: number;
-      file?: string;
-      line?: number;
-    }>();
+    const functionMap = new Map<
+      string,
+      {
+        selfTime: number;
+        totalTime: number;
+        callCount: number;
+        file?: string;
+        line?: number;
+      }
+    >();
 
     for (const span of relevantSpans) {
       const funcName = span.operationName;
-      const file = span.tags['code.filepath'] as string;
-      const line = span.tags['code.lineno'] as number;
+      const file = span.tags["code.filepath"] as string;
+      const line = span.tags["code.lineno"] as number;
 
       // Calculate self time (time spent in this span excluding children)
-      const children = relevantSpans.filter(s => s.parentSpanId === span.spanId);
+      const children = relevantSpans.filter(
+        (s) => s.parentSpanId === span.spanId,
+      );
       const childrenTime = children.reduce((sum, c) => sum + c.duration, 0);
       const selfTime = span.duration - childrenTime;
 
@@ -153,25 +165,28 @@ export class PerformanceProfiler {
    */
   public analyzeDatabaseQueries(trace: Trace): DatabaseQueryAnalysis {
     const queries: DatabaseQuery[] = [];
-    const queryPatterns = new Map<string, {
-      count: number;
-      totalDuration: number;
-      spanIds: string[];
-    }>();
+    const queryPatterns = new Map<
+      string,
+      {
+        count: number;
+        totalDuration: number;
+        spanIds: string[];
+      }
+    >();
 
     for (const span of trace.spans) {
       // Look for database spans
-      const dbSystem = span.tags['db.system'] as string;
-      const dbStatement = span.tags['db.statement'] as string;
+      const dbSystem = span.tags["db.system"] as string;
+      const dbStatement = span.tags["db.statement"] as string;
 
       if (dbSystem && dbStatement) {
         const query: DatabaseQuery = {
           query: dbStatement,
           duration: span.duration,
           timestamp: span.startTime,
-          database: span.tags['db.name'] as string || 'unknown',
+          database: (span.tags["db.name"] as string) || "unknown",
           operation: this.detectQueryOperation(dbStatement),
-          rowsAffected: span.tags['db.rows_affected'] as number,
+          rowsAffected: span.tags["db.rows_affected"] as number,
           spanId: span.spanId,
         };
 
@@ -198,7 +213,7 @@ export class PerformanceProfiler {
     const sortedQueries = [...queries].sort((a, b) => b.duration - a.duration);
 
     // Detect slow queries (>1 second)
-    const slowQueries = sortedQueries.filter(q => q.duration > 1000000);
+    const slowQueries = sortedQueries.filter((q) => q.duration > 1000000);
 
     // Detect N+1 patterns (same query executed multiple times)
     const nPlusOneDetections: NPlusOnePattern[] = [];
@@ -226,26 +241,26 @@ export class PerformanceProfiler {
     };
   }
 
-  private detectQueryOperation(query: string): DatabaseQuery['operation'] {
+  private detectQueryOperation(query: string): DatabaseQuery["operation"] {
     const upperQuery = query.trim().toUpperCase();
 
-    if (upperQuery.startsWith('SELECT')) return 'SELECT';
-    if (upperQuery.startsWith('INSERT')) return 'INSERT';
-    if (upperQuery.startsWith('UPDATE')) return 'UPDATE';
-    if (upperQuery.startsWith('DELETE')) return 'DELETE';
+    if (upperQuery.startsWith("SELECT")) return "SELECT";
+    if (upperQuery.startsWith("INSERT")) return "INSERT";
+    if (upperQuery.startsWith("UPDATE")) return "UPDATE";
+    if (upperQuery.startsWith("DELETE")) return "DELETE";
 
-    return 'OTHER';
+    return "OTHER";
   }
 
   private normalizeQuery(query: string): string {
     // Remove quoted strings
-    let normalized = query.replaceAll(/'[^']*'/g, '?');
+    let normalized = query.replaceAll(/'[^']*'/g, "?");
 
     // Remove numbers
-    normalized = normalized.replaceAll(/\b\d+\b/g, '?');
+    normalized = normalized.replaceAll(/\b\d+\b/g, "?");
 
     // Remove multiple spaces
-    normalized = normalized.replaceAll(/\s+/g, ' ').trim();
+    normalized = normalized.replaceAll(/\s+/g, " ").trim();
 
     return normalized;
   }
@@ -253,16 +268,19 @@ export class PerformanceProfiler {
   /**
    * Generate memory flame graph (placeholder for future memory profiling integration)
    */
-  public generateMemoryFlameGraph(trace: Trace, serviceName?: string): FlameGraphNode {
+  public generateMemoryFlameGraph(
+    trace: Trace,
+    serviceName?: string,
+  ): FlameGraphNode {
     // This would integrate with Python memory_profiler, Node.js heap snapshots, etc.
     // For now, return a basic structure based on span allocations
 
     const relevantSpans = serviceName
-      ? trace.spans.filter(s => s.serviceName === serviceName)
+      ? trace.spans.filter((s) => s.serviceName === serviceName)
       : trace.spans;
 
     const root: FlameGraphNode = {
-      name: 'root',
+      name: "root",
       value: 0,
       children: [],
       percentage: 100,
@@ -270,15 +288,15 @@ export class PerformanceProfiler {
 
     for (const span of relevantSpans) {
       // Check for memory allocation tags
-      const allocBytes = span.tags['memory.allocated'] as number || 0;
+      const allocBytes = (span.tags["memory.allocated"] as number) || 0;
 
       if (allocBytes > 0) {
         root.children.push({
           name: `${span.serviceName}.${span.operationName}`,
           value: allocBytes,
           children: [],
-          file: span.tags['code.filepath'] as string,
-          line: span.tags['code.lineno'] as number,
+          file: span.tags["code.filepath"] as string,
+          line: span.tags["code.lineno"] as number,
           percentage: 0,
         });
 
@@ -294,22 +312,26 @@ export class PerformanceProfiler {
   /**
    * Extract top memory allocators
    */
-  public extractMemoryAllocators(trace: Trace, serviceName?: string, limit: number = 10): MemoryAllocator[] {
+  public extractMemoryAllocators(
+    trace: Trace,
+    serviceName?: string,
+    limit: number = 10,
+  ): MemoryAllocator[] {
     const relevantSpans = serviceName
-      ? trace.spans.filter(s => s.serviceName === serviceName)
+      ? trace.spans.filter((s) => s.serviceName === serviceName)
       : trace.spans;
 
     const allocators: MemoryAllocator[] = [];
     let totalAllocated = 0;
 
     for (const span of relevantSpans) {
-      const allocBytes = span.tags['memory.allocated'] as number || 0;
+      const allocBytes = (span.tags["memory.allocated"] as number) || 0;
 
       if (allocBytes > 0) {
         allocators.push({
           name: span.operationName,
-          file: span.tags['code.filepath'] as string,
-          line: span.tags['code.lineno'] as number,
+          file: span.tags["code.filepath"] as string,
+          line: span.tags["code.lineno"] as number,
           allocated: allocBytes,
           allocations: 1,
           percentage: 0,
@@ -334,8 +356,8 @@ export class PerformanceProfiler {
    * Find the critical path (slowest chain) in a trace
    */
   public findCriticalPath(trace: Trace): Span[] {
-    const spanMap = new Map(trace.spans.map(s => [s.spanId, s]));
-    const rootSpans = trace.spans.filter(s => !s.parentSpanId);
+    const spanMap = new Map(trace.spans.map((s) => [s.spanId, s]));
+    const rootSpans = trace.spans.filter((s) => !s.parentSpanId);
 
     let longestPath: Span[] = [];
     let maxDuration = 0;
@@ -354,7 +376,9 @@ export class PerformanceProfiler {
   }
 
   private findLongestSpanPath(span: Span, spanMap: Map<string, Span>): Span[] {
-    const children = Array.from(spanMap.values()).filter(s => s.parentSpanId === span.spanId);
+    const children = Array.from(spanMap.values()).filter(
+      (s) => s.parentSpanId === span.spanId,
+    );
 
     if (children.length === 0) {
       return [span];

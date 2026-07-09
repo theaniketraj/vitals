@@ -1,12 +1,12 @@
 /**
  * Example: Multi-Cloud Integration with Vitals
- * 
+ *
  * This example demonstrates how to use the multi-cloud integration
  * to query metrics from multiple providers, correlate data, and
  * optimize costs.
  */
 
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 import {
   CloudProviderManager,
   CloudCredentialManager,
@@ -18,7 +18,7 @@ import {
   CostOptimizer,
   UnifiedQuery,
   AggregationType,
-} from '../api/multicloud';
+} from "../api/multicloud";
 // Note: AWSProvider requires @aws-sdk/client-cloudwatch to be installed
 // Uncomment the line below after running: npm install @aws-sdk/client-cloudwatch @aws-sdk/client-xray
 // import { AWSProvider } from '../api/multicloud';
@@ -55,26 +55,33 @@ export async function initializeMultiCloud(context: vscode.ExtensionContext) {
  */
 async function configureProviders(
   providerManager: CloudProviderManager,
-  credentialManager: CloudCredentialManager
+  credentialManager: CloudCredentialManager,
 ) {
   const providers = providerManager.getAllProviders();
 
   for (const provider of providers) {
-    const credentials = await credentialManager.getCredentials(provider.providerId);
-    
+    const credentials = await credentialManager.getCredentials(
+      provider.providerId,
+    );
+
     if (credentials) {
       try {
         await provider.configureAuth(credentials);
         const status = await provider.testConnection();
-        
+
         if (status.connected) {
           await providerManager.enableProvider(provider.providerId);
           console.log(`✅ ${provider.providerName} configured and enabled`);
         } else {
-          console.warn(`⚠️ ${provider.providerName} configured but not connected: ${status.error}`);
+          console.warn(
+            `⚠️ ${provider.providerName} configured but not connected: ${status.error}`,
+          );
         }
       } catch (error: any) {
-        console.error(`❌ Failed to configure ${provider.providerName}:`, error.message);
+        console.error(
+          `❌ Failed to configure ${provider.providerName}:`,
+          error.message,
+        );
       }
     }
   }
@@ -85,20 +92,20 @@ async function configureProviders(
  */
 export async function queryAllProviders(providerManager: CloudProviderManager) {
   const unifiedQuery: UnifiedQuery = {
-    metric: 'http_requests_total',
+    metric: "http_requests_total",
     aggregation: AggregationType.RATE,
     filters: [
-      { field: 'status', operator: 'eq', value: '200' },
-      { field: 'service', operator: 'eq', value: 'api' },
+      { field: "status", operator: "eq", value: "200" },
+      { field: "service", operator: "eq", value: "api" },
     ],
-    groupBy: ['endpoint'],
+    groupBy: ["endpoint"],
     timeRange: {
       start: Date.now() - 3600000, // Last hour
       end: Date.now(),
     },
   };
 
-  console.log('🔍 Querying all providers...');
+  console.log("🔍 Querying all providers...");
   const results = await providerManager.queryAll(unifiedQuery);
 
   for (const [providerId, result] of results) {
@@ -116,10 +123,10 @@ export async function queryAllProviders(providerManager: CloudProviderManager) {
  */
 export async function correlateDataAcrossProviders(
   providerManager: CloudProviderManager,
-  dataNormalizer: DataNormalizer
+  dataNormalizer: DataNormalizer,
 ) {
   const unifiedQuery: UnifiedQuery = {
-    metric: 'cpu_usage',
+    metric: "cpu_usage",
     aggregation: AggregationType.AVG,
     timeRange: {
       start: Date.now() - 1800000, // Last 30 minutes
@@ -127,7 +134,7 @@ export async function correlateDataAcrossProviders(
     },
   };
 
-  console.log('🔗 Correlating data across providers...');
+  console.log("🔗 Correlating data across providers...");
   const results = await providerManager.queryAll(unifiedQuery);
 
   // Merge results
@@ -140,7 +147,7 @@ export async function correlateDataAcrossProviders(
 
   // Detect anomalies
   const anomalies = dataNormalizer.detectAnomalies(results);
-  
+
   if (anomalies.length > 0) {
     console.log(`\n⚠️ Detected ${anomalies.length} anomalies:`);
     for (const anomaly of anomalies) {
@@ -149,7 +156,7 @@ export async function correlateDataAcrossProviders(
       console.log(`    Values:`, anomaly.values);
     }
   } else {
-    console.log('\n✅ No anomalies detected');
+    console.log("\n✅ No anomalies detected");
   }
 
   return { merged, correlated, anomalies };
@@ -160,46 +167,52 @@ export async function correlateDataAcrossProviders(
  */
 export async function analyzeCosts(
   providerManager: CloudProviderManager,
-  costOptimizer: CostOptimizer
+  costOptimizer: CostOptimizer,
 ) {
-  console.log('💰 Fetching cost metrics from all providers...');
+  console.log("💰 Fetching cost metrics from all providers...");
   const costs = await providerManager.getAggregatedCosts();
 
   // Analyze costs
   const report = costOptimizer.analyzeCosts(costs);
 
   console.log(`\n💵 Total Monthly Cost: $${report.totalCost.toFixed(2)}`);
-  console.log(`💡 Potential Savings: $${report.totalPotentialSavings.toFixed(2)}`);
+  console.log(
+    `💡 Potential Savings: $${report.totalPotentialSavings.toFixed(2)}`,
+  );
 
-  console.log('\n📊 Cost by Provider:');
+  console.log("\n📊 Cost by Provider:");
   for (const provider of report.byProvider) {
     console.log(`  ${provider.providerId}: $${provider.cost.toFixed(2)}`);
   }
 
-  console.log('\n💡 Top Recommendations:');
+  console.log("\n💡 Top Recommendations:");
   for (const rec of report.recommendations.slice(0, 5)) {
     console.log(`  [${rec.severity.toUpperCase()}] ${rec.title}`);
     console.log(`    ${rec.description}`);
     if (rec.potentialSavings) {
-      console.log(`    💰 Potential savings: $${rec.potentialSavings.toFixed(2)}/month`);
+      console.log(
+        `    💰 Potential savings: $${rec.potentialSavings.toFixed(2)}/month`,
+      );
     }
   }
 
-  console.log('\n🔍 Insights:');
+  console.log("\n🔍 Insights:");
   for (const insight of report.insights) {
     console.log(`  • ${insight}`);
   }
 
   // Compare provider costs
   const comparisons = costOptimizer.compareProviderCosts(costs);
-  
+
   if (comparisons.length > 0) {
-    console.log('\n📈 Provider Comparisons:');
+    console.log("\n📈 Provider Comparisons:");
     for (const comparison of comparisons) {
       console.log(`  ${comparison.category}:`);
       for (const provider of comparison.providers) {
-        const badge = provider.isCheapest ? '✅' : '  ';
-        console.log(`    ${badge} ${provider.providerId}: $${provider.cost.toFixed(2)} ($${provider.costPerUnit.toFixed(4)}/${provider.unit})`);
+        const badge = provider.isCheapest ? "✅" : "  ";
+        console.log(
+          `    ${badge} ${provider.providerId}: $${provider.cost.toFixed(2)} ($${provider.costPerUnit.toFixed(4)}/${provider.unit})`,
+        );
       }
       console.log(`    💡 ${comparison.recommendation}`);
     }
@@ -213,10 +226,10 @@ export async function analyzeCosts(
  */
 export async function findExpensiveQueries(
   costOptimizer: CostOptimizer,
-  queryLogs: any[] // In practice, this would come from query logging
+  queryLogs: any[], // In practice, this would come from query logging
 ) {
-  console.log('🔍 Analyzing query costs...');
-  
+  console.log("🔍 Analyzing query costs...");
+
   const expensiveQueries = costOptimizer.identifyExpensiveQueries(queryLogs);
 
   console.log(`\n💸 Top 10 Most Expensive Queries:`);
@@ -224,7 +237,9 @@ export async function findExpensiveQueries(
     const query = expensiveQueries[i];
     console.log(`\n${i + 1}. ${query.providerId}`);
     console.log(`   Query: ${query.query.substring(0, 80)}...`);
-    console.log(`   Cost: $${query.totalCost.toFixed(4)}/month (${query.frequency} executions)`);
+    console.log(
+      `   Cost: $${query.totalCost.toFixed(4)}/month (${query.frequency} executions)`,
+    );
     console.log(`   Execution time: ${query.executionTime}ms`);
     console.log(`   Results: ${query.resultCount} data points`);
     console.log(`   💡 ${query.recommendation}`);
@@ -238,22 +253,22 @@ export async function findExpensiveQueries(
  */
 export async function trackCostTrends(
   costOptimizer: CostOptimizer,
-  queryLogs: any[]
+  queryLogs: any[],
 ) {
-  console.log('📈 Tracking cost trends...');
-  
+  console.log("📈 Tracking cost trends...");
+
   const trends = costOptimizer.trackQueryCosts(queryLogs, 30);
 
-  console.log('\n📊 Cost Trends (Last 30 Days):');
+  console.log("\n📊 Cost Trends (Last 30 Days):");
   for (const trend of trends) {
     console.log(`\n${trend.providerId}:`);
     console.log(`  Total: $${trend.totalCost.toFixed(2)}`);
     console.log(`  Average daily: $${trend.avgDailyCost.toFixed(2)}`);
     console.log(`  Data points: ${trend.dataPoints.length} days`);
-    
+
     // Show last 7 days
     const lastWeek = trend.dataPoints.slice(-7);
-    console.log('\n  Last 7 days:');
+    console.log("\n  Last 7 days:");
     for (const dp of lastWeek) {
       console.log(`    ${dp.date}: $${dp.cost.toFixed(2)}`);
     }
@@ -268,16 +283,14 @@ export async function trackCostTrends(
 export async function realTimeMonitoring(
   providerManager: CloudProviderManager,
   dataNormalizer: DataNormalizer,
-  interval: number = 30000 // 30 seconds
+  interval: number = 30000, // 30 seconds
 ) {
-  console.log('🔄 Starting real-time monitoring...');
+  console.log("🔄 Starting real-time monitoring...");
 
   const unifiedQuery: UnifiedQuery = {
-    metric: 'error_rate',
+    metric: "error_rate",
     aggregation: AggregationType.RATE,
-    filters: [
-      { field: 'severity', operator: 'eq', value: 'error' },
-    ],
+    filters: [{ field: "severity", operator: "eq", value: "error" }],
   };
 
   const monitor = setInterval(async () => {
@@ -285,26 +298,29 @@ export async function realTimeMonitoring(
       const results = await providerManager.queryAll(unifiedQuery);
       const stats = dataNormalizer.aggregateAcrossProviders(results);
 
-      console.log(`\n[${new Date().toISOString()}] Error Rate Across All Providers:`);
+      console.log(
+        `\n[${new Date().toISOString()}] Error Rate Across All Providers:`,
+      );
       console.log(`  Average: ${stats.avg.toFixed(2)}`);
       console.log(`  Max: ${stats.max.toFixed(2)}`);
       console.log(`  P95: ${stats.p95.toFixed(2)}`);
 
       // Alert on high error rate
-      if (stats.avg > 0.05) { // 5% error rate
+      if (stats.avg > 0.05) {
+        // 5% error rate
         vscode.window.showWarningMessage(
-          `⚠️ High error rate detected: ${(stats.avg * 100).toFixed(2)}%`
+          `⚠️ High error rate detected: ${(stats.avg * 100).toFixed(2)}%`,
         );
       }
     } catch (error: any) {
-      console.error('Error in monitoring loop:', error.message);
+      console.error("Error in monitoring loop:", error.message);
     }
   }, interval);
 
   // Return function to stop monitoring
   return () => {
     clearInterval(monitor);
-    console.log('🛑 Stopped real-time monitoring');
+    console.log("🛑 Stopped real-time monitoring");
   };
 }
 
@@ -314,40 +330,51 @@ export async function realTimeMonitoring(
 export async function runMultiCloudExamples(context: vscode.ExtensionContext) {
   try {
     // Initialize
-    const { providerManager, credentialManager, dataNormalizer, costOptimizer } = 
-      await initializeMultiCloud(context);
+    const {
+      providerManager,
+      credentialManager,
+      dataNormalizer,
+      costOptimizer,
+    } = await initializeMultiCloud(context);
 
     // Example 1: Query all providers
-    console.log('\n' + '='.repeat(60));
-    console.log('EXAMPLE 1: Query Metrics Across All Providers');
-    console.log('='.repeat(60));
+    console.log("\n" + "=".repeat(60));
+    console.log("EXAMPLE 1: Query Metrics Across All Providers");
+    console.log("=".repeat(60));
     await queryAllProviders(providerManager);
 
     // Example 2: Correlate data
-    console.log('\n' + '='.repeat(60));
-    console.log('EXAMPLE 2: Correlate Data Across Providers');
-    console.log('='.repeat(60));
+    console.log("\n" + "=".repeat(60));
+    console.log("EXAMPLE 2: Correlate Data Across Providers");
+    console.log("=".repeat(60));
     await correlateDataAcrossProviders(providerManager, dataNormalizer);
 
     // Example 3: Analyze costs
-    console.log('\n' + '='.repeat(60));
-    console.log('EXAMPLE 3: Analyze and Optimize Costs');
-    console.log('='.repeat(60));
+    console.log("\n" + "=".repeat(60));
+    console.log("EXAMPLE 3: Analyze and Optimize Costs");
+    console.log("=".repeat(60));
     await analyzeCosts(providerManager, costOptimizer);
 
     // Example 6: Start real-time monitoring
-    console.log('\n' + '='.repeat(60));
-    console.log('EXAMPLE 6: Real-Time Monitoring');
-    console.log('='.repeat(60));
-    const stopMonitoring = await realTimeMonitoring(providerManager, dataNormalizer);
+    console.log("\n" + "=".repeat(60));
+    console.log("EXAMPLE 6: Real-Time Monitoring");
+    console.log("=".repeat(60));
+    const stopMonitoring = await realTimeMonitoring(
+      providerManager,
+      dataNormalizer,
+    );
 
     // Stop monitoring after 5 minutes
-    setTimeout(() => {
-      stopMonitoring();
-    }, 5 * 60 * 1000);
-
+    setTimeout(
+      () => {
+        stopMonitoring();
+      },
+      5 * 60 * 1000,
+    );
   } catch (error: any) {
-    console.error('❌ Error running examples:', error.message);
-    vscode.window.showErrorMessage(`Multi-cloud examples failed: ${error.message}`);
+    console.error("❌ Error running examples:", error.message);
+    vscode.window.showErrorMessage(
+      `Multi-cloud examples failed: ${error.message}`,
+    );
   }
 }

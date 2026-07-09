@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import * as path from "path";
+import * as path from "node:path";
 import { getWebviewContent } from "./utils/webviewUtils";
 import { PrometheusApi } from "./api";
 
@@ -8,7 +8,7 @@ export class VitalsView {
   public static currentPanel: VitalsView | undefined;
   private readonly _panel: vscode.WebviewPanel;
   private readonly _extensionPath: string;
-  private _disposables: vscode.Disposable[] = [];
+  private readonly _disposables: vscode.Disposable[] = [];
 
   // Constructor to initialize the Webview panel
   private constructor(panel: vscode.WebviewPanel, extensionPath: string) {
@@ -73,7 +73,7 @@ export class VitalsView {
           case "fetchLogs":
             // Mock log data for now as Prometheus doesn't have a standard logs endpoint
             // In a real scenario, this would connect to Loki or another log source
-            const mockLogs = [
+            { const mockLogs = [
               `[INFO] Application started at ${new Date().toISOString()}`,
               `[INFO] Connected to database`,
               `[WARN] High memory usage detected`,
@@ -84,7 +84,7 @@ export class VitalsView {
               command: "updateLogs",
               data: mockLogs,
             });
-            break;
+            break; }
         }
       },
       undefined,

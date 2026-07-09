@@ -1,8 +1,8 @@
-import * as vscode from 'vscode';
-import * as os from 'os';
-import { vitalsApi } from '../api/vitalsApi';
-import { CustomGitHubAuth } from '../auth/customGitHubAuth';
-import * as crypto from 'crypto';
+import * as vscode from "vscode";
+import * as os from "node:os";
+import { vitalsApi } from "../api/vitalsApi";
+import { CustomGitHubAuth } from "../auth/customGitHubAuth";
+import * as crypto from "node:crypto";
 
 export interface UsageStatistics {
   // Session info
@@ -34,7 +34,7 @@ export interface UsageStatistics {
 
 export class UsageStatsCollector {
   private static instance: UsageStatsCollector;
-  private context: vscode.ExtensionContext;
+  private readonly context: vscode.ExtensionContext;
   private sessionId: string;
   private sessionStartTime: Date;
   private stats: UsageStatistics;
@@ -57,8 +57,8 @@ export class UsageStatsCollector {
       alertsViewed: 0,
       platform: `${os.platform()}-${os.arch()}`,
       vscodeVersion: vscode.version,
-      extensionVersion: context.extension?.packageJSON?.version || '0.3.1',
-      errors: []
+      extensionVersion: context.extension?.packageJSON?.version || "0.3.1",
+      errors: [],
     };
 
     // Auto-save stats every 5 minutes
@@ -66,7 +66,7 @@ export class UsageStatsCollector {
 
     // Save on extension deactivation
     context.subscriptions.push({
-      dispose: () => this.dispose()
+      dispose: () => this.dispose(),
     });
   }
 
@@ -79,27 +79,30 @@ export class UsageStatsCollector {
 
   private generateSessionId(): string {
     // Use cryptographically secure random bytes for the session ID suffix
-    const randomSuffix = crypto.randomBytes(16).toString('hex');
+    const randomSuffix = crypto.randomBytes(16).toString("hex");
     return `${Date.now()}-${randomSuffix}`;
   }
 
   private startAutoSave() {
     // Get save interval from config
-    const config = vscode.workspace.getConfiguration('vitals');
-    const intervalMinutes = config.get<number>('telemetrySaveInterval') || 5;
+    const config = vscode.workspace.getConfiguration("vitals");
+    const intervalMinutes = config.get<number>("telemetrySaveInterval") || 5;
 
     // Save stats periodically
-    this.saveInterval = setInterval(() => {
-      this.saveStats();
-    }, intervalMinutes * 60 * 1000);
+    this.saveInterval = setInterval(
+      () => {
+        this.saveStats();
+      },
+      intervalMinutes * 60 * 1000,
+    );
   }
 
   /**
    * Check if telemetry is enabled
    */
   private isTelemetryEnabled(): boolean {
-    const config = vscode.workspace.getConfiguration('vitals');
-    return config.get<boolean>('enableTelemetry', true);
+    const config = vscode.workspace.getConfiguration("vitals");
+    return config.get<boolean>("enableTelemetry", true);
   }
 
   /**
@@ -109,7 +112,7 @@ export class UsageStatsCollector {
     this.stats.commandsExecuted.push(commandName);
 
     // Track specific command types
-    if (commandName === 'vitals.openDashboard') {
+    if (commandName === "vitals.openDashboard") {
       this.stats.dashboardOpens++;
       this.dashboardOpenTime = new Date();
     }
@@ -129,18 +132,18 @@ export class UsageStatsCollector {
   /**
    * Track feature usage
    */
-  trackFeature(feature: 'metrics' | 'logs' | 'alerts' | 'custom_metrics') {
+  trackFeature(feature: "metrics" | "logs" | "alerts" | "custom_metrics") {
     switch (feature) {
-      case 'metrics':
+      case "metrics":
         this.stats.metricsViewed++;
         break;
-      case 'logs':
+      case "logs":
         this.stats.logsViewed++;
         break;
-      case 'alerts':
+      case "alerts":
         this.stats.alertsViewed++;
         break;
-      case 'custom_metrics':
+      case "custom_metrics":
         // We might want to track this specifically in the future
         break;
     }
@@ -150,7 +153,7 @@ export class UsageStatsCollector {
    * Track error occurrence
    */
   trackError(errorType: string) {
-    const existing = this.stats.errors.find(e => e.type === errorType);
+    const existing = this.stats.errors.find((e) => e.type === errorType);
     if (existing) {
       existing.count++;
     } else {
@@ -164,7 +167,7 @@ export class UsageStatsCollector {
   getStats(): UsageStatistics {
     return {
       ...this.stats,
-      sessionDuration: Date.now() - this.sessionStartTime.getTime()
+      sessionDuration: Date.now() - this.sessionStartTime.getTime(),
     };
   }
 
@@ -174,33 +177,29 @@ export class UsageStatsCollector {
   async saveStats(): Promise<void> {
     // Check if telemetry is enabled
     if (!this.isTelemetryEnabled()) {
-      console.log('Telemetry disabled, skipping stats save');
+      console.log("Telemetry disabled, skipping stats save");
       return;
     }
 
     try {
       const user = await CustomGitHubAuth.getCurrentUser(this.context);
       if (!user) {
-        console.log('No user logged in, skipping stats save');
+        console.log("No user logged in, skipping stats save");
         return;
       }
 
       const currentStats = this.getStats();
 
       // Send usage statistics as telemetry event
-      await vitalsApi.logEvent(
-        String(user.id),
-        'usage_statistics',
-        {
-          ...currentStats,
-          // Anonymize sensitive data
-          commandsExecuted: this.anonymizeCommands(currentStats.commandsExecuted),
-        }
-      );
+      await vitalsApi.logEvent(String(user.id), "usage_statistics", {
+        ...currentStats,
+        // Anonymize sensitive data
+        commandsExecuted: this.anonymizeCommands(currentStats.commandsExecuted),
+      });
 
-      console.log('✅ Usage statistics saved');
+      console.log("✅ Usage statistics saved");
     } catch (error) {
-      console.error('Failed to save usage statistics:', error);
+      console.error("Failed to save usage statistics:", error);
     }
   }
 
@@ -233,32 +232,28 @@ export class UsageStatsCollector {
       }
 
       const summary = {
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toISOString().split("T")[0],
         totalSessions: 1,
         totalCommands: this.stats.commandsExecuted.length,
         totalDashboardOpens: this.stats.dashboardOpens,
         avgSessionDuration: this.getStats().sessionDuration,
         platformDistribution: {
-          [this.stats.platform]: 1
+          [this.stats.platform]: 1,
         },
         topCommands: this.anonymizeCommands(this.stats.commandsExecuted),
         featureUsage: {
           metrics: this.stats.metricsViewed,
           logs: this.stats.logsViewed,
-          alerts: this.stats.alertsViewed
+          alerts: this.stats.alertsViewed,
         },
-        errorStats: this.stats.errors
+        errorStats: this.stats.errors,
       };
 
-      await vitalsApi.logEvent(
-        String(user.id),
-        'daily_summary',
-        summary
-      );
+      await vitalsApi.logEvent(String(user.id), "daily_summary", summary);
 
-      console.log('✅ Daily summary generated');
+      console.log("✅ Daily summary generated");
     } catch (error) {
-      console.error('Failed to generate daily summary:', error);
+      console.error("Failed to generate daily summary:", error);
     }
   }
 
@@ -280,7 +275,7 @@ export class UsageStatsCollector {
       platform: this.stats.platform,
       vscodeVersion: this.stats.vscodeVersion,
       extensionVersion: this.stats.extensionVersion,
-      errors: []
+      errors: [],
     };
   }
 
@@ -303,6 +298,8 @@ export class UsageStatsCollector {
 /**
  * Singleton instance getter
  */
-export function getUsageStats(context: vscode.ExtensionContext): UsageStatsCollector {
+export function getUsageStats(
+  context: vscode.ExtensionContext,
+): UsageStatsCollector {
   return UsageStatsCollector.getInstance(context);
 }

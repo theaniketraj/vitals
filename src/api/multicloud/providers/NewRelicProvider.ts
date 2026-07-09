@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from "axios";
 import {
   ICloudProvider,
   QueryResult,
@@ -11,19 +11,19 @@ import {
   UnifiedQuery,
   DataPoint,
   MetricType,
-} from '../ICloudProvider';
-import { UnifiedQueryTranslator } from '../UnifiedQueryTranslator';
+} from "../ICloudProvider";
+import { UnifiedQueryTranslator } from "../UnifiedQueryTranslator";
 
 /**
  * New Relic Insights integration
  */
 export class NewRelicProvider implements ICloudProvider {
-  public readonly providerId = 'newrelic';
-  public readonly providerName = 'New Relic';
+  public readonly providerId = "newrelic";
+  public readonly providerName = "New Relic";
 
   private apiKey?: string;
   private accountId?: string;
-  private region: string = 'US'; // US or EU
+  private region: string = "US"; // US or EU
   private client?: AxiosInstance;
   private readonly translator: UnifiedQueryTranslator;
 
@@ -34,33 +34,40 @@ export class NewRelicProvider implements ICloudProvider {
   public async configureAuth(credentials: CloudCredentials): Promise<void> {
     this.apiKey = credentials.apiKey;
     this.accountId = credentials.accountId;
-    this.region = credentials.region || 'US';
+    this.region = credentials.region || "US";
 
-    const baseURL = this.region === 'EU' 
-      ? 'https://api.eu.newrelic.com'
-      : 'https://api.newrelic.com';
+    const baseURL =
+      this.region === "EU"
+        ? "https://api.eu.newrelic.com"
+        : "https://api.newrelic.com";
 
     this.client = axios.create({
       baseURL,
       headers: {
-        'Api-Key': this.apiKey,
-        'Content-Type': 'application/json',
+        "Api-Key": this.apiKey,
+        "Content-Type": "application/json",
       },
       timeout: 10000,
     });
   }
 
-  public async query(query: string, options?: QueryOptions): Promise<QueryResult> {
+  public async query(
+    query: string,
+    options?: QueryOptions,
+  ): Promise<QueryResult> {
     if (!this.client || !this.accountId) {
-      throw new Error('New Relic provider not configured');
+      throw new Error("New Relic provider not configured");
     }
 
     const startTime = Date.now();
 
     try {
-      const response = await this.client.get(`/v2/accounts/${this.accountId}/query`, {
-        params: { nrql: query },
-      });
+      const response = await this.client.get(
+        `/v2/accounts/${this.accountId}/query`,
+        {
+          params: { nrql: query },
+        },
+      );
 
       const dataPoints = this.normalizeNewRelicResponse(response.data);
 
@@ -79,40 +86,51 @@ export class NewRelicProvider implements ICloudProvider {
     }
   }
 
-  public async queryRange(query: string, start: number, end: number, step: number): Promise<QueryResult> {
+  public async queryRange(
+    query: string,
+    start: number,
+    end: number,
+    step: number,
+  ): Promise<QueryResult> {
     // New Relic uses SINCE and UNTIL in NRQL
     const timeClause = `SINCE ${Math.floor(start / 1000)} UNTIL ${Math.floor(end / 1000)}`;
     const queryWithTime = `${query} ${timeClause}`;
-    
+
     return this.query(queryWithTime);
   }
 
-  public async executeUnifiedQuery(unifiedQuery: UnifiedQuery, options?: QueryOptions): Promise<QueryResult> {
+  public async executeUnifiedQuery(
+    unifiedQuery: UnifiedQuery,
+    options?: QueryOptions,
+  ): Promise<QueryResult> {
     const nrql = this.translator.toNewRelic(unifiedQuery);
-    
+
     if (unifiedQuery.timeRange) {
       return this.queryRange(
         nrql,
         unifiedQuery.timeRange.start,
         unifiedQuery.timeRange.end,
-        60
+        60,
       );
     }
-    
+
     return this.query(nrql, options);
   }
 
   public async getAvailableMetrics(): Promise<MetricMetadata[]> {
     if (!this.client || !this.accountId) {
-      throw new Error('New Relic provider not configured');
+      throw new Error("New Relic provider not configured");
     }
 
     try {
       // Query for available event types
-      const query = 'SHOW EVENT TYPES';
-      const response = await this.client.get(`/v2/accounts/${this.accountId}/query`, {
-        params: { nrql: query },
-      });
+      const query = "SHOW EVENT TYPES";
+      const response = await this.client.get(
+        `/v2/accounts/${this.accountId}/query`,
+        {
+          params: { nrql: query },
+        },
+      );
 
       const eventTypes = response.data.results[0]?.eventTypes || [];
 
@@ -128,25 +146,29 @@ export class NewRelicProvider implements ICloudProvider {
 
   public async getCostMetrics(): Promise<CostMetrics> {
     if (!this.client || !this.accountId) {
-      throw new Error('New Relic provider not configured');
+      throw new Error("New Relic provider not configured");
     }
 
     try {
       // Query usage data
-      const query = 'SELECT sum(GigabytesIngested) FROM NrConsumption FACET usageMetric SINCE 1 month ago';
-      const response = await this.client.get(`/v2/accounts/${this.accountId}/query`, {
-        params: { nrql: query },
-      });
+      const query =
+        "SELECT sum(GigabytesIngested) FROM NrConsumption FACET usageMetric SINCE 1 month ago";
+      const response = await this.client.get(
+        `/v2/accounts/${this.accountId}/query`,
+        {
+          params: { nrql: query },
+        },
+      );
 
       const results = response.data.results || [];
       let totalIngested = 0;
 
       for (const result of results) {
-        totalIngested += result['sum.GigabytesIngested'] || 0;
+        totalIngested += result["sum.GigabytesIngested"] || 0;
       }
 
       // Rough cost estimation (varies by contract)
-      const costPerGB = 0.30; // $0.30 per GB ingested
+      const costPerGB = 0.3; // $0.30 per GB ingested
       const totalCost = totalIngested * costPerGB;
 
       const now = Date.now();
@@ -168,7 +190,7 @@ export class NewRelicProvider implements ICloudProvider {
         recommendations: this.generateCostRecommendations(totalIngested),
       };
     } catch (error: any) {
-      console.error('Failed to fetch cost metrics:', error);
+      console.error("Failed to fetch cost metrics:", error);
       return this.getEmptyCostMetrics();
     }
   }
@@ -177,7 +199,7 @@ export class NewRelicProvider implements ICloudProvider {
     if (!this.client || !this.accountId) {
       return {
         connected: false,
-        error: 'Provider not configured',
+        error: "Provider not configured",
         lastChecked: Date.now(),
       };
     }
@@ -187,7 +209,7 @@ export class NewRelicProvider implements ICloudProvider {
     try {
       // Simple query to test connection
       await this.client.get(`/v2/accounts/${this.accountId}/query`, {
-        params: { nrql: 'SELECT count(*) FROM Transaction SINCE 1 minute ago' },
+        params: { nrql: "SELECT count(*) FROM Transaction SINCE 1 minute ago" },
       });
 
       return {
@@ -208,7 +230,7 @@ export class NewRelicProvider implements ICloudProvider {
     if (!this.apiKey || !this.accountId) {
       return {
         authenticated: false,
-        error: 'API key or account ID not configured',
+        error: "API key or account ID not configured",
       };
     }
 
@@ -226,10 +248,10 @@ export class NewRelicProvider implements ICloudProvider {
     if (response.results) {
       for (const result of response.results) {
         const timestamp = result.timestamp || Date.now();
-        
+
         for (const [key, value] of Object.entries(result)) {
-          if (key === 'timestamp' || key === 'facet') continue;
-          
+          if (key === "timestamp" || key === "facet") continue;
+
           dataPoints.push({
             timestamp,
             value: value as any,
@@ -248,11 +270,11 @@ export class NewRelicProvider implements ICloudProvider {
 
     if (ingested > 100) {
       recommendations.push({
-        category: 'ingestion',
-        severity: 'high',
-        title: 'High data ingestion',
+        category: "ingestion",
+        severity: "high",
+        title: "High data ingestion",
         description: `You've ingested ${ingested.toFixed(2)} GB this month. Consider reducing sampling rates or filtering noisy data.`,
-        potentialSavings: (ingested - 100) * 0.30,
+        potentialSavings: (ingested - 100) * 0.3,
         actionable: true,
       });
     }

@@ -1,5 +1,11 @@
-import { ICloudProvider, QueryResult, UnifiedQuery, QueryOptions, CostMetrics } from './ICloudProvider';
-import * as vscode from 'vscode';
+import {
+  ICloudProvider,
+  QueryResult,
+  UnifiedQuery,
+  QueryOptions,
+  CostMetrics,
+} from "./ICloudProvider";
+import * as vscode from "vscode";
 
 /**
  * Manages multiple cloud provider integrations
@@ -41,7 +47,7 @@ export class CloudProviderManager {
    */
   public getActiveProviders(): ICloudProvider[] {
     return Array.from(this.activeProviders)
-      .map(id => this.providers.get(id))
+      .map((id) => this.providers.get(id))
       .filter((p): p is ICloudProvider => p !== undefined);
   }
 
@@ -77,19 +83,25 @@ export class CloudProviderManager {
   /**
    * Query all active providers with unified query
    */
-  public async queryAll(unifiedQuery: UnifiedQuery, options?: QueryOptions): Promise<Map<string, QueryResult>> {
+  public async queryAll(
+    unifiedQuery: UnifiedQuery,
+    options?: QueryOptions,
+  ): Promise<Map<string, QueryResult>> {
     const results = new Map<string, QueryResult>();
     const activeProviders = this.getActiveProviders();
 
     await Promise.allSettled(
       activeProviders.map(async (provider) => {
         try {
-          const result = await provider.executeUnifiedQuery(unifiedQuery, options);
+          const result = await provider.executeUnifiedQuery(
+            unifiedQuery,
+            options,
+          );
           results.set(provider.providerId, result);
         } catch (error) {
           console.error(`Failed to query ${provider.providerName}:`, error);
         }
-      })
+      }),
     );
 
     return results;
@@ -101,7 +113,7 @@ export class CloudProviderManager {
   public async queryProviders(
     providerIds: string[],
     unifiedQuery: UnifiedQuery,
-    options?: QueryOptions
+    options?: QueryOptions,
   ): Promise<Map<string, QueryResult>> {
     const results = new Map<string, QueryResult>();
 
@@ -114,12 +126,15 @@ export class CloudProviderManager {
         }
 
         try {
-          const result = await provider.executeUnifiedQuery(unifiedQuery, options);
+          const result = await provider.executeUnifiedQuery(
+            unifiedQuery,
+            options,
+          );
           results.set(providerId, result);
         } catch (error) {
           console.error(`Failed to query ${provider.providerName}:`, error);
         }
-      })
+      }),
     );
 
     return results;
@@ -138,9 +153,12 @@ export class CloudProviderManager {
           const cost = await provider.getCostMetrics();
           costs.push(cost);
         } catch (error) {
-          console.error(`Failed to get cost metrics from ${provider.providerName}:`, error);
+          console.error(
+            `Failed to get cost metrics from ${provider.providerName}:`,
+            error,
+          );
         }
-      })
+      }),
     );
 
     return costs;
@@ -161,7 +179,7 @@ export class CloudProviderManager {
         } catch (error) {
           results.set(provider.providerId, false);
         }
-      })
+      }),
     );
 
     return results;
@@ -171,7 +189,10 @@ export class CloudProviderManager {
    * Load active providers from storage
    */
   private loadActiveProviders(): void {
-    const saved = this.context.globalState.get<string[]>('vitals.activeProviders', []);
+    const saved = this.context.globalState.get<string[]>(
+      "vitals.activeProviders",
+      [],
+    );
     this.activeProviders = new Set(saved);
   }
 
@@ -180,8 +201,8 @@ export class CloudProviderManager {
    */
   private async saveActiveProviders(): Promise<void> {
     await this.context.globalState.update(
-      'vitals.activeProviders',
-      Array.from(this.activeProviders)
+      "vitals.activeProviders",
+      Array.from(this.activeProviders),
     );
   }
 }

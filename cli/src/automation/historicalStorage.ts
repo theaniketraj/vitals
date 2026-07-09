@@ -4,8 +4,8 @@
  * Stores regression analysis results for pattern detection and trend analysis
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { RegressionResult } from '../core/regression';
 import { BatchResult } from '../core/batch';
 
@@ -82,10 +82,10 @@ export interface StorageConfig {
  * Historical data storage manager
  */
 export class HistoricalStorage {
-  private config: StorageConfig;
-  private regressionCache: Map<string, HistoricalRecord[]> = new Map();
-  private deploymentCache: Map<string, DeploymentMetadata[]> = new Map();
-  private incidentCache: Map<string, IncidentRecord[]> = new Map();
+  private readonly config: StorageConfig;
+  private readonly regressionCache: Map<string, HistoricalRecord[]> = new Map();
+  private readonly deploymentCache: Map<string, DeploymentMetadata[]> = new Map();
+  private readonly incidentCache: Map<string, IncidentRecord[]> = new Map();
 
   constructor(config: StorageConfig) {
     this.config = {
@@ -138,7 +138,7 @@ export class HistoricalStorage {
 
     for (const [, result] of batchResult.results) {
       if (!(result instanceof Error) && 'verdict' in result) {
-        promises.push(this.storeRegression(result as RegressionResult, metadata));
+        promises.push(this.storeRegression(result, metadata));
       }
     }
 

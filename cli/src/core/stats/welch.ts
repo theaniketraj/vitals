@@ -7,14 +7,20 @@ export function mean(arr: number[]): number {
 }
 
 export function variance(arr: number[], meanVal: number): number {
-  return arr.reduce((sum, val) => sum + Math.pow(val - meanVal, 2), 0) / (arr.length - 1);
+  return (
+    arr.reduce((sum, val) => sum + Math.pow(val - meanVal, 2), 0) /
+    (arr.length - 1)
+  );
 }
 
 /**
  * Welch's t-test for comparing two samples with potentially unequal variances
  * Returns t-statistic and p-value
  */
-export function welchTest(sample1: number[], sample2: number[]): { t: number; pValue: number; df: number } {
+export function welchTest(
+  sample1: number[],
+  sample2: number[],
+): { t: number; pValue: number; df: number } {
   const n1 = sample1.length;
   const n2 = sample2.length;
 
@@ -28,7 +34,8 @@ export function welchTest(sample1: number[], sample2: number[]): { t: number; pV
   const t = (m1 - m2) / Math.sqrt(v1 / n1 + v2 / n2);
 
   // Welch-Satterthwaite degrees of freedom
-  const df = Math.pow(v1 / n1 + v2 / n2, 2) /
+  const df =
+    Math.pow(v1 / n1 + v2 / n2, 2) /
     (Math.pow(v1 / n1, 2) / (n1 - 1) + Math.pow(v2 / n2, 2) / (n2 - 1));
 
   // Simplified p-value approximation (two-tailed)
@@ -68,7 +75,7 @@ export function removeOutliers(data: number[]): number[] {
   const lowerBound = q1 - 1.5 * iqr;
   const upperBound = q3 + 1.5 * iqr;
 
-  return data.filter(x => x >= lowerBound && x <= upperBound);
+  return data.filter((x) => x >= lowerBound && x <= upperBound);
 }
 
 /**

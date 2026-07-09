@@ -2,13 +2,16 @@
  * Advanced statistical tests for regression analysis
  */
 
-import { mean, variance } from './welch';
+import { mean, variance } from "./welch";
 
 /**
  * Mann-Whitney U test (non-parametric alternative to Welch's t-test)
  * Useful when data is not normally distributed
  */
-export function mannWhitneyUTest(sample1: number[], sample2: number[]): {
+export function mannWhitneyUTest(
+  sample1: number[],
+  sample2: number[],
+): {
   u: number;
   pValue: number;
   significant: boolean;
@@ -19,7 +22,7 @@ export function mannWhitneyUTest(sample1: number[], sample2: number[]): {
   // Combine and rank all values
   const combined = [
     ...sample1.map((val, idx) => ({ val, group: 1, idx })),
-    ...sample2.map((val, idx) => ({ val, group: 2, idx }))
+    ...sample2.map((val, idx) => ({ val, group: 2, idx })),
   ];
 
   // Sort by value
@@ -30,7 +33,7 @@ export function mannWhitneyUTest(sample1: number[], sample2: number[]): {
   let i = 0;
   while (i < combined.length) {
     let j = i;
-    
+
     // Find tied values
     while (j < combined.length && combined[j].val === combined[i].val) {
       j++;
@@ -74,14 +77,17 @@ export function mannWhitneyUTest(sample1: number[], sample2: number[]): {
   return {
     u,
     pValue,
-    significant: pValue < 0.05
+    significant: pValue < 0.05,
   };
 }
 
 /**
  * Kolmogorov-Smirnov test (tests if two samples come from the same distribution)
  */
-export function kolmogorovSmirnovTest(sample1: number[], sample2: number[]): {
+export function kolmogorovSmirnovTest(
+  sample1: number[],
+  sample2: number[],
+): {
   d: number;
   pValue: number;
   significant: boolean;
@@ -98,7 +104,9 @@ export function kolmogorovSmirnovTest(sample1: number[], sample2: number[]): {
   let j = 0;
   let maxD = 0;
 
-  const allPoints = [...new Set([...sorted1, ...sorted2])].sort((a, b) => a - b);
+  const allPoints = [...new Set([...sorted1, ...sorted2])].sort(
+    (a, b) => a - b,
+  );
 
   for (const point of allPoints) {
     // Count values <= point in each sample
@@ -118,7 +126,7 @@ export function kolmogorovSmirnovTest(sample1: number[], sample2: number[]): {
   return {
     d: maxD,
     pValue: maxD > criticalValue ? 0.01 : 0.1, // Simplified approximation
-    significant: maxD > criticalValue
+    significant: maxD > criticalValue,
   };
 }
 
@@ -130,7 +138,7 @@ export function bootstrapConfidenceInterval(
   sample1: number[],
   sample2: number[],
   iterations = 1000,
-  confidenceLevel = 0.95
+  confidenceLevel = 0.95,
 ): {
   lower: number;
   upper: number;
@@ -160,7 +168,7 @@ export function bootstrapConfidenceInterval(
   return {
     lower: diffs[lowerIdx],
     upper: diffs[upperIdx],
-    meanDiff: mean(diffs)
+    meanDiff: mean(diffs),
   };
 }
 
@@ -171,7 +179,7 @@ export function bootstrapConfidenceInterval(
 export function permutationTest(
   sample1: number[],
   sample2: number[],
-  iterations = 1000
+  iterations = 1000,
 ): {
   observedDiff: number;
   pValue: number;
@@ -212,7 +220,7 @@ export function permutationTest(
   return {
     observedDiff,
     pValue,
-    significant: pValue < 0.05
+    significant: pValue < 0.05,
   };
 }
 
@@ -221,7 +229,7 @@ export function permutationTest(
  */
 function resampleWithReplacement(sample: number[]): number[] {
   const resampled: number[] = [];
-  for (let i = 0; i < sample.length; i++) {
+  for (const element of sample) {
     const idx = Math.floor(Math.random() * sample.length);
     resampled.push(sample[idx]);
   }
@@ -234,7 +242,12 @@ function resampleWithReplacement(sample: number[]): number[] {
 function normalCDF(z: number): number {
   // Approximation using error function
   const t = 1 / (1 + 0.2316419 * Math.abs(z));
-  const poly = t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+  const poly =
+    t *
+    (0.31938153 +
+      t *
+        (-0.356563782 +
+          t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
   const cdf = 1 - (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * z * z) * poly;
 
   return z >= 0 ? cdf : 1 - cdf;
@@ -245,14 +258,14 @@ function normalCDF(z: number): number {
  */
 export function selectStatisticalTest(
   sample1: number[],
-  sample2: number[]
-): 'welch' | 'mann-whitney' | 'permutation' {
+  sample2: number[],
+): "welch" | "mann-whitney" | "permutation" {
   const n1 = sample1.length;
   const n2 = sample2.length;
 
   // Small sample size? Use permutation test
   if (n1 < 20 || n2 < 20) {
-    return 'permutation';
+    return "permutation";
   }
 
   // Check for normality (simple test: kurtosis and skewness)
@@ -260,10 +273,10 @@ export function selectStatisticalTest(
   const isNormal2 = checkNormality(sample2);
 
   if (!isNormal1 || !isNormal2) {
-    return 'mann-whitney'; // Non-parametric test
+    return "mann-whitney"; // Non-parametric test
   }
 
-  return 'welch'; // Parametric test
+  return "welch"; // Parametric test
 }
 
 /**

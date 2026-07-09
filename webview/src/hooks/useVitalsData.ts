@@ -6,13 +6,17 @@ export function useVitalsData(vscode: any) {
   const [kpis, setKpis] = React.useState<any>({
     requestRate: "0/s",
     errorRate: "0%",
-    avgLatency: "0ms"
+    avgLatency: "0ms",
   });
   const [logs, setLogs] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [connectionStatus, setConnectionStatus] = React.useState<'connected' | 'error'>('connected');
-  const [connectionError, setConnectionError] = React.useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = React.useState<
+    "connected" | "error"
+  >("connected");
+  const [connectionError, setConnectionError] = React.useState<string | null>(
+    null,
+  );
 
   React.useEffect(() => {
     if (!vscode) return;
@@ -22,7 +26,10 @@ export function useVitalsData(vscode: any) {
 
     const fetchData = () => {
       // Use a more interesting metric for the chart (Request Rate History)
-      vscode.postMessage({ command: "fetchMetrics", query: "sum(rate(prometheus_http_requests_total[5m]))" });
+      vscode.postMessage({
+        command: "fetchMetrics",
+        query: "sum(rate(prometheus_http_requests_total[5m]))",
+      });
       vscode.postMessage({ command: "fetchKPIs" });
       vscode.postMessage({ command: "fetchLogs" });
     };
@@ -49,10 +56,10 @@ export function useVitalsData(vscode: any) {
         setLoading(false);
       } else if (message.command === "updateStatus") {
         setConnectionStatus(message.status);
-        if (message.status === 'error') {
-            setConnectionError(message.error);
+        if (message.status === "error") {
+          setConnectionError(message.error);
         } else {
-            setConnectionError(null);
+          setConnectionError(null);
         }
       }
     };
@@ -64,5 +71,13 @@ export function useVitalsData(vscode: any) {
     };
   }, [vscode]);
 
-  return { metrics, kpis, logs, loading, error, connectionStatus, connectionError };
+  return {
+    metrics,
+    kpis,
+    logs,
+    loading,
+    error,
+    connectionStatus,
+    connectionError,
+  };
 }

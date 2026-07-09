@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 import {
   ITraceProvider,
   Trace,
@@ -10,19 +10,19 @@ import {
   SpanComparison,
   PerformanceRegression,
   Span,
-} from './ITraceProvider';
-import { JaegerProvider } from './JaegerProvider';
-import { OpenTelemetryProvider } from './OpenTelemetryProvider';
+} from "./ITraceProvider";
+import { JaegerProvider } from "./JaegerProvider";
+import { OpenTelemetryProvider } from "./OpenTelemetryProvider";
 
 /**
  * Manages trace providers and provides unified access to tracing data
  */
 export class TraceManager {
-  private providers = new Map<string, ITraceProvider>();
+  private readonly providers = new Map<string, ITraceProvider>();
   private activeProvider?: ITraceProvider;
-  private traceCache = new Map<string, Trace>();
+  private readonly traceCache = new Map<string, Trace>();
 
-  constructor(private context: vscode.ExtensionContext) {
+  constructor(private readonly context: vscode.ExtensionContext) {
     this.registerDefaultProviders();
   }
 
@@ -60,7 +60,7 @@ export class TraceManager {
    */
   public async searchTraces(query: TraceQuery): Promise<Trace[]> {
     if (!this.activeProvider) {
-      throw new Error('No active trace provider configured');
+      throw new Error("No active trace provider configured");
     }
 
     const traces = await this.activeProvider.searchTraces(query);
@@ -83,7 +83,7 @@ export class TraceManager {
     }
 
     if (!this.activeProvider) {
-      throw new Error('No active trace provider configured');
+      throw new Error("No active trace provider configured");
     }
 
     const trace = await this.activeProvider.getTrace(traceId);
@@ -100,7 +100,7 @@ export class TraceManager {
    */
   public async getServiceMap(timeRange: TimeRange): Promise<ServiceMap> {
     if (!this.activeProvider) {
-      throw new Error('No active trace provider configured');
+      throw new Error("No active trace provider configured");
     }
 
     return await this.activeProvider.getServiceMap(timeRange);
@@ -109,9 +109,12 @@ export class TraceManager {
   /**
    * Get service metrics
    */
-  public async getServiceMetrics(serviceName: string, timeRange: TimeRange): Promise<ServiceMetrics> {
+  public async getServiceMetrics(
+    serviceName: string,
+    timeRange: TimeRange,
+  ): Promise<ServiceMetrics> {
     if (!this.activeProvider) {
-      throw new Error('No active trace provider configured');
+      throw new Error("No active trace provider configured");
     }
 
     return await this.activeProvider.getServiceMetrics(serviceName, timeRange);
@@ -125,17 +128,21 @@ export class TraceManager {
     const durationPercentChange = (durationDelta / before.duration) * 100;
 
     // Find new and removed spans
-    const beforeOps = new Set(before.spans.map(s => s.operationName));
-    const afterOps = new Set(after.spans.map(s => s.operationName));
+    const beforeOps = new Set(before.spans.map((s) => s.operationName));
+    const afterOps = new Set(after.spans.map((s) => s.operationName));
 
-    const newSpans = after.spans.filter(s => !beforeOps.has(s.operationName));
-    const removedSpans = before.spans.filter(s => !afterOps.has(s.operationName));
+    const newSpans = after.spans.filter((s) => !beforeOps.has(s.operationName));
+    const removedSpans = before.spans.filter(
+      (s) => !afterOps.has(s.operationName),
+    );
 
     // Compare matching spans
     const spanComparisons: SpanComparison[] = [];
 
     for (const beforeSpan of before.spans) {
-      const afterSpan = after.spans.find(s => s.operationName === beforeSpan.operationName);
+      const afterSpan = after.spans.find(
+        (s) => s.operationName === beforeSpan.operationName,
+      );
       if (afterSpan) {
         const delta = afterSpan.duration - beforeSpan.duration;
         const percentChange = (delta / beforeSpan.duration) * 100;
@@ -150,8 +157,12 @@ export class TraceManager {
       }
     }
 
-    const slowedSpans = spanComparisons.filter(c => c.delta > 1000).sort((a, b) => b.delta - a.delta);
-    const improvedSpans = spanComparisons.filter(c => c.delta < -1000).sort((a, b) => a.delta - b.delta);
+    const slowedSpans = spanComparisons
+      .filter((c) => c.delta > 1000)
+      .sort((a, b) => b.delta - a.delta);
+    const improvedSpans = spanComparisons
+      .filter((c) => c.delta < -1000)
+      .sort((a, b) => a.delta - b.delta);
 
     return {
       before,
@@ -173,14 +184,20 @@ export class TraceManager {
   public async detectRegressions(
     serviceName: string,
     baselineRange: TimeRange,
-    currentRange: TimeRange
+    currentRange: TimeRange,
   ): Promise<PerformanceRegression[]> {
     if (!this.activeProvider) {
-      throw new Error('No active trace provider configured');
+      throw new Error("No active trace provider configured");
     }
 
-    const baseline = await this.activeProvider.getServiceMetrics(serviceName, baselineRange);
-    const current = await this.activeProvider.getServiceMetrics(serviceName, currentRange);
+    const baseline = await this.activeProvider.getServiceMetrics(
+      serviceName,
+      baselineRange,
+    );
+    const current = await this.activeProvider.getServiceMetrics(
+      serviceName,
+      currentRange,
+    );
 
     const regressions: PerformanceRegression[] = [];
 
@@ -190,15 +207,20 @@ export class TraceManager {
       const percentChange = (delta / baseline.latency.p95) * 100;
 
       regressions.push({
-        type: 'latency',
+        type: "latency",
         service: serviceName,
-        severity: percentChange > 100 ? 'critical' : percentChange > 50 ? 'high' : 'medium',
+        severity:
+          percentChange > 100
+            ? "critical"
+            : percentChange > 50
+              ? "high"
+              : "medium",
         baseline: baseline.latency.p95,
         current: current.latency.p95,
         delta,
         percentChange,
         detectedAt: Date.now(),
-        affectedTraces: current.slowTraces.map(t => t.traceId),
+        affectedTraces: current.slowTraces.map((t) => t.traceId),
         rootCause: `P95 latency increased by ${percentChange.toFixed(1)}%`,
       });
     }
@@ -209,15 +231,20 @@ export class TraceManager {
       const percentChange = (delta / baseline.errorRate) * 100;
 
       regressions.push({
-        type: 'error-rate',
+        type: "error-rate",
         service: serviceName,
-        severity: current.errorRate > 0.1 ? 'critical' : current.errorRate > 0.05 ? 'high' : 'medium',
+        severity:
+          current.errorRate > 0.1
+            ? "critical"
+            : current.errorRate > 0.05
+              ? "high"
+              : "medium",
         baseline: baseline.errorRate,
         current: current.errorRate,
         delta,
         percentChange,
         detectedAt: Date.now(),
-        affectedTraces: current.errorTraces.map(t => t.traceId),
+        affectedTraces: current.errorTraces.map((t) => t.traceId),
         rootCause: `Error rate increased by ${percentChange.toFixed(1)}%`,
       });
     }
@@ -228,9 +255,9 @@ export class TraceManager {
       const percentChange = (delta / baseline.requestRate) * 100;
 
       regressions.push({
-        type: 'throughput',
+        type: "throughput",
         service: serviceName,
-        severity: Math.abs(percentChange) > 50 ? 'high' : 'medium',
+        severity: Math.abs(percentChange) > 50 ? "high" : "medium",
         baseline: baseline.requestRate,
         current: current.requestRate,
         delta,
@@ -247,16 +274,22 @@ export class TraceManager {
   /**
    * Get critical path (longest span chain) from a trace
    */
-  public getCriticalPath(trace: Trace): { spans: Span[]; totalDuration: number } {
-    const spanMap = new Map(trace.spans.map(s => [s.spanId, s]));
-    const rootSpans = trace.spans.filter(s => !s.parentSpanId);
+  public getCriticalPath(trace: Trace): {
+    spans: Span[];
+    totalDuration: number;
+  } {
+    const spanMap = new Map(trace.spans.map((s) => [s.spanId, s]));
+    const rootSpans = trace.spans.filter((s) => !s.parentSpanId);
 
     let longestPath: Span[] = [];
     let maxDuration = 0;
 
     for (const root of rootSpans) {
       const path = this.findLongestPath(root, spanMap);
-      const duration = path.reduce((sum: number, s: Span) => sum + s.duration, 0);
+      const duration = path.reduce(
+        (sum: number, s: Span) => sum + s.duration,
+        0,
+      );
 
       if (duration > maxDuration) {
         maxDuration = duration;
@@ -270,11 +303,10 @@ export class TraceManager {
     };
   }
 
-  private findLongestPath(
-    span: Span,
-    spanMap: Map<string, Span>
-  ): Span[] {
-    const children = Array.from(spanMap.values()).filter(s => s.parentSpanId === span.spanId);
+  private findLongestPath(span: Span, spanMap: Map<string, Span>): Span[] {
+    const children = Array.from(spanMap.values()).filter(
+      (s) => s.parentSpanId === span.spanId,
+    );
 
     if (children.length === 0) {
       return [span];
@@ -285,7 +317,10 @@ export class TraceManager {
 
     for (const child of children) {
       const childPath = this.findLongestPath(child, spanMap);
-      const duration = childPath.reduce((sum: number, s: Span) => sum + s.duration, 0);
+      const duration = childPath.reduce(
+        (sum: number, s: Span) => sum + s.duration,
+        0,
+      );
 
       if (duration > maxDuration) {
         maxDuration = duration;

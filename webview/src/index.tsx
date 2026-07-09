@@ -13,5 +13,5 @@ if (rootElement) {
 console.log("Rendering Vitals");
 function acquireVsCodeApi(): any {
   // @ts-ignore
-  return window.acquireVsCodeApi();
+  return globalThis.acquireVsCodeApi();
 }

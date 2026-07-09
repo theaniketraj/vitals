@@ -1,18 +1,23 @@
 /**
  * VITALS Pattern Detection Engine
- * 
+ *
  * Analyzes historical data to detect patterns, anomalies, and trends in
  * performance regressions and deployments.
  */
 
-import { HistoricalStorage, HistoricalRecord, DeploymentMetadata, IncidentRecord } from './historicalStorage';
+import {
+  HistoricalStorage,
+  HistoricalRecord,
+  DeploymentMetadata,
+  IncidentRecord,
+} from "./historicalStorage";
 
 /**
  * Detected pattern
  */
 export interface DetectedPattern {
   pattern_type: string;
-  confidence: number;  // 0-1
+  confidence: number; // 0-1
   description: string;
   evidence: any[];
   recommendations?: string[];
@@ -23,17 +28,17 @@ export interface DetectedPattern {
  * Time-based pattern (e.g., "regressions every Friday")
  */
 export interface TimePattern extends DetectedPattern {
-  pattern_type: 'time_based';
-  day_of_week?: number;  // 0-6 (Sunday-Saturday)
-  hour_of_day?: number;  // 0-23
-  frequency: string;  // daily, weekly, monthly
+  pattern_type: "time_based";
+  day_of_week?: number; // 0-6 (Sunday-Saturday)
+  hour_of_day?: number; // 0-23
+  frequency: string; // daily, weekly, monthly
 }
 
 /**
  * Service correlation pattern (e.g., "Service A affects Service B")
  */
 export interface CorrelationPattern extends DetectedPattern {
-  pattern_type: 'correlation';
+  pattern_type: "correlation";
   service_a: string;
   service_b: string;
   correlation_coefficient: number;
@@ -44,9 +49,9 @@ export interface CorrelationPattern extends DetectedPattern {
  * Trend pattern (e.g., "latency increasing over time")
  */
 export interface TrendPattern extends DetectedPattern {
-  pattern_type: 'trend';
+  pattern_type: "trend";
   metric: string;
-  direction: 'increasing' | 'decreasing' | 'stable';
+  direction: "increasing" | "decreasing" | "stable";
   slope: number;
   r_squared: number;
 }
@@ -55,11 +60,11 @@ export interface TrendPattern extends DetectedPattern {
  * Team performance pattern (e.g., "Team X has highest MTTR")
  */
 export interface TeamPattern extends DetectedPattern {
-  pattern_type: 'team_performance';
+  pattern_type: "team_performance";
   team: string;
-  metric_type: 'mttr' | 'failure_rate' | 'regression_count';
+  metric_type: "mttr" | "failure_rate" | "regression_count";
   value: number;
-  comparison: 'highest' | 'lowest' | 'average';
+  comparison: "highest" | "lowest" | "average";
 }
 
 /**
@@ -75,8 +80,8 @@ export interface PatternDetectionConfig {
  * Pattern detection engine
  */
 export class PatternDetectionEngine {
-  private storage: HistoricalStorage;
-  private config: PatternDetectionConfig;
+  private readonly storage: HistoricalStorage;
+  private readonly config: PatternDetectionConfig;
 
   constructor(storage: HistoricalStorage, config?: PatternDetectionConfig) {
     this.storage = storage;
@@ -84,7 +89,7 @@ export class PatternDetectionEngine {
       min_confidence: 0.7,
       lookback_days: 90,
       min_samples: 10,
-      ...config
+      ...config,
     };
   }
 
@@ -103,7 +108,7 @@ export class PatternDetectionEngine {
     patterns.push(...trendPatterns);
 
     // Filter by minimum confidence
-    return patterns.filter(p => p.confidence >= this.config.min_confidence!);
+    return patterns.filter((p) => p.confidence >= this.config.min_confidence!);
   }
 
   /**
@@ -111,11 +116,13 @@ export class PatternDetectionEngine {
    */
   async detectTimePatterns(metric: string): Promise<TimePattern[]> {
     const patterns: TimePattern[] = [];
-    const startDate = new Date(Date.now() - this.config.lookback_days! * 24 * 60 * 60 * 1000);
-    
-    const records = await this.storage.queryRegressions(metric, { 
+    const startDate = new Date(
+      Date.now() - this.config.lookback_days! * 24 * 60 * 60 * 1000,
+    );
+
+    const records = await this.storage.queryRegressions(metric, {
       start_date: startDate,
-      verdict: 'FAIL'
+      verdict: "FAIL",
     });
 
     if (records.length < this.config.min_samples!) {
@@ -127,8 +134,10 @@ export class PatternDetectionEngine {
     const totalByDay: number[] = new Array(7).fill(0);
 
     // Get all records for baseline
-    const allRecords = await this.storage.queryRegressions(metric, { start_date: startDate });
-    
+    const allRecords = await this.storage.queryRegressions(metric, {
+      start_date: startDate,
+    });
+
     for (const record of allRecords) {
       const date = new Date(record.timestamp);
       const day = date.getDay();
@@ -142,7 +151,15 @@ export class PatternDetectionEngine {
     }
 
     // Find days with disproportionate failures
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayNames = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
     for (let day = 0; day < 7; day++) {
       if (totalByDay[day] === 0) continue;
 
@@ -151,26 +168,31 @@ export class PatternDetectionEngine {
 
       // If this day has significantly higher failure rate
       if (failureRate > overallFailureRate * 1.5 && dayOfWeekCounts[day] >= 3) {
-        const confidence = Math.min(0.95, failureRate / (overallFailureRate * 2));
-        
+        const confidence = Math.min(
+          0.95,
+          failureRate / (overallFailureRate * 2),
+        );
+
         patterns.push({
-          pattern_type: 'time_based',
+          pattern_type: "time_based",
           confidence,
           description: `${metric} shows higher regression rate on ${dayNames[day]}s`,
-          evidence: records.filter(r => new Date(r.timestamp).getDay() === day).slice(0, 5),
+          evidence: records
+            .filter((r) => new Date(r.timestamp).getDay() === day)
+            .slice(0, 5),
           day_of_week: day,
-          frequency: 'weekly',
+          frequency: "weekly",
           recommendations: [
             `Consider avoiding deployments on ${dayNames[day]}s`,
             `Increase monitoring on ${dayNames[day]}s`,
-            `Review deployment process for ${dayNames[day]} patterns`
+            `Review deployment process for ${dayNames[day]} patterns`,
           ],
           metadata: {
             failure_rate_this_day: failureRate,
             overall_failure_rate: overallFailureRate,
             failures_on_day: dayOfWeekCounts[day],
-            total_on_day: totalByDay[day]
-          }
+            total_on_day: totalByDay[day],
+          },
         });
       }
     }
@@ -199,26 +221,31 @@ export class PatternDetectionEngine {
       const overallFailureRate = records.length / allRecords.length;
 
       if (failureRate > overallFailureRate * 1.5 && hourCounts[hour] >= 3) {
-        const confidence = Math.min(0.95, failureRate / (overallFailureRate * 2));
-        
+        const confidence = Math.min(
+          0.95,
+          failureRate / (overallFailureRate * 2),
+        );
+
         patterns.push({
-          pattern_type: 'time_based',
+          pattern_type: "time_based",
           confidence,
           description: `${metric} shows higher regression rate around ${hour}:00`,
-          evidence: records.filter(r => new Date(r.timestamp).getHours() === hour).slice(0, 5),
+          evidence: records
+            .filter((r) => new Date(r.timestamp).getHours() === hour)
+            .slice(0, 5),
           hour_of_day: hour,
-          frequency: 'daily',
+          frequency: "daily",
           recommendations: [
             `Consider avoiding deployments around ${hour}:00`,
-            `Increase monitoring during ${hour}:00-${(hour+1)%24}:00`,
-            `Review what typically happens at ${hour}:00`
+            `Increase monitoring during ${hour}:00-${(hour + 1) % 24}:00`,
+            `Review what typically happens at ${hour}:00`,
           ],
           metadata: {
             failure_rate_this_hour: failureRate,
             overall_failure_rate: overallFailureRate,
             failures_at_hour: hourCounts[hour],
-            total_at_hour: totalByHour[hour]
-          }
+            total_at_hour: totalByHour[hour],
+          },
         });
       }
     }
@@ -231,9 +258,15 @@ export class PatternDetectionEngine {
    */
   async detectTrendPatterns(metric: string): Promise<TrendPattern[]> {
     const patterns: TrendPattern[] = [];
-    const startDate = new Date(Date.now() - this.config.lookback_days! * 24 * 60 * 60 * 1000);
-    
-    const timeSeries = await this.storage.getTimeSeries(metric, 'change_percent', { start_date: startDate });
+    const startDate = new Date(
+      Date.now() - this.config.lookback_days! * 24 * 60 * 60 * 1000,
+    );
+
+    const timeSeries = await this.storage.getTimeSeries(
+      metric,
+      "change_percent",
+      { start_date: startDate },
+    );
 
     if (timeSeries.length < this.config.min_samples!) {
       return patterns;
@@ -242,25 +275,25 @@ export class PatternDetectionEngine {
     // Simple linear regression
     const regression = this.linearRegression(
       timeSeries.map((p, i) => i),
-      timeSeries.map(p => p.value)
+      timeSeries.map((p) => p.value),
     );
 
     // Determine trend direction
-    let direction: 'increasing' | 'decreasing' | 'stable';
+    let direction: "increasing" | "decreasing" | "stable";
     if (Math.abs(regression.slope) < 0.01) {
-      direction = 'stable';
+      direction = "stable";
     } else if (regression.slope > 0) {
-      direction = 'increasing';
+      direction = "increasing";
     } else {
-      direction = 'decreasing';
+      direction = "decreasing";
     }
 
     // Only report if there's a significant trend
     if (regression.r_squared > 0.5 && Math.abs(regression.slope) >= 0.01) {
       const confidence = Math.min(0.95, regression.r_squared);
-      
+
       patterns.push({
-        pattern_type: 'trend',
+        pattern_type: "trend",
         confidence,
         description: `${metric} change percentage is ${direction} over time`,
         evidence: timeSeries.slice(-10),
@@ -268,17 +301,18 @@ export class PatternDetectionEngine {
         direction,
         slope: regression.slope,
         r_squared: regression.r_squared,
-        recommendations: direction === 'increasing' 
-          ? [
-              `${metric} is degrading over time - investigate root cause`,
-              `Consider baseline updates or infrastructure changes`,
-              `Review recent code changes affecting ${metric}`
-            ]
-          : [
-              `${metric} is improving over time`,
-              `Continue monitoring to ensure improvements hold`,
-              `Document what led to improvements`
-            ]
+        recommendations:
+          direction === "increasing"
+            ? [
+                `${metric} is degrading over time - investigate root cause`,
+                `Consider baseline updates or infrastructure changes`,
+                `Review recent code changes affecting ${metric}`,
+              ]
+            : [
+                `${metric} is improving over time`,
+                `Continue monitoring to ensure improvements hold`,
+                `Document what led to improvements`,
+              ],
       });
     }
 
@@ -290,13 +324,13 @@ export class PatternDetectionEngine {
    */
   async detectServiceCorrelations(
     serviceA: string,
-    serviceB: string
+    serviceB: string,
   ): Promise<CorrelationPattern[]> {
     const patterns: CorrelationPattern[] = [];
-    
+
     // This would require deployment timing data for both services
     // For now, return placeholder
-    
+
     return patterns;
   }
 
@@ -305,10 +339,10 @@ export class PatternDetectionEngine {
    */
   async detectTeamPatterns(teams: string[]): Promise<TeamPattern[]> {
     const patterns: TeamPattern[] = [];
-    
+
     // This would require team metadata in deployments
     // For now, return placeholder
-    
+
     return patterns;
   }
 
@@ -317,60 +351,69 @@ export class PatternDetectionEngine {
    */
   async generatePatternReport(metrics: string[]): Promise<string> {
     const lines: string[] = [];
-    lines.push('═══════════════════════════════════════════════════════');
-    lines.push('VITALS Pattern Detection Report');
-    lines.push('═══════════════════════════════════════════════════════');
-    lines.push('');
+    lines.push(
+      "═══════════════════════════════════════════════════════",
+      "VITALS Pattern Detection Report",
+      "═══════════════════════════════════════════════════════",
+      "",
+    );
 
     let totalPatterns = 0;
 
     for (const metric of metrics) {
       const patterns = await this.detectPatterns(metric);
-      
+
       if (patterns.length === 0) {
         continue;
       }
 
-      lines.push(`Metric: ${metric}`);
-      lines.push('─────────────────────────────────────────────────────');
-      
+      lines.push(
+        `Metric: ${metric}`,
+        "─────────────────────────────────────────────────────",
+      );
+
       for (const pattern of patterns) {
         totalPatterns++;
-        lines.push('');
-        lines.push(`Pattern: ${pattern.description}`);
-        lines.push(`Confidence: ${(pattern.confidence * 100).toFixed(1)}%`);
-        
+        lines.push(
+          "",
+          `Pattern: ${pattern.description}`,
+          `Confidence: ${(pattern.confidence * 100).toFixed(1)}%`,
+        );
+
         if (pattern.recommendations && pattern.recommendations.length > 0) {
-          lines.push('Recommendations:');
+          lines.push("Recommendations:");
           for (const rec of pattern.recommendations) {
             lines.push(`  • ${rec}`);
           }
         }
       }
-      
-      lines.push('');
+
+      lines.push("");
     }
 
     if (totalPatterns === 0) {
-      lines.push('No significant patterns detected.');
-      lines.push('This could mean:');
-      lines.push('  • Not enough historical data');
-      lines.push('  • Performance is stable');
-      lines.push('  • Increase lookback_days for more analysis');
+      lines.push(
+        "No significant patterns detected.",
+        "This could mean:",
+        "  • Not enough historical data",
+        "  • Performance is stable",
+        "  • Increase lookback_days for more analysis",
+      );
     } else {
-      lines.push('');
-      lines.push(`Total patterns detected: ${totalPatterns}`);
+      lines.push("", `Total patterns detected: ${totalPatterns}`);
     }
 
-    lines.push('');
-    lines.push('═══════════════════════════════════════════════════════');
+    lines.push("", "═══════════════════════════════════════════════════════");
 
-    return lines.join('\n');
+    return lines.join("\n");
   }
 
   // Helper methods
 
-  private linearRegression(x: number[], y: number[]): { slope: number; intercept: number; r_squared: number } {
+  private linearRegression(
+    x: number[],
+    y: number[],
+  ): { slope: number; intercept: number; r_squared: number } {
     const n = x.length;
     if (n === 0) {
       return { slope: 0, intercept: 0, r_squared: 0 };
@@ -393,7 +436,7 @@ export class PatternDetectionEngine {
       return sum + Math.pow(yi - predicted, 2);
     }, 0);
 
-    const r_squared = ssTotal === 0 ? 0 : 1 - (ssResidual / ssTotal);
+    const r_squared = ssTotal === 0 ? 0 : 1 - ssResidual / ssTotal;
 
     return { slope, intercept, r_squared };
   }
@@ -404,17 +447,19 @@ export class PatternDetectionEngine {
  */
 export function formatPattern(pattern: DetectedPattern): string {
   const lines: string[] = [];
-  
-  lines.push(`Pattern Type: ${pattern.pattern_type}`);
-  lines.push(`Confidence: ${(pattern.confidence * 100).toFixed(1)}%`);
-  lines.push(`Description: ${pattern.description}`);
-  
+
+  lines.push(
+    `Pattern Type: ${pattern.pattern_type}`,
+    `Confidence: ${(pattern.confidence * 100).toFixed(1)}%`,
+    `Description: ${pattern.description}`,
+  );
+
   if (pattern.recommendations && pattern.recommendations.length > 0) {
-    lines.push('Recommendations:');
+    lines.push("Recommendations:");
     for (const rec of pattern.recommendations) {
       lines.push(`  • ${rec}`);
     }
   }
 
-  return lines.join('\n');
+  return lines.join("\n");
 }

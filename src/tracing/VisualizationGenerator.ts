@@ -1,4 +1,4 @@
-import { FlameGraphNode, ServiceMap } from './ITraceProvider';
+import { FlameGraphNode, ServiceMap } from "./ITraceProvider";
 
 /**
  * Generates D3.js visualization data for service maps and flame graphs
@@ -14,7 +14,9 @@ export class VisualizationGenerator {
       percentage: flameGraph.percentage,
       file: flameGraph.file,
       line: flameGraph.line,
-      children: flameGraph.children.map(child => this.generateFlameGraphD3Data(child)),
+      children: flameGraph.children.map((child) =>
+        this.generateFlameGraphD3Data(child),
+      ),
     };
   }
 
@@ -25,7 +27,7 @@ export class VisualizationGenerator {
     nodes: any[];
     links: any[];
   } {
-    const nodes = serviceMap.services.map(service => ({
+    const nodes = serviceMap.services.map((service) => ({
       id: service.name,
       name: service.name,
       requestCount: service.requestCount,
@@ -37,7 +39,7 @@ export class VisualizationGenerator {
       errorRate: service.errorCount / service.requestCount,
     }));
 
-    const links = serviceMap.dependencies.map(dep => ({
+    const links = serviceMap.dependencies.map((dep) => ({
       source: dep.caller,
       target: dep.callee,
       requestCount: dep.requestCount,
@@ -52,7 +54,10 @@ export class VisualizationGenerator {
   /**
    * Generate HTML for flame graph visualization
    */
-  public generateFlameGraphHTML(flameGraph: FlameGraphNode, title: string = 'Flame Graph'): string {
+  public generateFlameGraphHTML(
+    flameGraph: FlameGraphNode,
+    title: string = "Flame Graph",
+  ): string {
     const d3Data = this.generateFlameGraphD3Data(flameGraph);
 
     return `
@@ -283,7 +288,10 @@ export class VisualizationGenerator {
   /**
    * Generate HTML for service dependency map
    */
-  public generateServiceMapHTML(serviceMap: ServiceMap, title: string = 'Service Dependency Map'): string {
+  public generateServiceMapHTML(
+    serviceMap: ServiceMap,
+    title: string = "Service Dependency Map",
+  ): string {
     const d3Data = this.generateServiceMapD3Data(serviceMap);
 
     return `

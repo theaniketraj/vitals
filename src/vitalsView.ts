@@ -9,13 +9,13 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
 
   constructor(
     private readonly _extensionUri: vscode.Uri,
-    private readonly _context: vscode.ExtensionContext
-  ) { }
+    private readonly _context: vscode.ExtensionContext,
+  ) {}
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
     context: vscode.WebviewViewResolveContext,
-    _token: vscode.CancellationToken
+    _token: vscode.CancellationToken,
   ) {
     this._view = webviewView;
 
@@ -29,7 +29,7 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.html = getWebviewContent(
       webviewView.webview,
-      this._extensionUri
+      this._extensionUri,
     );
 
     // Listen for configuration changes
@@ -56,11 +56,16 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
           break;
 
         case "openGitHubRepo":
-          vscode.env.openExternal(vscode.Uri.parse("https://github.com/theaniketraj/vitals"));
+          vscode.env.openExternal(
+            vscode.Uri.parse("https://github.com/theaniketraj/vitals"),
+          );
           break;
 
         case "openSettings":
-          vscode.commands.executeCommand("workbench.action.openSettings", "@ext:theaniketraj.vitals");
+          vscode.commands.executeCommand(
+            "workbench.action.openSettings",
+            "@ext:theaniketraj.vitals",
+          );
           break;
 
         case "fetchMetrics":
@@ -70,7 +75,8 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
           try {
             const config = vscode.workspace.getConfiguration("vitals");
             const prometheusUrl =
-              config.get<string>("prometheusUrl") || "https://prometheus.demo.do.prometheus.io:9090";
+              config.get<string>("prometheusUrl") ||
+              "https://prometheus.demo.do.prometheus.io:9090";
             const api = new PrometheusApi(prometheusUrl);
 
             // Calculate range for the last 30 minutes
@@ -85,7 +91,7 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
             });
           } catch (error: any) {
             getUsageStats(this._context).trackError(
-              "prometheus_metrics_fetch_failed"
+              "prometheus_metrics_fetch_failed",
             );
 
             console.log(`Prometheus fetch error: ${error.message}`);
@@ -103,7 +109,8 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
           try {
             const config = vscode.workspace.getConfiguration("vitals");
             const prometheusUrl =
-              config.get<string>("prometheusUrl") || "https://prometheus.demo.do.prometheus.io:9090";
+              config.get<string>("prometheusUrl") ||
+              "https://prometheus.demo.do.prometheus.io:9090";
             const api = new PrometheusApi(prometheusUrl);
 
             const data = await api.getAlerts();
@@ -113,7 +120,7 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
             });
           } catch (error: any) {
             getUsageStats(this._context).trackError(
-              "prometheus_alerts_fetch_failed"
+              "prometheus_alerts_fetch_failed",
             );
             console.log(`Failed to fetch alerts: ${error.message}`);
             webviewView.webview.postMessage({
@@ -127,19 +134,28 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
           try {
             const config = vscode.workspace.getConfiguration("vitals");
             const prometheusUrl =
-              config.get<string>("prometheusUrl") || "https://prometheus.demo.do.prometheus.io:9090";
+              config.get<string>("prometheusUrl") ||
+              "https://prometheus.demo.do.prometheus.io:9090";
             const api = new PrometheusApi(prometheusUrl);
 
             // Fetch KPIs in parallel
             // We use sum() to aggregate across all instances/jobs for a global view
             const [reqRate, errRate, latency] = await Promise.all([
-              api.query('sum(rate(prometheus_http_requests_total[5m]))'),
-              api.query('sum(rate(prometheus_http_requests_total{code=~"5.."}[5m])) / sum(rate(prometheus_http_requests_total[5m]))'),
-              api.query('sum(rate(prometheus_http_request_duration_seconds_sum[5m])) / sum(rate(prometheus_http_request_duration_seconds_count[5m]))')
+              api.query("sum(rate(prometheus_http_requests_total[5m]))"),
+              api.query(
+                'sum(rate(prometheus_http_requests_total{code=~"5.."}[5m])) / sum(rate(prometheus_http_requests_total[5m]))',
+              ),
+              api.query(
+                "sum(rate(prometheus_http_request_duration_seconds_sum[5m])) / sum(rate(prometheus_http_request_duration_seconds_count[5m]))",
+              ),
             ]);
 
             // Helper to extract scalar value safely
-            const getScalarValue = (result: any, decimals = 2, multiplier = 1): string => {
+            const getScalarValue = (
+              result: any,
+              decimals = 2,
+              multiplier = 1,
+            ): string => {
               try {
                 // result.data.result should be an array. If we used sum(), it usually has 1 element if data exists.
                 const valStr = result?.data?.result?.[0]?.value?.[1];
@@ -157,7 +173,7 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
             // Send success status
             webviewView.webview.postMessage({
               command: "updateStatus",
-              status: "connected"
+              status: "connected",
             });
 
             webviewView.webview.postMessage({
@@ -165,7 +181,7 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
               data: {
                 requestRate: `${getScalarValue(reqRate, 2)}/s`,
                 errorRate: `${getScalarValue(errRate, 2, 100)}%`,
-                avgLatency: `${getScalarValue(latency, 0, 1000)}ms`
+                avgLatency: `${getScalarValue(latency, 0, 1000)}ms`,
               },
             });
           } catch (error: any) {
@@ -175,7 +191,7 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
             webviewView.webview.postMessage({
               command: "updateStatus",
               status: "error",
-              error: error.message
+              error: error.message,
             });
           }
           break;
@@ -186,8 +202,10 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
 
           try {
             const config = vscode.workspace.getConfiguration("vitals");
-            const lokiUrl = config.get<string>("lokiUrl") || "http://localhost:3100";
-            const logQuery = config.get<string>("logQuery") || '{job="varlogs"}';
+            const lokiUrl =
+              config.get<string>("lokiUrl") || "http://localhost:3100";
+            const logQuery =
+              config.get<string>("logQuery") || '{job="varlogs"}';
 
             const api = new LokiApi(lokiUrl);
 
@@ -202,8 +220,10 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
               // Formatting timestamp slightly nicer or just passing it raw
               // Loki returns ns string, let's keep it simple for display
               // If timestamp is strictly numeric string, we can format it
-              const ts = parseInt(log.timestamp.substr(0, 13)); // ms approximation
-              const timeStr = !isNaN(ts) ? new Date(ts).toISOString() : log.timestamp;
+              const ts = Number.parseInt(log.timestamp.substr(0, 13)); // ms approximation
+              const timeStr = Number.isNaN(ts)
+                ? log.timestamp
+                : new Date(ts).toISOString();
 
               // Construct a readable line
               // Check if line is JSON
@@ -225,25 +245,26 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
               command: "updateLogs",
               data: formattedLogs,
             });
-
           } catch (error: any) {
             console.error(`Failed to fetch logs: ${error.message}`);
             webviewView.webview.postMessage({
               command: "updateLogs",
               // Send error as a log line for now, or handle separately
-              data: [`[ERROR] Failed to fetch logs from Loki: ${error.message}`]
+              data: [
+                `[ERROR] Failed to fetch logs from Loki: ${error.message}`,
+              ],
             });
           }
           break;
         }
-
 
         case "fetchCustomMetrics": {
           getUsageStats(this._context).trackFeature("custom_metrics");
           try {
             const config = vscode.workspace.getConfiguration("vitals");
             const prometheusUrl =
-              config.get<string>("prometheusUrl") || "https://prometheus.demo.do.prometheus.io:9090";
+              config.get<string>("prometheusUrl") ||
+              "https://prometheus.demo.do.prometheus.io:9090";
             const api = new PrometheusApi(prometheusUrl);
             const customQueries = config.get<any[]>("customQueries") || [];
 
@@ -254,25 +275,30 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
             const results = await Promise.all(
               customQueries.map(async (cq) => {
                 try {
-                  const result = await api.queryRange(cq.query, start, end, step);
+                  const result = await api.queryRange(
+                    cq.query,
+                    start,
+                    end,
+                    step,
+                  );
                   return {
                     name: cq.name,
                     data: result,
-                    error: null
+                    error: null,
                   };
                 } catch (e: any) {
                   return {
                     name: cq.name,
                     data: null,
-                    error: e.message
+                    error: e.message,
                   };
                 }
-              })
+              }),
             );
 
             webviewView.webview.postMessage({
               command: "updateCustomMetrics",
-              data: results
+              data: results,
             });
           } catch (error: any) {
             console.error(`Failed to fetch custom metrics: ${error.message}`);
@@ -283,23 +309,26 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
         case "fetchAlertmanagerData": {
           try {
             const config = vscode.workspace.getConfiguration("vitals");
-            const alertmanagerUrl = config.get<string>("alertmanagerUrl") || "http://localhost:9093";
+            const alertmanagerUrl =
+              config.get<string>("alertmanagerUrl") || "http://localhost:9093";
             const api = new AlertmanagerApi(alertmanagerUrl);
 
             const [alerts, silences] = await Promise.all([
               api.getAlerts(),
-              api.getSilences()
+              api.getSilences(),
             ]);
 
             webviewView.webview.postMessage({
               command: "updateAlertmanagerData",
-              data: { alerts, silences }
+              data: { alerts, silences },
             });
           } catch (error: any) {
-            console.error(`Failed to fetch Alertmanager data: ${error.message}`);
+            console.error(
+              `Failed to fetch Alertmanager data: ${error.message}`,
+            );
             webviewView.webview.postMessage({
               command: "alertmanagerError",
-              message: error.message
+              message: error.message,
             });
           }
           break;
@@ -308,20 +337,21 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
         case "createSilence": {
           try {
             const config = vscode.workspace.getConfiguration("vitals");
-            const alertmanagerUrl = config.get<string>("alertmanagerUrl") || "http://localhost:9093";
+            const alertmanagerUrl =
+              config.get<string>("alertmanagerUrl") || "http://localhost:9093";
             const api = new AlertmanagerApi(alertmanagerUrl);
 
             const result = await api.createSilence(message.data);
 
             webviewView.webview.postMessage({
               command: "silenceCreated",
-              data: result
+              data: result,
             });
           } catch (error: any) {
             console.error(`Failed to create silence: ${error.message}`);
             webviewView.webview.postMessage({
               command: "silenceError",
-              message: error.message
+              message: error.message,
             });
           }
           break;
@@ -335,16 +365,16 @@ export class VitalsViewProvider implements vscode.WebviewViewProvider {
       this._view.show?.(true);
     } else {
       // Fallback to command if view is not yet resolved
-      vscode.commands.executeCommand('vitals.dashboardView.focus');
+      vscode.commands.executeCommand("vitals.dashboardView.focus");
     }
   }
 
   private sendPrometheusConfig(webview: vscode.Webview) {
     const config = vscode.workspace.getConfiguration("vitals");
     const prometheusUrl =
-      config.get<string>("prometheusUrl") || "https://prometheus.demo.do.prometheus.io:9090";
-    const defaultUrl = config.inspect("prometheusUrl")
-      ?.defaultValue as string;
+      config.get<string>("prometheusUrl") ||
+      "https://prometheus.demo.do.prometheus.io:9090";
+    const defaultUrl = config.inspect("prometheusUrl")?.defaultValue as string;
     const isDemoMode = prometheusUrl === defaultUrl;
 
     webview.postMessage({

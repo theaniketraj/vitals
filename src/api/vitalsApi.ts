@@ -15,7 +15,7 @@ export interface TelemetryEvent {
 }
 
 export class VitalsApiClient {
-  private client: AxiosInstance;
+  private readonly client: AxiosInstance;
   private static readonly API_BASE_URL =
     "https://g0l5lmjg3f.execute-api.us-east-1.amazonaws.com/dev";
 
@@ -35,7 +35,7 @@ export class VitalsApiClient {
   async createUser(
     githubId: string,
     username: string,
-    email?: string
+    email?: string,
   ): Promise<VitalsUser> {
     try {
       const response = await this.client.post("/users", {
@@ -72,7 +72,7 @@ export class VitalsApiClient {
   async logEvent(
     githubId: string,
     eventName: string,
-    properties?: Record<string, any>
+    properties?: Record<string, any>,
   ): Promise<void> {
     try {
       await this.client.post("/events", {
@@ -96,7 +96,7 @@ export class VitalsApiClient {
   async getUserEvents(githubId: string, limit: number = 50): Promise<any[]> {
     try {
       const response = await this.client.get(
-        `/events/${githubId}?limit=${limit}`
+        `/events/${githubId}?limit=${limit}`,
       );
       return response.data.events || [];
     } catch (error) {

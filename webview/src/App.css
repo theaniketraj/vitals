@@ -62,17 +62,21 @@ body {
   /* Or a slightly lighter/darker shade */
   border: 1px solid var(---border);
   border-radius: var(--radius-md);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
     0 4px 6px -2px rgba(0, 0, 0, 0.05);
   border-color: var(---primary);
 }
@@ -295,12 +299,13 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .alert-name {
   font-weight: 600;
   font-size: 13px;
+  color: var(--vscode-editor-foreground);
 }
 
 .alert-badge {
@@ -529,7 +534,8 @@ body {
   height: 100%;
 }
 
-.alert-item, .silence-item {
+.alert-item,
+.silence-item {
   background: var(--vscode-editor-background);
   border: 1px solid var(--vscode-widget-border);
   padding: 12px;
@@ -544,18 +550,6 @@ body {
 .alert-item.suppressed {
   border-left: 4px solid var(--vscode-disabledForeground);
   opacity: 0.7;
-}
-
-.alert-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.alert-name {
-  font-weight: 600;
-  color: var(--vscode-editor-foreground);
 }
 
 .alert-severity.critical {
@@ -592,7 +586,7 @@ body {
 }
 
 .silence-btn:hover {
-    background: var(--vscode-button-secondaryHoverBackground);
+  background: var(--vscode-button-secondaryHoverBackground);
 }
 
 /* Modal Styles */
@@ -620,41 +614,42 @@ body {
 }
 
 .form-group {
-    margin-bottom: 16px;
+  margin-bottom: 16px;
 }
 
 .form-group label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 0.9em;
-    font-weight: 500;
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.9em;
+  font-weight: 500;
 }
 
-.form-group input, .form-group textarea {
-    width: 100%;
-    background: var(--vscode-input-background);
-    color: var(--vscode-input-foreground);
-    border: 1px solid var(--vscode-input-border);
-    padding: 8px;
-    border-radius: 3px;
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  padding: 8px;
+  border-radius: 3px;
 }
 
 .modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
 }
 
 .primary-btn {
-    background: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-    border: none;
-    padding: 8px 16px;
-    border-radius: 3px;
-    cursor: pointer;
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 3px;
+  cursor: pointer;
 }
 
 .primary-btn:hover {
-    background: var(--vscode-button-hoverBackground);
+  background: var(--vscode-button-hoverBackground);
 }

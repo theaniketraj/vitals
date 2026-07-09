@@ -62,13 +62,13 @@ export function registerRegressCommand(program: Command) {
         const defaults = getDefaultOptions(policy, options.service);
         const prometheusUrl = options.prometheusUrl || defaults.prometheusUrl;
         const threshold = options.threshold 
-          ? parseFloat(options.threshold) 
+          ? Number.parseFloat(options.threshold) 
           : (metricPolicy?.regression?.max_increase_percent || 10);
         const pValue = options.pvalue 
-          ? parseFloat(options.pvalue) 
+          ? Number.parseFloat(options.pvalue) 
           : (metricPolicy?.regression?.p_value || 0.05);
         const effectSize = options.effectSize 
-          ? parseFloat(options.effectSize) 
+          ? Number.parseFloat(options.effectSize) 
           : (metricPolicy?.regression?.effect_size || 0.5);
 
         const prometheusConfig = {
@@ -101,7 +101,7 @@ export function registerRegressCommand(program: Command) {
             threshold,
             pValue,
             effectSizeThreshold: effectSize,
-            minSamples: parseInt(options.minSamples),
+            minSamples: Number.parseInt(options.minSamples),
             testType: options.test
           },
           baselineData,

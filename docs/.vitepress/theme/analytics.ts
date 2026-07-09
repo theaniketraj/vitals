@@ -4,151 +4,154 @@
  */
 
 export interface AnalyticsEvent {
-  event: string
-  timestamp: string
-  page: string
-  properties?: Record<string, any>
+  event: string;
+  timestamp: string;
+  page: string;
+  properties?: Record<string, any>;
 }
 
 export class VitalsAnalytics {
-  private static instance: VitalsAnalytics
-  private hasConsent: boolean = false
-  private sessionId: string
-  private sessionStart: number
-  private pageViewStart: number
+  private static instance: VitalsAnalytics;
+  private hasConsent: boolean = false;
+  private readonly sessionId: string;
+  private readonly sessionStart: number;
+  private pageViewStart: number;
 
   private constructor() {
-    this.sessionId = this.generateSessionId()
-    this.sessionStart = Date.now()
-    this.pageViewStart = Date.now()
-    
+    this.sessionId = this.generateSessionId();
+    this.sessionStart = Date.now();
+    this.pageViewStart = Date.now();
+
     // Only run in browser environment
-    if (typeof window !== 'undefined') {
-      this.checkConsent()
-      this.setupListeners()
+    if (globalThis.window !== undefined) {
+      this.checkConsent();
+      this.setupListeners();
     }
   }
 
   static getInstance(): VitalsAnalytics {
     if (!VitalsAnalytics.instance) {
-      VitalsAnalytics.instance = new VitalsAnalytics()
+      VitalsAnalytics.instance = new VitalsAnalytics();
     }
-    return VitalsAnalytics.instance
+    return VitalsAnalytics.instance;
   }
 
   private generateSessionId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
   private checkConsent(): void {
-    if (typeof localStorage === 'undefined') return
-    
-    const consent = localStorage.getItem('vitals-cookie-consent')
-    this.hasConsent = consent === 'true'
+    if (typeof localStorage === "undefined") return;
+
+    const consent = localStorage.getItem("vitals-cookie-consent");
+    this.hasConsent = consent === "true";
   }
 
   private setupListeners(): void {
-    if (typeof document === 'undefined' || typeof window === 'undefined') return
-    
+    if (typeof document === "undefined" || globalThis.window === undefined)
+      return;
+
     // Listen for visibility changes
-    document.addEventListener('visibilitychange', () => {
+    document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
-        this.trackTimeOnPage()
+        this.trackTimeOnPage();
       } else {
-        this.pageViewStart = Date.now()
+        this.pageViewStart = Date.now();
       }
-    })
+    });
 
     // Track before unload
-    window.addEventListener('beforeunload', () => {
-      this.trackTimeOnPage()
-      this.trackSessionEnd()
-    })
+    window.addEventListener("beforeunload", () => {
+      this.trackTimeOnPage();
+      this.trackSessionEnd();
+    });
 
     // Track scroll depth
-    this.trackScrollDepth()
+    this.trackScrollDepth();
 
     // Track clicks on documentation navigation
-    this.trackNavigation()
+    this.trackNavigation();
   }
 
   private trackTimeOnPage(): void {
-    if (!this.hasConsent) return
+    if (!this.hasConsent) return;
 
-    const timeOnPage = Math.round((Date.now() - this.pageViewStart) / 1000)
-    
-    if (timeOnPage > 3) { // Only track if more than 3 seconds
-      this.track('time_on_page', {
+    const timeOnPage = Math.round((Date.now() - this.pageViewStart) / 1000);
+
+    if (timeOnPage > 3) {
+      // Only track if more than 3 seconds
+      this.track("time_on_page", {
         duration: timeOnPage,
-        path: window.location.pathname
-      })
+        path: globalThis.location.pathname,
+      });
     }
   }
 
   private trackSessionEnd(): void {
-    if (!this.hasConsent) return
+    if (!this.hasConsent) return;
 
-    const sessionDuration = Math.round((Date.now() - this.sessionStart) / 1000)
-    
-    this.track('session_end', {
+    const sessionDuration = Math.round((Date.now() - this.sessionStart) / 1000);
+
+    this.track("session_end", {
       sessionId: this.sessionId,
-      duration: sessionDuration
-    })
+      duration: sessionDuration,
+    });
   }
 
   private trackScrollDepth(): void {
-    let maxScrollDepth = 0
-    let scrollTimeout: number
+    let maxScrollDepth = 0;
+    let scrollTimeout: number;
 
     const handleScroll = () => {
-      clearTimeout(scrollTimeout)
-      
+      clearTimeout(scrollTimeout);
+
       scrollTimeout = window.setTimeout(() => {
-        const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
-        const scrollPercent = Math.round((window.scrollY / scrollHeight) * 100)
-        
+        const scrollHeight =
+          document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercent = Math.round((window.scrollY / scrollHeight) * 100);
+
         if (scrollPercent > maxScrollDepth) {
-          maxScrollDepth = scrollPercent
-          
+          maxScrollDepth = scrollPercent;
+
           // Track milestone depths
           if ([25, 50, 75, 100].includes(maxScrollDepth)) {
-            this.track('scroll_depth', {
+            this.track("scroll_depth", {
               depth: maxScrollDepth,
-              path: window.location.pathname
-            })
+              path: globalThis.location.pathname,
+            });
           }
         }
-      }, 100)
-    }
+      }, 100);
+    };
 
-    window.addEventListener('scroll', handleScroll)
+    window.addEventListener("scroll", handleScroll);
   }
 
   private trackNavigation(): void {
     // Track sidebar navigation clicks
-    document.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement
-      const link = target.closest('a')
-      
-      if (!link || !link.href) return
+    document.addEventListener("click", (e) => {
+      const target = e.target as HTMLElement;
+      const link = target.closest("a");
 
-      const url = new URL(link.href)
-      
+      if (!link?.href) return;
+
+      const url = new URL(link.href);
+
       // Internal navigation
-      if (url.origin === window.location.origin) {
-        this.track('internal_navigation', {
-          from: window.location.pathname,
+      if (url.origin === globalThis.location.origin) {
+        this.track("internal_navigation", {
+          from: globalThis.location.pathname,
           to: url.pathname,
-          text: link.textContent?.trim() || ''
-        })
+          text: link.textContent?.trim() || "",
+        });
       } else {
         // External link
-        this.track('external_link', {
+        this.track("external_link", {
           url: link.href,
-          text: link.textContent?.trim() || ''
-        })
+          text: link.textContent?.trim() || "",
+        });
       }
-    })
+    });
   }
 
   /**
@@ -156,37 +159,37 @@ export class VitalsAnalytics {
    */
   track(eventName: string, properties: Record<string, any> = {}): void {
     if (!this.hasConsent) {
-      console.log('Analytics disabled - no consent')
-      return
+      console.log("Analytics disabled - no consent");
+      return;
     }
 
     const event: AnalyticsEvent = {
       event: eventName,
       timestamp: new Date().toISOString(),
-      page: window.location.pathname,
+      page: globalThis.location.pathname,
       properties: {
         ...properties,
         sessionId: this.sessionId,
         referrer: document.referrer,
         userAgent: navigator.userAgent,
         viewport: `${window.innerWidth}x${window.innerHeight}`,
-        language: navigator.language
-      }
-    }
+        language: navigator.language,
+      },
+    };
 
     // Send to service worker
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({
-        type: 'TRACK_EVENT',
+        type: "TRACK_EVENT",
         eventName: event.event,
         properties: event.properties,
-        hasConsent: true
-      })
+        hasConsent: true,
+      });
     }
 
     // Log to console in development
     if (import.meta.env.DEV) {
-      console.log('📊 Analytics:', event)
+      console.log("📊 Analytics:", event);
     }
 
     // In production, you would send to your backend
@@ -197,58 +200,64 @@ export class VitalsAnalytics {
    * Track page view
    */
   trackPageView(): void {
-    this.pageViewStart = Date.now()
-    
-    this.track('page_view', {
+    this.pageViewStart = Date.now();
+
+    this.track("page_view", {
       title: document.title,
-      path: window.location.pathname,
-      hash: window.location.hash,
-      search: window.location.search
-    })
+      path: globalThis.location.pathname,
+      hash: globalThis.location.hash,
+      search: globalThis.location.search,
+    });
   }
 
   /**
    * Track search queries (if using VitePress search)
    */
   trackSearch(query: string, resultsCount: number): void {
-    this.track('search', {
+    this.track("search", {
       query,
-      resultsCount
-    })
+      resultsCount,
+    });
   }
 
   /**
    * Track code copy events
    */
   trackCodeCopy(language: string): void {
-    this.track('code_copy', {
+    this.track("code_copy", {
       language,
-      path: window.location.pathname
-    })
+      path: globalThis.location.pathname,
+    });
   }
 
   /**
    * Track theme changes
    */
-  trackThemeChange(theme: 'light' | 'dark'): void {
-    this.track('theme_change', {
+  trackThemeChange(theme: "light" | "dark"): void {
+    this.track("theme_change", {
       theme,
-      timestamp: new Date().toISOString()
-    })
+      timestamp: new Date().toISOString(),
+    });
   }
 
   /**
    * Update consent status
    */
   updateConsent(hasConsent: boolean): void {
-    this.hasConsent = hasConsent
-    localStorage.setItem('vitals-cookie-consent', hasConsent ? 'true' : 'false')
-    localStorage.setItem('vitals-cookie-consent-timestamp', Date.now().toString())
+    this.hasConsent = hasConsent;
+    localStorage.setItem(
+      "vitals-cookie-consent",
+      hasConsent ? "true" : "false",
+    );
+    localStorage.setItem(
+      "vitals-cookie-consent-timestamp",
+      Date.now().toString(),
+    );
 
     if (hasConsent) {
-      this.track('consent_granted', {
-        timestamp: new Date().toISOString()
-      })
+      this.track("consent_granted", {
+        timestamp: new Date().toISOString(),
+      });
     }
   }
 
@@ -263,18 +272,21 @@ export class VitalsAnalytics {
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify(event)
       // })
-      
-      console.log('Analytics event sent:', event)
+
+      console.log("Analytics event sent:", event);
     } catch (error) {
-      console.error('Failed to send analytics:', error)
+      console.error("Failed to send analytics:", error);
     }
   }
 }
 
 // Export singleton instance
-export const analytics = typeof window !== 'undefined' ? VitalsAnalytics.getInstance() : null as any
+export const analytics =
+  globalThis.window === undefined
+    ? (null as any)
+    : VitalsAnalytics.getInstance();
 
 // Make available globally for easy access
-if (typeof window !== 'undefined') {
-  (window as any).vitalsAnalytics = analytics
+if (globalThis.window !== undefined) {
+  (globalThis as any).vitalsAnalytics = analytics;
 }

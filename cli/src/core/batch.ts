@@ -1,6 +1,6 @@
 /**
  * Batch Processing Module
- * 
+ *
  * Implements efficient batch processing for multiple metrics:
  * - Parallel query execution
  * - Progress reporting
@@ -8,9 +8,17 @@
  * - Result aggregation
  */
 
-import { RegressionOptions, RegressionResult, runRegression } from '../core/regression';
-import { fetchMetric, fetchRangeMetrics, PrometheusConfig } from '../services/prometheus';
-import { PreprocessingOptions, preprocessData } from '../core/preprocessing';
+import {
+  RegressionOptions,
+  RegressionResult,
+  runRegression,
+} from "../core/regression";
+import {
+  fetchMetric,
+  fetchRangeMetrics,
+  PrometheusConfig,
+} from "../services/prometheus";
+import { PreprocessingOptions, preprocessData } from "../core/preprocessing";
 
 export interface BatchMetric {
   /** Metric name */
@@ -60,19 +68,19 @@ export async function batchRegression(
   baselineLabel: string,
   candidateLabel: string,
   regressionOptions: Partial<RegressionOptions>,
-  batchOptions: BatchOptions = {}
+  batchOptions: BatchOptions = {},
 ): Promise<BatchResult> {
   const {
     concurrency = 5,
     continueOnError = true,
     onProgress,
     retryCount = 2,
-    retryDelay = 1000
+    retryDelay = 1000,
   } = batchOptions;
 
   const startTime = Date.now();
   const results = new Map<string, RegressionResult | Error>();
-  
+
   let completed = 0;
   const total = metrics.length;
 
@@ -89,12 +97,12 @@ export async function batchRegression(
         candidateLabel,
         regressionOptions,
         retryCount,
-        retryDelay
+        retryDelay,
       );
-      
+
       results.set(metric.name, result);
       completed++;
-      
+
       if (onProgress) {
         onProgress(completed, total, metric.name);
       }
@@ -102,11 +110,11 @@ export async function batchRegression(
       const err = error instanceof Error ? error : new Error(String(error));
       results.set(metric.name, err);
       completed++;
-      
+
       if (onProgress) {
         onProgress(completed, total, metric.name);
       }
-      
+
       if (!continueOnError) {
         throw err;
       }
@@ -136,7 +144,7 @@ export async function batchRegression(
     passed: 0,
     failed: 0,
     warned: 0,
-    errored: 0
+    errored: 0,
   };
 
   for (const [, result] of results) {
@@ -144,16 +152,16 @@ export async function batchRegression(
       summary.errored++;
     } else {
       switch (result.verdict) {
-        case 'PASS':
+        case "PASS":
           summary.passed++;
           break;
-        case 'FAIL':
+        case "FAIL":
           summary.failed++;
           break;
-        case 'WARN':
+        case "WARN":
           summary.warned++;
           break;
-        case 'INSUFFICIENT_DATA':
+        case "INSUFFICIENT_DATA":
           summary.errored++;
           break;
       }
@@ -175,10 +183,10 @@ async function processMetricWithRetry(
   candidateLabel: string,
   regressionOptions: Partial<RegressionOptions>,
   retryCount: number,
-  retryDelay: number
+  retryDelay: number,
 ): Promise<RegressionResult> {
   let lastError: Error | null = null;
-  
+
   for (let attempt = 0; attempt <= retryCount; attempt++) {
     try {
       return await processSingleMetric(
@@ -186,19 +194,21 @@ async function processMetricWithRetry(
         prometheusConfig,
         baselineLabel,
         candidateLabel,
-        regressionOptions
+        regressionOptions,
       );
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      
+
       if (attempt < retryCount) {
         // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, retryDelay * (attempt + 1)));
+        await new Promise((resolve) =>
+          setTimeout(resolve, retryDelay * (attempt + 1)),
+        );
       }
     }
   }
 
-  throw lastError || new Error('Unknown error during metric processing');
+  throw lastError || new Error("Unknown error during metric processing");
 }
 
 /**
@@ -209,22 +219,22 @@ async function processSingleMetric(
   prometheusConfig: PrometheusConfig,
   baselineLabel: string,
   candidateLabel: string,
-  regressionOptions: Partial<RegressionOptions>
+  regressionOptions: Partial<RegressionOptions>,
 ): Promise<RegressionResult> {
-  const timeRange = metric.timeRange || '10m';
+  const timeRange = metric.timeRange || "10m";
 
   // Fetch baseline data
   const baselineData = await fetchMetric(prometheusConfig, {
     metric: metric.name,
     label: baselineLabel,
-    timeRange
+    timeRange,
   });
 
   // Fetch candidate data
   const candidateData = await fetchMetric(prometheusConfig, {
     metric: metric.name,
     label: candidateLabel,
-    timeRange
+    timeRange,
   });
 
   // Run regression analysis
@@ -236,7 +246,7 @@ async function processSingleMetric(
     pValue: regressionOptions.pValue,
     effectSizeThreshold: regressionOptions.effectSizeThreshold,
     minSamples: regressionOptions.minSamples,
-    testType: regressionOptions.testType
+    testType: regressionOptions.testType,
   };
 
   return await runRegression(options, baselineData, candidateData);
@@ -249,13 +259,9 @@ export async function batchFetchMetrics(
   metrics: BatchMetric[],
   prometheusConfig: PrometheusConfig,
   label: string,
-  batchOptions: BatchOptions = {}
+  batchOptions: BatchOptions = {},
 ): Promise<Map<string, number[]>> {
-  const {
-    concurrency = 5,
-    continueOnError = true,
-    onProgress
-  } = batchOptions;
+  const { concurrency = 5, continueOnError = true, onProgress } = batchOptions;
 
   const results = new Map<string, number[]>();
   let completed = 0;
@@ -269,22 +275,22 @@ export async function batchFetchMetrics(
       const data = await fetchMetric(prometheusConfig, {
         metric: metric.name,
         label,
-        timeRange: metric.timeRange || '10m'
+        timeRange: metric.timeRange || "10m",
       });
-      
+
       results.set(metric.name, data);
       completed++;
-      
+
       if (onProgress) {
         onProgress(completed, total, metric.name);
       }
     } catch (error) {
       completed++;
-      
+
       if (onProgress) {
         onProgress(completed, total, metric.name);
       }
-      
+
       if (!continueOnError) {
         throw error;
       }
@@ -314,7 +320,7 @@ export async function batchFetchMetrics(
  */
 export async function batchPreprocess(
   metricsData: Map<string, number[]>,
-  options: PreprocessingOptions = {}
+  options: PreprocessingOptions = {},
 ): Promise<Map<string, number[]>> {
   const results = new Map<string, number[]>();
 
@@ -331,36 +337,37 @@ export async function batchPreprocess(
  */
 export function formatBatchResults(batchResult: BatchResult): string {
   const lines: string[] = [];
-  
-  lines.push('');
-  lines.push('=== Batch Regression Analysis ===');
-  lines.push('');
-  
-  // Summary
-  lines.push('Summary:');
-  lines.push(`  Total: ${batchResult.summary.total}`);
-  lines.push(`  ✓ Passed: ${batchResult.summary.passed}`);
-  lines.push(`  ✗ Failed: ${batchResult.summary.failed}`);
-  lines.push(`  ⚠ Warned: ${batchResult.summary.warned}`);
-  lines.push(`  ⚠ Errored: ${batchResult.summary.errored}`);
-  lines.push(`  Duration: ${(batchResult.executionTime / 1000).toFixed(2)}s`);
-  lines.push('');
-  
-  // Individual results
-  lines.push('Results:');
+
+  lines.push(
+    "",
+    "=== Batch Regression Analysis ===",
+    "",
+    "Summary:",
+    `  Total: ${batchResult.summary.total}`,
+    `  ✓ Passed: ${batchResult.summary.passed}`,
+    `  ✗ Failed: ${batchResult.summary.failed}`,
+    `  ⚠ Warned: ${batchResult.summary.warned}`,
+    `  ⚠ Errored: ${batchResult.summary.errored}`,
+    `  Duration: ${(batchResult.executionTime / 1000).toFixed(2)}s`,
+    "",
+    "Results:",
+  );
   for (const [metric, result] of batchResult.results) {
     if (result instanceof Error) {
       lines.push(`  ✗ ${metric}: ERROR - ${result.message}`);
     } else {
-      const icon = result.verdict === 'PASS' ? '✓' : result.verdict === 'FAIL' ? '✗' : '⚠';
-      const change = result.change_percent > 0 ? '+' : '';
-      lines.push(`  ${icon} ${metric}: ${result.verdict} (${change}${result.change_percent.toFixed(1)}%, p=${result.p_value.toFixed(3)})`);
+      const icon =
+        result.verdict === "PASS" ? "✓" : result.verdict === "FAIL" ? "✗" : "⚠";
+      const change = result.change_percent > 0 ? "+" : "";
+      lines.push(
+        `  ${icon} ${metric}: ${result.verdict} (${change}${result.change_percent.toFixed(1)}%, p=${result.p_value.toFixed(3)})`,
+      );
     }
   }
-  
-  lines.push('');
-  
-  return lines.join('\n');
+
+  lines.push("");
+
+  return lines.join("\n");
 }
 
 /**
@@ -370,7 +377,7 @@ export function exportBatchResultsJSON(batchResult: BatchResult): string {
   const output: any = {
     summary: batchResult.summary,
     execution_time_ms: batchResult.executionTime,
-    results: []
+    results: [],
   };
 
   for (const [metric, result] of batchResult.results) {
@@ -378,7 +385,7 @@ export function exportBatchResultsJSON(batchResult: BatchResult): string {
       output.results.push({
         metric,
         error: result.message,
-        verdict: 'ERROR'
+        verdict: "ERROR",
       });
     } else {
       output.results.push(result);

@@ -1,52 +1,64 @@
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 import {
   PerformanceAnnotation,
   Trace,
   HotFunction,
   DatabaseQueryAnalysis,
   PerformanceRegression,
-} from './ITraceProvider';
-import { TraceManager } from './TraceManager';
-import { PerformanceProfiler } from './PerformanceProfiler';
+} from "./ITraceProvider";
+import { TraceManager } from "./TraceManager";
+import { PerformanceProfiler } from "./PerformanceProfiler";
 
 /**
  * Provides inline performance annotations in the code editor using CodeLens
  */
 export class PerformanceCodeLensProvider implements vscode.CodeLensProvider {
-  private annotations = new Map<string, PerformanceAnnotation[]>();
-  private _onDidChangeCodeLenses = new vscode.EventEmitter<void>();
+  private readonly annotations = new Map<string, PerformanceAnnotation[]>();
+  private readonly _onDidChangeCodeLenses = new vscode.EventEmitter<void>();
   public readonly onDidChangeCodeLenses = this._onDidChangeCodeLenses.event;
 
   constructor(
-    private traceManager: TraceManager,
-    private profiler: PerformanceProfiler
+    private readonly traceManager: TraceManager,
+    private readonly profiler: PerformanceProfiler,
   ) {}
 
   /**
    * Update annotations for a service
    */
-  public async updateAnnotations(serviceName: string, traces: Trace[]): Promise<void> {
+  public async updateAnnotations(
+    serviceName: string,
+    traces: Trace[],
+  ): Promise<void> {
     const annotationsByFile = new Map<string, PerformanceAnnotation[]>();
 
     for (const trace of traces) {
       // Extract hot functions
-      const hotFunctions = this.profiler.extractHotFunctions(trace, serviceName);
+      const hotFunctions = this.profiler.extractHotFunctions(
+        trace,
+        serviceName,
+      );
 
       for (const func of hotFunctions) {
         if (func.file && func.line) {
           const annotation: PerformanceAnnotation = {
             file: func.file,
             line: func.line,
-            type: 'hot-path',
-            severity: func.percentage > 20 ? 'error' : func.percentage > 10 ? 'warning' : 'info',
+            type: "hot-path",
+            severity:
+              func.percentage > 20
+                ? "error"
+                : func.percentage > 10
+                  ? "warning"
+                  : "info",
             message: `Hot path: ${func.percentage.toFixed(1)}% of total time`,
             metric: {
               value: func.selfTime / 1000,
-              unit: 'ms',
+              unit: "ms",
             },
-            suggestion: func.percentage > 20
-              ? 'Consider optimizing this function - it accounts for a significant portion of execution time'
-              : undefined,
+            suggestion:
+              func.percentage > 20
+                ? "Consider optimizing this function - it accounts for a significant portion of execution time"
+                : undefined,
             traceIds: [trace.traceId],
           };
 
@@ -62,21 +74,21 @@ export class PerformanceCodeLensProvider implements vscode.CodeLensProvider {
       // N+1 detection
       for (const nPlusOne of dbAnalysis.nPlusOneDetections) {
         for (const spanId of nPlusOne.spanIds) {
-          const span = trace.spans.find(s => s.spanId === spanId);
+          const span = trace.spans.find((s) => s.spanId === spanId);
           if (span) {
-            const file = span.tags['code.filepath'] as string;
-            const line = span.tags['code.lineno'] as number;
+            const file = span.tags["code.filepath"] as string;
+            const line = span.tags["code.lineno"] as number;
 
             if (file && line) {
               const annotation: PerformanceAnnotation = {
                 file,
                 line,
-                type: 'n-plus-one',
-                severity: 'warning',
+                type: "n-plus-one",
+                severity: "warning",
                 message: `N+1 query detected (${nPlusOne.occurrences} occurrences)`,
                 metric: {
                   value: nPlusOne.totalDuration / 1000,
-                  unit: 'ms',
+                  unit: "ms",
                 },
                 suggestion: nPlusOne.suggestion,
                 traceIds: nPlusOne.spanIds,
@@ -93,23 +105,23 @@ export class PerformanceCodeLensProvider implements vscode.CodeLensProvider {
       // Slow queries
       for (const query of dbAnalysis.slowQueries) {
         if (query.spanId) {
-          const span = trace.spans.find(s => s.spanId === query.spanId);
+          const span = trace.spans.find((s) => s.spanId === query.spanId);
           if (span) {
-            const file = span.tags['code.filepath'] as string;
-            const line = span.tags['code.lineno'] as number;
+            const file = span.tags["code.filepath"] as string;
+            const line = span.tags["code.lineno"] as number;
 
             if (file && line) {
               const annotation: PerformanceAnnotation = {
                 file,
                 line,
-                type: 'slow-function',
-                severity: query.duration > 5000000 ? 'error' : 'warning',
+                type: "slow-function",
+                severity: query.duration > 5000000 ? "error" : "warning",
                 message: `Slow database query: ${(query.duration / 1000).toFixed(1)}ms`,
                 metric: {
                   value: query.duration / 1000,
-                  unit: 'ms',
+                  unit: "ms",
                 },
-                suggestion: 'Consider adding indexes or optimizing the query',
+                suggestion: "Consider adding indexes or optimizing the query",
                 traceIds: [trace.traceId],
               };
 
@@ -134,7 +146,9 @@ export class PerformanceCodeLensProvider implements vscode.CodeLensProvider {
   /**
    * Merge multiple annotations for the same location
    */
-  private mergeAnnotations(annotations: PerformanceAnnotation[]): PerformanceAnnotation[] {
+  private mergeAnnotations(
+    annotations: PerformanceAnnotation[],
+  ): PerformanceAnnotation[] {
     const byLocation = new Map<number, PerformanceAnnotation[]>();
 
     for (const annotation of annotations) {
@@ -152,23 +166,26 @@ export class PerformanceCodeLensProvider implements vscode.CodeLensProvider {
         // Merge multiple annotations
         const severityOrder = { error: 3, warning: 2, info: 1 };
         const maxSeverity = lineAnnotations.reduce((max, a) =>
-          severityOrder[a.severity] > severityOrder[max.severity] ? a : max
+          severityOrder[a.severity] > severityOrder[max.severity] ? a : max,
         ).severity;
 
-        const totalValue = lineAnnotations.reduce((sum, a) => sum + a.metric.value, 0);
-        const allTraceIds = lineAnnotations.flatMap(a => a.traceIds || []);
+        const totalValue = lineAnnotations.reduce(
+          (sum, a) => sum + a.metric.value,
+          0,
+        );
+        const allTraceIds = lineAnnotations.flatMap((a) => a.traceIds || []);
 
         merged.push({
           file: lineAnnotations[0].file,
           line,
-          type: 'optimization',
+          type: "optimization",
           severity: maxSeverity,
           message: `Multiple performance issues (${lineAnnotations.length})`,
           metric: {
             value: totalValue,
             unit: lineAnnotations[0].metric.unit,
           },
-          suggestion: 'Click to see details',
+          suggestion: "Click to see details",
           traceIds: allTraceIds,
         });
       }
@@ -195,7 +212,7 @@ export class PerformanceCodeLensProvider implements vscode.CodeLensProvider {
 
       const lens = new vscode.CodeLens(range, {
         title: this.formatAnnotation(annotation),
-        command: 'vitals.showPerformanceDetails',
+        command: "vitals.showPerformanceDetails",
         arguments: [annotation],
       });
 
@@ -210,14 +227,14 @@ export class PerformanceCodeLensProvider implements vscode.CodeLensProvider {
     return `${icon} ${annotation.message} (${annotation.metric.value.toFixed(1)}${annotation.metric.unit})`;
   }
 
-  private getSeverityIcon(severity: PerformanceAnnotation['severity']): string {
+  private getSeverityIcon(severity: PerformanceAnnotation["severity"]): string {
     switch (severity) {
-      case 'error':
-        return '🔴';
-      case 'warning':
-        return '⚠️';
-      case 'info':
-        return 'ℹ️';
+      case "error":
+        return "🔴";
+      case "warning":
+        return "⚠️";
+      case "info":
+        return "ℹ️";
     }
   }
 

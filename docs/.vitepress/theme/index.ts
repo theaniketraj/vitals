@@ -8,5 +8,5 @@ export default {
   Layout,
   enhanceApp({ app, router, siteData }) {
     // any app-level enhancements
-  }
-}
+  },
+};

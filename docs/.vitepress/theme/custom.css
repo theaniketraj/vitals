@@ -2,7 +2,9 @@
 
 /* Hide navbar when at bottom to show full footer */
 .VPNav {
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
   font-size: 0.9em;
 }
 
@@ -111,19 +113,18 @@
 
 /* Improve readability on mobile devices */
 @media (max-width: 768px) {
-
   /* Adjust base font size for better readability */
   :root {
     --vp-font-size-base: 16px;
   }
 
   /* Make code blocks scrollable horizontally */
-  .vp-doc div[class*='language-'] {
+  .vp-doc div[class*="language-"] {
     margin: 1rem -1.5rem;
     border-radius: 0;
   }
 
-  .vp-doc div[class*='language-'] code {
+  .vp-doc div[class*="language-"] code {
     font-size: 14px;
     line-height: 1.6;
   }
@@ -223,7 +224,7 @@
   }
 
   /* Improve inline code readability */
-  .vp-doc :not(pre)>code {
+  .vp-doc :not(pre) > code {
     padding: 0.25rem 0.4rem;
     font-size: 0.9em;
     word-break: break-word;
@@ -282,7 +283,7 @@
   }
 
   /* Improve code block readability on very small screens */
-  .vp-doc div[class*='language-'] code {
+  .vp-doc div[class*="language-"] code {
     font-size: 13px;
   }
 }
@@ -347,7 +348,6 @@
 }
 
 @media (min-width: 960px) {
-
   /* Desktop: Switch to Row/Wrap layout */
   .Layout {
     flex-direction: row !important;
@@ -383,7 +383,6 @@
 }
 
 @media (min-width: 1280px) {
-
   /* Make "On this page" (Outline) scroll with content */
   .VPDocAside {
     position: static !important;

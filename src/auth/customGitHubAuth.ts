@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import axios from 'axios';
-import { vitalsApi } from '../api/vitalsApi';
+import * as vscode from "vscode";
+import axios from "axios";
+import { vitalsApi } from "../api/vitalsApi";
 
 export interface GitHubUser {
   id: number;
@@ -11,60 +11,60 @@ export interface GitHubUser {
 }
 
 export class CustomGitHubAuth {
-  private static readonly AUTH_TYPE = 'github';
-  private static readonly SCOPES = ['user:email', 'read:user'];
+  private static readonly AUTH_TYPE = "github";
+  private static readonly SCOPES = ["user:email", "read:user"];
   private static currentUser: GitHubUser | undefined;
 
   /**
    * Initialize OAuth flow using VS Code's native authentication
    */
-  static async signIn(context: vscode.ExtensionContext): Promise<GitHubUser | undefined> {
+  static async signIn(
+    context: vscode.ExtensionContext,
+  ): Promise<GitHubUser | undefined> {
     try {
-      console.log('🔑 Starting GitHub sign-in flow (Native)...');
-      
+      console.log("🔑 Starting GitHub sign-in flow (Native)...");
+
       const session = await vscode.authentication.getSession(
         this.AUTH_TYPE,
         this.SCOPES,
-        { createIfNone: true }
+        { createIfNone: true },
       );
 
       if (!session) {
-        console.log('❌ GitHub authentication failed or cancelled');
+        console.log("❌ GitHub authentication failed or cancelled");
         return undefined;
       }
 
-      console.log('✅ GitHub authentication successful');
+      console.log("✅ GitHub authentication successful");
 
       // Fetch user details
       const user = await this.fetchUserDetails(session.accessToken);
-      
+
       if (user) {
         this.currentUser = user;
-        
+
         // Mark authentication as completed
-        await context.globalState.update('vitals.authWall.completed', true);
-        
+        await context.globalState.update("vitals.authWall.completed", true);
+
         // Sync user to backend
         try {
           const githubId = String(user.id);
-          console.log('Syncing user to backend:', githubId, user.login);
-          await vitalsApi.createUser(
-            githubId,
-            user.login,
-            user.email
-          );
-          console.log('✅ User synced to backend');
+          console.log("Syncing user to backend:", githubId, user.login);
+          await vitalsApi.createUser(githubId, user.login, user.email);
+          console.log("✅ User synced to backend");
         } catch (error) {
-          console.error('Failed to sync user to backend:', error);
+          console.error("Failed to sync user to backend:", error);
         }
-        
-        vscode.window.showInformationMessage(`Welcome, ${user.name || user.login}! 🎉`);
+
+        vscode.window.showInformationMessage(
+          `Welcome, ${user.name || user.login}! 🎉`,
+        );
       }
 
       return user;
     } catch (error) {
       vscode.window.showErrorMessage(`GitHub sign-in failed: ${error}`);
-      console.error('Sign-in error:', error);
+      console.error("Sign-in error:", error);
       return undefined;
     }
   }
@@ -73,43 +73,52 @@ export class CustomGitHubAuth {
    * Configure GitHub OAuth credentials - DEPRECATED
    * Kept for compatibility but does nothing now as we use native auth
    */
-  static async configureCredentials(context: vscode.ExtensionContext): Promise<boolean> {
-    vscode.window.showInformationMessage('Custom credentials are no longer needed. Vitals now uses VS Code\'s built-in GitHub authentication.');
+  static async configureCredentials(
+    context: vscode.ExtensionContext,
+  ): Promise<boolean> {
+    vscode.window.showInformationMessage(
+      "Custom credentials are no longer needed. Vitals now uses VS Code's built-in GitHub authentication.",
+    );
     return true;
   }
 
   /**
    * Fetch user details from GitHub API
    */
-  private static async fetchUserDetails(token: string): Promise<GitHubUser | undefined> {
+  private static async fetchUserDetails(
+    token: string,
+  ): Promise<GitHubUser | undefined> {
     try {
-      const response = await axios.get('https://api.github.com/user', {
+      const response = await axios.get("https://api.github.com/user", {
         headers: {
           Authorization: `Bearer ${token}`,
-          'User-Agent': 'Vitals-VSCode-Extension'
-        }
+          "User-Agent": "Vitals-VSCode-Extension",
+        },
       });
 
       const data = response.data;
-      
+
       // Fetch email if not public
       let email = data.email;
       if (!email) {
         try {
-          const emailRes = await axios.get('https://api.github.com/user/emails', {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'User-Agent': 'Vitals-VSCode-Extension'
-            }
-          });
-          
+          const emailRes = await axios.get(
+            "https://api.github.com/user/emails",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "User-Agent": "Vitals-VSCode-Extension",
+              },
+            },
+          );
+
           const emails = emailRes.data;
           const primary = emails.find((e: any) => e.primary && e.verified);
           if (primary) {
             email = primary.email;
           }
         } catch (e) {
-          console.warn('Failed to fetch emails:', e);
+          console.warn("Failed to fetch emails:", e);
         }
       }
 
@@ -118,10 +127,10 @@ export class CustomGitHubAuth {
         login: data.login,
         name: data.name,
         email: email,
-        avatar_url: data.avatar_url
+        avatar_url: data.avatar_url,
       };
     } catch (error) {
-      console.error('Failed to fetch GitHub user details:', error);
+      console.error("Failed to fetch GitHub user details:", error);
       return undefined;
     }
   }
@@ -134,7 +143,7 @@ export class CustomGitHubAuth {
       const session = await vscode.authentication.getSession(
         this.AUTH_TYPE,
         this.SCOPES,
-        { createIfNone: false }
+        { createIfNone: false },
       );
       return !!session;
     } catch (e) {
@@ -145,12 +154,14 @@ export class CustomGitHubAuth {
   /**
    * Get current session token
    */
-  static async getAccessToken(context: vscode.ExtensionContext): Promise<string | undefined> {
+  static async getAccessToken(
+    context: vscode.ExtensionContext,
+  ): Promise<string | undefined> {
     try {
       const session = await vscode.authentication.getSession(
         this.AUTH_TYPE,
         this.SCOPES,
-        { createIfNone: false }
+        { createIfNone: false },
       );
       return session?.accessToken;
     } catch (e) {
@@ -161,7 +172,9 @@ export class CustomGitHubAuth {
   /**
    * Get current user
    */
-  static async getCurrentUser(context: vscode.ExtensionContext): Promise<GitHubUser | undefined> {
+  static async getCurrentUser(
+    context: vscode.ExtensionContext,
+  ): Promise<GitHubUser | undefined> {
     if (this.currentUser) {
       return this.currentUser;
     }
@@ -185,10 +198,10 @@ export class CustomGitHubAuth {
    */
   static async signOut(context: vscode.ExtensionContext): Promise<void> {
     this.currentUser = undefined;
-    await context.globalState.update('vitals.authWall.completed', false);
-    
+    await context.globalState.update("vitals.authWall.completed", false);
+
     vscode.window.showInformationMessage(
-      'Signed out from Vitals. To fully disconnect GitHub, manage your Trusted Extensions in VS Code settings.'
+      "Signed out from Vitals. To fully disconnect GitHub, manage your Trusted Extensions in VS Code settings.",
     );
   }
 }

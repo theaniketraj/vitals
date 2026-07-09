@@ -281,14 +281,14 @@ export async function createGitHubCommitAnnotation(
       output: {
         title,
         summary,
-        annotations: result.verdict !== 'PASS' ? [{
+        annotations: result.verdict === 'PASS' ? [] : [{
           path: 'deployment',
           start_line: 1,
           end_line: 1,
           annotation_level: result.verdict === 'FAIL' ? 'failure' : 'warning',
           message: `${result.metric}: ${result.change_percent > 0 ? '+' : ''}${result.change_percent.toFixed(1)}% change detected`,
           title: `Regression in ${result.metric}`
-        }] : []
+        }]
       }
     });
   } catch (error) {
@@ -314,7 +314,7 @@ export function getGitHubConfigFromEnv(): GitHubConfig | null {
     token,
     owner,
     repo,
-    prNumber: parseInt(prNumber, 10),
+    prNumber: Number.parseInt(prNumber, 10),
     baseUrl: process.env.GITHUB_API_URL
   };
 }

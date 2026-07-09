@@ -26,7 +26,7 @@ Command Palette → "Open Vitals"
 or programmatically:
 
 ```typescript
-vscode.commands.executeCommand('vitals.openDashboard');
+vscode.commands.executeCommand("vitals.openDashboard");
 ```
 
 ---
@@ -40,7 +40,7 @@ Creates a new incident from an alert or manually.
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.createIncident');
+vscode.commands.executeCommand("vitals.createIncident");
 ```
 
 #### `vitals.viewIncidents`
@@ -50,7 +50,7 @@ Opens a quick pick view of active incidents.
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.viewIncidents');
+vscode.commands.executeCommand("vitals.viewIncidents");
 ```
 
 #### `vitals.executeRunbook`
@@ -60,7 +60,7 @@ Executes an automated runbook for incident remediation.
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.executeRunbook');
+vscode.commands.executeCommand("vitals.executeRunbook");
 ```
 
 #### `vitals.addHypothesis`
@@ -70,7 +70,7 @@ Adds a hypothesis to an active incident investigation.
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.addHypothesis');
+vscode.commands.executeCommand("vitals.addHypothesis");
 ```
 
 #### `vitals.generatePostMortem`
@@ -80,7 +80,7 @@ Generates an AI-powered post-mortem report for a resolved incident.
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.generatePostMortem');
+vscode.commands.executeCommand("vitals.generatePostMortem");
 ```
 
 #### `vitals.configureIncidentIntegrations`
@@ -90,7 +90,7 @@ Opens the incident integration configuration wizard (PagerDuty, Opsgenie, Slack)
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.configureIncidentIntegrations');
+vscode.commands.executeCommand("vitals.configureIncidentIntegrations");
 ```
 
 #### `vitals.viewOnCallSchedule`
@@ -100,7 +100,7 @@ Displays the current on-call schedule from connected platforms.
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.viewOnCallSchedule');
+vscode.commands.executeCommand("vitals.viewOnCallSchedule");
 ```
 
 #### `vitals.viewIncidentMetrics`
@@ -110,7 +110,7 @@ Shows incident analytics (MTTD, MTTA, MTTI, MTTR).
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.viewIncidentMetrics');
+vscode.commands.executeCommand("vitals.viewIncidentMetrics");
 ```
 
 ---
@@ -124,7 +124,7 @@ Registers a new deployment with metadata (service, version, environment).
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.trackDeployment');
+vscode.commands.executeCommand("vitals.trackDeployment");
 ```
 
 #### `vitals.viewDeployments`
@@ -134,7 +134,7 @@ Opens a quick pick list of recent deployments with impact summaries.
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.viewDeployments');
+vscode.commands.executeCommand("vitals.viewDeployments");
 ```
 
 #### `vitals.analyzeDeploymentImpact`
@@ -144,7 +144,7 @@ Runs statistical performance analysis (Welch's t-test) for a deployment.
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.analyzeDeploymentImpact');
+vscode.commands.executeCommand("vitals.analyzeDeploymentImpact");
 ```
 
 #### `vitals.rollbackDeployment`
@@ -154,7 +154,7 @@ Generates rollback recommendation and executes rollback with selected strategy.
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.rollbackDeployment');
+vscode.commands.executeCommand("vitals.rollbackDeployment");
 ```
 
 #### `vitals.viewBuildTrends`
@@ -164,7 +164,7 @@ Displays CI pipeline build trends and optimization insights.
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.viewBuildTrends');
+vscode.commands.executeCommand("vitals.viewBuildTrends");
 ```
 
 #### `vitals.viewFlakyTests`
@@ -174,7 +174,7 @@ Shows flaky test detection report with failure rates.
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.viewFlakyTests');
+vscode.commands.executeCommand("vitals.viewFlakyTests");
 ```
 
 #### `vitals.connectFeatureFlagProvider`
@@ -184,7 +184,7 @@ Connects to a feature flag provider (LaunchDarkly, Split.io, Unleash).
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.connectFeatureFlagProvider');
+vscode.commands.executeCommand("vitals.connectFeatureFlagProvider");
 ```
 
 #### `vitals.analyzeFlagImpact`
@@ -194,7 +194,7 @@ Analyzes the impact of feature flags on metrics and user experience.
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.analyzeFlagImpact');
+vscode.commands.executeCommand("vitals.analyzeFlagImpact");
 ```
 
 #### `vitals.generateReleaseNotes`
@@ -204,7 +204,7 @@ Auto-generates release notes from Git commits and performance data.
 **Usage:**
 
 ```typescript
-vscode.commands.executeCommand('vitals.generateReleaseNotes');
+vscode.commands.executeCommand("vitals.generateReleaseNotes");
 ```
 
 ---
@@ -354,7 +354,7 @@ Fetches active alerts from Prometheus.
 **Example:**
 
 ```typescript
-const api = new PrometheusApi('http://localhost:9090');
+const api = new PrometheusApi("http://localhost:9090");
 const alerts = await api.getAlerts();
 ```
 
@@ -373,7 +373,7 @@ Executes a PromQL query against Prometheus.
 **Example:**
 
 ```typescript
-const api = new PrometheusApi('http://localhost:9090');
+const api = new PrometheusApi("http://localhost:9090");
 const data = await api.query('up{job="prometheus"}');
 ```
 
@@ -472,7 +472,7 @@ Requests list of active alerts.
 
 ```javascript
 {
-  command: 'fetchAlerts'
+  command: "fetchAlerts";
 }
 ```
 
@@ -482,7 +482,7 @@ Requests log entries.
 
 ```javascript
 {
-  command: 'fetchLogs'
+  command: "fetchLogs";
 }
 ```
 
@@ -492,7 +492,7 @@ Requests log entries.
 
 ```typescript
 interface Alert {
-  status: 'firing' | 'resolved';
+  status: "firing" | "resolved";
   labels: Record<string, string>;
   annotations: Record<string, string>;
   startsAt: string;

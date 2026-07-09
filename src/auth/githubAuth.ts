@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
 export interface GitHubUser {
   id: number;
@@ -9,8 +9,8 @@ export interface GitHubUser {
 }
 
 export class GitHubAuthProvider {
-  private static readonly AUTH_TYPE = 'github';
-  private static readonly SCOPES = ['user:email'];
+  private static readonly AUTH_TYPE = "github";
+  private static readonly SCOPES = ["user:email"];
   private static session: vscode.AuthenticationSession | undefined;
 
   /**
@@ -22,11 +22,11 @@ export class GitHubAuthProvider {
       const session = await vscode.authentication.getSession(
         this.AUTH_TYPE,
         this.SCOPES,
-        { createIfNone: true }
+        { createIfNone: true },
       );
 
       if (!session) {
-        vscode.window.showErrorMessage('GitHub authentication failed');
+        vscode.window.showErrorMessage("GitHub authentication failed");
         return undefined;
       }
 
@@ -34,9 +34,11 @@ export class GitHubAuthProvider {
 
       // Fetch user details from GitHub API
       const user = await this.fetchUserDetails(session.accessToken);
-      
+
       if (user) {
-        vscode.window.showInformationMessage(`Welcome, ${user.name || user.login}! 🎉`);
+        vscode.window.showInformationMessage(
+          `Welcome, ${user.name || user.login}! 🎉`,
+        );
       }
 
       return user;
@@ -54,7 +56,7 @@ export class GitHubAuthProvider {
       const session = await vscode.authentication.getSession(
         this.AUTH_TYPE,
         this.SCOPES,
-        { createIfNone: false }
+        { createIfNone: false },
       );
 
       this.session = session;
@@ -76,7 +78,7 @@ export class GitHubAuthProvider {
       const session = await vscode.authentication.getSession(
         this.AUTH_TYPE,
         this.SCOPES,
-        { createIfNone: false }
+        { createIfNone: false },
       );
 
       this.session = session;
@@ -95,7 +97,7 @@ export class GitHubAuthProvider {
       // User must sign out through VS Code's Accounts menu
       this.session = undefined;
       vscode.window.showInformationMessage(
-        'Please sign out from GitHub through VS Code Accounts menu (bottom left)'
+        "Please sign out from GitHub through VS Code Accounts menu (bottom left)",
       );
     }
   }
@@ -103,14 +105,16 @@ export class GitHubAuthProvider {
   /**
    * Fetch user details from GitHub API
    */
-  private static async fetchUserDetails(accessToken: string): Promise<GitHubUser | undefined> {
+  private static async fetchUserDetails(
+    accessToken: string,
+  ): Promise<GitHubUser | undefined> {
     try {
-      const response = await fetch('https://api.github.com/user', {
+      const response = await fetch("https://api.github.com/user", {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': 'VSCode-Vitals-Extension'
-        }
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/vnd.github.v3+json",
+          "User-Agent": "VSCode-Vitals-Extension",
+        },
       });
 
       if (!response.ok) {
@@ -124,10 +128,10 @@ export class GitHubAuthProvider {
         login: data.login,
         name: data.name,
         email: data.email,
-        avatar_url: data.avatar_url
+        avatar_url: data.avatar_url,
       };
     } catch (error) {
-      console.error('Failed to fetch GitHub user details:', error);
+      console.error("Failed to fetch GitHub user details:", error);
       return undefined;
     }
   }

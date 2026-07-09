@@ -2,26 +2,26 @@
  * Enhanced policy loader with service-specific policies and inheritance
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as yaml from 'js-yaml';
+import * as fs from "node:fs";
+import * as path from "node:path";
+import * as yaml from "js-yaml";
 
 export interface MetricPolicy {
   regression?: {
     max_increase_percent?: number;
     p_value?: number;
     effect_size?: number;
-    action?: 'fail' | 'warn' | 'ignore';
+    action?: "fail" | "warn" | "ignore";
   };
   threshold?: {
     max?: number;
     min?: number;
-    action?: 'fail' | 'warn' | 'ignore';
+    action?: "fail" | "warn" | "ignore";
   };
 }
 
 export interface ServicePolicy {
-  inherits?: string;  // Inherit from base policy
+  inherits?: string; // Inherit from base policy
   metrics?: {
     [metricName: string]: MetricPolicy;
   };
@@ -37,13 +37,13 @@ export interface PrometheusConfig {
 export interface DeploymentConfig {
   rollback?: {
     enabled?: boolean;
-    strategy?: 'canary' | 'blue-green' | 'immediate';
+    strategy?: "canary" | "blue-green" | "immediate";
   };
 }
 
 export interface PolicyConfig {
   version: number;
-  
+
   // Base policy (applies to all services unless overridden)
   base?: {
     prometheus?: PrometheusConfig;
@@ -52,12 +52,12 @@ export interface PolicyConfig {
     };
     deployment?: DeploymentConfig;
   };
-  
+
   // Service-specific policies
   services?: {
     [serviceName: string]: ServicePolicy;
   };
-  
+
   // Legacy: global metrics (for backward compatibility)
   prometheus?: PrometheusConfig;
   metrics?: {
@@ -67,7 +67,7 @@ export interface PolicyConfig {
 }
 
 export interface PolicyEvaluation {
-  action: 'fail' | 'warn' | 'pass';
+  action: "fail" | "warn" | "pass";
   reason: string;
   shouldRollback: boolean;
 }
@@ -75,7 +75,7 @@ export interface PolicyEvaluation {
 export interface PolicyValidationError {
   path: string;
   message: string;
-  severity: 'error' | 'warning';
+  severity: "error" | "warning";
 }
 
 /**
@@ -87,7 +87,7 @@ export function loadPolicy(configPath: string): PolicyConfig | null {
       return null;
     }
 
-    const content = fs.readFileSync(configPath, 'utf-8');
+    const content = fs.readFileSync(configPath, "utf-8");
     const config = yaml.load(content) as PolicyConfig;
 
     // Validate version
@@ -111,47 +111,53 @@ export function validatePolicy(config: PolicyConfig): PolicyValidationError[] {
   // Check version
   if (!config.version) {
     errors.push({
-      path: 'version',
-      message: 'Missing required field: version',
-      severity: 'error'
+      path: "version",
+      message: "Missing required field: version",
+      severity: "error",
     });
   } else if (config.version !== 1) {
     errors.push({
-      path: 'version',
+      path: "version",
       message: `Unsupported version: ${config.version}. Expected: 1`,
-      severity: 'error'
+      severity: "error",
     });
   }
 
   // Validate base policy metrics
   if (config.base?.metrics) {
-    validateMetrics(config.base.metrics, 'base.metrics', errors);
+    validateMetrics(config.base.metrics, "base.metrics", errors);
   }
 
   // Validate legacy metrics (for backward compatibility)
   if (config.metrics) {
-    validateMetrics(config.metrics, 'metrics', errors);
+    validateMetrics(config.metrics, "metrics", errors);
   }
 
   // Validate service-specific policies
   if (config.services) {
-    for (const [serviceName, servicePolicy] of Object.entries(config.services)) {
+    for (const [serviceName, servicePolicy] of Object.entries(
+      config.services,
+    )) {
       const servicePath = `services.${serviceName}`;
-      
+
       // Check for inheritance cycles
       if (servicePolicy.inherits) {
         if (!config.services[servicePolicy.inherits]) {
           errors.push({
             path: `${servicePath}.inherits`,
             message: `Inherited service '${servicePolicy.inherits}' not found`,
-            severity: 'error'
+            severity: "error",
           });
         }
       }
 
       // Validate service metrics
       if (servicePolicy.metrics) {
-        validateMetrics(servicePolicy.metrics, `${servicePath}.metrics`, errors);
+        validateMetrics(
+          servicePolicy.metrics,
+          `${servicePath}.metrics`,
+          errors,
+        );
       }
     }
   }
@@ -162,9 +168,9 @@ export function validatePolicy(config: PolicyConfig): PolicyValidationError[] {
       new URL(config.prometheus.url);
     } catch {
       errors.push({
-        path: 'prometheus.url',
+        path: "prometheus.url",
         message: `Invalid URL: ${config.prometheus.url}`,
-        severity: 'error'
+        severity: "error",
       });
     }
   }
@@ -174,9 +180,9 @@ export function validatePolicy(config: PolicyConfig): PolicyValidationError[] {
       new URL(config.base.prometheus.url);
     } catch {
       errors.push({
-        path: 'base.prometheus.url',
+        path: "base.prometheus.url",
         message: `Invalid URL: ${config.base.prometheus.url}`,
-        severity: 'error'
+        severity: "error",
       });
     }
   }
@@ -187,7 +193,7 @@ export function validatePolicy(config: PolicyConfig): PolicyValidationError[] {
 function validateMetrics(
   metrics: { [key: string]: MetricPolicy },
   basePath: string,
-  errors: PolicyValidationError[]
+  errors: PolicyValidationError[],
 ): void {
   for (const [metricName, policy] of Object.entries(metrics)) {
     const metricPath = `${basePath}.${metricName}`;
@@ -199,8 +205,8 @@ function validateMetrics(
         if (reg.max_increase_percent < 0) {
           errors.push({
             path: `${metricPath}.regression.max_increase_percent`,
-            message: 'Must be a positive number',
-            severity: 'error'
+            message: "Must be a positive number",
+            severity: "error",
           });
         }
       }
@@ -209,8 +215,8 @@ function validateMetrics(
         if (reg.p_value < 0 || reg.p_value > 1) {
           errors.push({
             path: `${metricPath}.regression.p_value`,
-            message: 'Must be between 0 and 1',
-            severity: 'error'
+            message: "Must be between 0 and 1",
+            severity: "error",
           });
         }
       }
@@ -219,17 +225,17 @@ function validateMetrics(
         if (reg.effect_size < 0) {
           errors.push({
             path: `${metricPath}.regression.effect_size`,
-            message: 'Must be a positive number',
-            severity: 'error'
+            message: "Must be a positive number",
+            severity: "error",
           });
         }
       }
 
-      if (reg.action && !['fail', 'warn', 'ignore'].includes(reg.action)) {
+      if (reg.action && !["fail", "warn", "ignore"].includes(reg.action)) {
         errors.push({
           path: `${metricPath}.regression.action`,
           message: `Invalid action: ${reg.action}. Must be 'fail', 'warn', or 'ignore'`,
-          severity: 'error'
+          severity: "error",
         });
       }
     }
@@ -241,17 +247,20 @@ function validateMetrics(
         if (thresh.max < thresh.min) {
           errors.push({
             path: `${metricPath}.threshold`,
-            message: 'max must be greater than min',
-            severity: 'error'
+            message: "max must be greater than min",
+            severity: "error",
           });
         }
       }
 
-      if (thresh.action && !['fail', 'warn', 'ignore'].includes(thresh.action)) {
+      if (
+        thresh.action &&
+        !["fail", "warn", "ignore"].includes(thresh.action)
+      ) {
         errors.push({
           path: `${metricPath}.threshold.action`,
           message: `Invalid action: ${thresh.action}. Must be 'fail', 'warn', or 'ignore'`,
-          severity: 'error'
+          severity: "error",
         });
       }
     }
@@ -261,8 +270,10 @@ function validateMetrics(
 /**
  * Find policy config file in current directory or parent directories
  */
-export function findPolicyConfig(startDir: string = process.cwd()): string | null {
-  const fileName = 'vitals.yaml';
+export function findPolicyConfig(
+  startDir: string = process.cwd(),
+): string | null {
+  const fileName = "vitals.yaml";
   let currentDir = startDir;
 
   // Search up to 5 levels
@@ -288,23 +299,27 @@ export function findPolicyConfig(startDir: string = process.cwd()): string | nul
 export function getServiceMetricPolicy(
   config: PolicyConfig,
   serviceName: string | null,
-  metricName: string
+  metricName: string,
 ): MetricPolicy | null {
   // If service specified, look for service-specific policy
-  if (serviceName && config.services && config.services[serviceName]) {
+  if (serviceName && config.services?.[serviceName]) {
     const servicePolicy = config.services[serviceName];
-    
+
     // Check service-specific metric policy first
-    if (servicePolicy.metrics && servicePolicy.metrics[metricName]) {
+    if (servicePolicy.metrics?.[metricName]) {
       return mergeMetricPolicies(
         getBaseMetricPolicy(config, metricName),
-        servicePolicy.metrics[metricName]
+        servicePolicy.metrics[metricName],
       );
     }
 
     // Check inherited service policy
     if (servicePolicy.inherits) {
-      const inheritedPolicy = getServiceMetricPolicy(config, servicePolicy.inherits, metricName);
+      const inheritedPolicy = getServiceMetricPolicy(
+        config,
+        servicePolicy.inherits,
+        metricName,
+      );
       if (inheritedPolicy) {
         return inheritedPolicy;
       }
@@ -318,14 +333,17 @@ export function getServiceMetricPolicy(
 /**
  * Get base metric policy (from base or global metrics)
  */
-function getBaseMetricPolicy(config: PolicyConfig, metricName: string): MetricPolicy | null {
+function getBaseMetricPolicy(
+  config: PolicyConfig,
+  metricName: string,
+): MetricPolicy | null {
   // Check base policy first
-  if (config.base?.metrics && config.base.metrics[metricName]) {
+  if (config.base?.metrics?.[metricName]) {
     return config.base.metrics[metricName];
   }
 
   // Fall back to legacy global metrics
-  if (config.metrics && config.metrics[metricName]) {
+  if (config.metrics?.[metricName]) {
     return config.metrics[metricName];
   }
 
@@ -335,7 +353,10 @@ function getBaseMetricPolicy(config: PolicyConfig, metricName: string): MetricPo
 /**
  * Merge two metric policies (child overrides parent)
  */
-function mergeMetricPolicies(base: MetricPolicy | null, override: MetricPolicy): MetricPolicy {
+function mergeMetricPolicies(
+  base: MetricPolicy | null,
+  override: MetricPolicy,
+): MetricPolicy {
   if (!base) {
     return override;
   }
@@ -343,19 +364,22 @@ function mergeMetricPolicies(base: MetricPolicy | null, override: MetricPolicy):
   return {
     regression: {
       ...base.regression,
-      ...override.regression
+      ...override.regression,
     },
     threshold: {
       ...base.threshold,
-      ...override.threshold
-    }
+      ...override.threshold,
+    },
   };
 }
 
 /**
  * Get metric policy from configuration (legacy function for backward compatibility)
  */
-export function getMetricPolicy(config: PolicyConfig, metricName: string): MetricPolicy | null {
+export function getMetricPolicy(
+  config: PolicyConfig,
+  metricName: string,
+): MetricPolicy | null {
   return getServiceMetricPolicy(config, null, metricName);
 }
 
@@ -368,7 +392,7 @@ export function evaluateRegression(
   pValue: number,
   effectSize: number,
   significant: boolean,
-  policy: MetricPolicy | null
+  policy: MetricPolicy | null,
 ): PolicyEvaluation {
   // Default policy if none specified
   const defaultPolicy: MetricPolicy = {
@@ -376,15 +400,15 @@ export function evaluateRegression(
       max_increase_percent: 10,
       p_value: 0.05,
       effect_size: 0.5,
-      action: 'fail'
-    }
+      action: "fail",
+    },
   };
 
   const activePolicy = policy || defaultPolicy;
   const regressionPolicy = activePolicy.regression || defaultPolicy.regression!;
 
   const maxIncrease = regressionPolicy.max_increase_percent || 10;
-  const action = regressionPolicy.action || 'fail';
+  const action = regressionPolicy.action || "fail";
 
   // Check if regression exceeds threshold
   const exceedsThreshold = Math.abs(changePercent) > maxIncrease;
@@ -392,25 +416,26 @@ export function evaluateRegression(
 
   if (significant && exceedsThreshold && isRegression) {
     const reason = `Regression detected: ${changePercent.toFixed(1)}% increase (threshold: ${maxIncrease}%, p=${pValue.toFixed(3)}, effect=${effectSize.toFixed(2)})`;
-    
+
     return {
-      action: action === 'ignore' ? 'pass' : action,
+      action: action === "ignore" ? "pass" : action,
       reason,
-      shouldRollback: action === 'fail' && (activePolicy.regression?.action === 'fail')
+      shouldRollback:
+        action === "fail" && activePolicy.regression?.action === "fail",
     };
   } else if (exceedsThreshold && isRegression) {
     // Exceeds threshold but not statistically significant
     return {
-      action: 'warn',
+      action: "warn",
       reason: `Possible regression: ${changePercent.toFixed(1)}% increase, but not statistically significant (p=${pValue.toFixed(3)})`,
-      shouldRollback: false
+      shouldRollback: false,
     };
   }
 
   return {
-    action: 'pass',
+    action: "pass",
     reason: `No significant regression detected (change: ${changePercent.toFixed(1)}%)`,
-    shouldRollback: false
+    shouldRollback: false,
   };
 }
 
@@ -420,38 +445,38 @@ export function evaluateRegression(
 export function evaluateThreshold(
   metricName: string,
   value: number,
-  policy: MetricPolicy | null
+  policy: MetricPolicy | null,
 ): PolicyEvaluation {
-  if (!policy || !policy.threshold) {
+  if (!policy?.threshold) {
     return {
-      action: 'pass',
-      reason: 'No threshold policy defined',
-      shouldRollback: false
+      action: "pass",
+      reason: "No threshold policy defined",
+      shouldRollback: false,
     };
   }
 
-  const { max, min, action = 'fail' } = policy.threshold;
+  const { max, min, action = "fail" } = policy.threshold;
 
   if (max !== undefined && value > max) {
     return {
-      action: action === 'ignore' ? 'pass' : action,
+      action: action === "ignore" ? "pass" : action,
       reason: `Value ${value.toFixed(2)} exceeds maximum threshold ${max}`,
-      shouldRollback: action === 'fail'
+      shouldRollback: action === "fail",
     };
   }
 
   if (min !== undefined && value < min) {
     return {
-      action: action === 'ignore' ? 'pass' : action,
+      action: action === "ignore" ? "pass" : action,
       reason: `Value ${value.toFixed(2)} below minimum threshold ${min}`,
-      shouldRollback: action === 'fail'
+      shouldRollback: action === "fail",
     };
   }
 
   return {
-    action: 'pass',
-    reason: 'Within threshold limits',
-    shouldRollback: false
+    action: "pass",
+    reason: "Within threshold limits",
+    shouldRollback: false,
   };
 }
 
@@ -460,45 +485,45 @@ export function evaluateThreshold(
  */
 export function getDefaultOptions(
   config: PolicyConfig | null,
-  serviceName?: string
+  serviceName?: string,
 ): {
   prometheusUrl: string;
   timeout: number;
 } {
   if (!config) {
     return {
-      prometheusUrl: 'http://localhost:9090',
-      timeout: 10000
+      prometheusUrl: "http://localhost:9090",
+      timeout: 10000,
     };
   }
 
   // Service-specific Prometheus config
-  if (serviceName && config.services && config.services[serviceName]?.prometheus) {
-    const servicePrometheus = config.services[serviceName].prometheus!;
+  if (serviceName && config.services?.[serviceName]?.prometheus) {
+    const servicePrometheus = config.services[serviceName].prometheus;
     return {
-      prometheusUrl: servicePrometheus.url || 'http://localhost:9090',
-      timeout: servicePrometheus.timeout || 10000
+      prometheusUrl: servicePrometheus.url || "http://localhost:9090",
+      timeout: servicePrometheus.timeout || 10000,
     };
   }
 
   // Base Prometheus config
   if (config.base?.prometheus) {
     return {
-      prometheusUrl: config.base.prometheus.url || 'http://localhost:9090',
-      timeout: config.base.prometheus.timeout || 10000
+      prometheusUrl: config.base.prometheus.url || "http://localhost:9090",
+      timeout: config.base.prometheus.timeout || 10000,
     };
   }
 
   // Legacy global Prometheus config
   if (config.prometheus) {
     return {
-      prometheusUrl: config.prometheus.url || 'http://localhost:9090',
-      timeout: config.prometheus.timeout || 10000
+      prometheusUrl: config.prometheus.url || "http://localhost:9090",
+      timeout: config.prometheus.timeout || 10000,
     };
   }
 
   return {
-    prometheusUrl: 'http://localhost:9090',
-    timeout: 10000
+    prometheusUrl: "http://localhost:9090",
+    timeout: 10000,
   };
 }

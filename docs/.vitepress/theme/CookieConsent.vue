@@ -1,20 +1,24 @@
 <template>
   <transition name="slide-up">
-    <div v-if="showBanner" class="cookie-consent-banner" :class="{ 'dark-theme': isDark }">
+    <div
+      v-if="showBanner"
+      class="cookie-consent-banner"
+      :class="{ 'dark-theme': isDark }"
+    >
       <div class="cookie-consent-content">
         <div class="cookie-info">
           <h3>🍪 Cookie Consent</h3>
           <p>
-            We use cookies to improve your experience and collect anonymous usage statistics.
-            You can change your preference anytime.
-            <a href="/vitals/USAGE_STATISTICS.html" class="learn-more">Learn more</a>
+            We use cookies to improve your experience and collect anonymous
+            usage statistics. You can change your preference anytime.
+            <a href="/vitals/USAGE_STATISTICS.html" class="learn-more"
+              >Learn more</a
+            >
           </p>
         </div>
-        
+
         <div class="cookie-actions">
-          <button @click="acceptCookies" class="btn btn-accept">
-            Accept
-          </button>
+          <button @click="acceptCookies" class="btn btn-accept">Accept</button>
           <button @click="declineCookies" class="btn btn-decline">
             Decline
           </button>
@@ -25,100 +29,103 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
-import { useData } from 'vitepress'
-import { analytics } from './analytics'
+import { ref, onMounted, watch } from "vue";
+import { useData } from "vitepress";
+import { analytics } from "./analytics";
 
-const CONSENT_KEY = 'vitals-cookie-consent'
-const CONSENT_TIMESTAMP_KEY = 'vitals-cookie-consent-timestamp'
-const CONSENT_DURATION = 365 * 24 * 60 * 60 * 1000 // 1 year in milliseconds
-const DECLINE_REPROMPT_DURATION = 7 * 24 * 60 * 60 * 1000 // Re-prompt after 7 days if declined
+const CONSENT_KEY = "vitals-cookie-consent";
+const CONSENT_TIMESTAMP_KEY = "vitals-cookie-consent-timestamp";
+const CONSENT_DURATION = 365 * 24 * 60 * 60 * 1000; // 1 year in milliseconds
+const DECLINE_REPROMPT_DURATION = 7 * 24 * 60 * 60 * 1000; // Re-prompt after 7 days if declined
 
-const { isDark } = useData()
-const showBanner = ref(false)
+const { isDark } = useData();
+const showBanner = ref(false);
 
 // Check if consent is still valid
 function isConsentValid(): boolean {
-  const consentTimestamp = localStorage.getItem(CONSENT_TIMESTAMP_KEY)
-  if (!consentTimestamp) return false
-  
-  const consent = localStorage.getItem(CONSENT_KEY)
-  const elapsed = Date.now() - Number.parseInt(consentTimestamp)
-  
+  const consentTimestamp = localStorage.getItem(CONSENT_TIMESTAMP_KEY);
+  if (!consentTimestamp) return false;
+
+  const consent = localStorage.getItem(CONSENT_KEY);
+  const elapsed = Date.now() - Number.parseInt(consentTimestamp);
+
   // If user accepted, consent lasts 1 year
-  if (consent === 'true') {
-    return elapsed < CONSENT_DURATION
+  if (consent === "true") {
+    return elapsed < CONSENT_DURATION;
   }
-  
+
   // If user declined, re-prompt after 7 days
-  if (consent === 'false') {
-    return elapsed < DECLINE_REPROMPT_DURATION
+  if (consent === "false") {
+    return elapsed < DECLINE_REPROMPT_DURATION;
   }
-  
-  return false
+
+  return false;
 }
 
 // Check if consent was already given
 function checkConsent(): boolean {
-  const consent = localStorage.getItem(CONSENT_KEY)
-  
+  const consent = localStorage.getItem(CONSENT_KEY);
+
   // No consent recorded - show banner
-  if (consent === null) return false
-  
+  if (consent === null) return false;
+
   // Check if consent is still valid based on accept/decline
-  return isConsentValid()
+  return isConsentValid();
 }
 
 // Accept cookies
 function acceptCookies() {
-  localStorage.setItem(CONSENT_KEY, 'true')
-  localStorage.setItem(CONSENT_TIMESTAMP_KEY, Date.now().toString())
-  showBanner.value = false
-  
+  localStorage.setItem(CONSENT_KEY, "true");
+  localStorage.setItem(CONSENT_TIMESTAMP_KEY, Date.now().toString());
+  showBanner.value = false;
+
   // Update analytics consent
-  analytics.updateConsent(true)
-  
+  analytics.updateConsent(true);
+
   // Register service worker with consent
-  registerServiceWorker(true)
-  
+  registerServiceWorker(true);
+
   // Track consent acceptance
-  analytics.track('cookie_consent_accepted', {
-    timestamp: new Date().toISOString()
-  })
+  analytics.track("cookie_consent_accepted", {
+    timestamp: new Date().toISOString(),
+  });
 }
 
 // Decline cookies
 function declineCookies() {
-  localStorage.setItem(CONSENT_KEY, 'false')
-  localStorage.setItem(CONSENT_TIMESTAMP_KEY, Date.now().toString())
-  showBanner.value = false
-  
+  localStorage.setItem(CONSENT_KEY, "false");
+  localStorage.setItem(CONSENT_TIMESTAMP_KEY, Date.now().toString());
+  showBanner.value = false;
+
   // Update analytics consent
-  analytics.updateConsent(false)
-  
+  analytics.updateConsent(false);
+
   // Don't register service worker or track
-  console.log('Cookie consent declined - analytics disabled')
+  console.log("Cookie consent declined - analytics disabled");
 }
 
 // Register service worker
 async function registerServiceWorker(hasConsent: boolean) {
-  if ('serviceWorker' in navigator) {
+  if ("serviceWorker" in navigator) {
     try {
-      const registration = await navigator.serviceWorker.register('/vitals/sw.js', {
-        scope: '/vitals/'
-      })
-      
-      console.log('Service Worker registered:', registration.scope)
-      
+      const registration = await navigator.serviceWorker.register(
+        "/vitals/sw.js",
+        {
+          scope: "/vitals/",
+        },
+      );
+
+      console.log("Service Worker registered:", registration.scope);
+
       // Send consent status to service worker
       if (registration.active) {
         registration.active.postMessage({
-          type: 'UPDATE_CONSENT',
-          consent: hasConsent
-        })
+          type: "UPDATE_CONSENT",
+          consent: hasConsent,
+        });
       }
     } catch (error) {
-      console.error('Service Worker registration failed:', error)
+      console.error("Service Worker registration failed:", error);
     }
   }
 }
@@ -127,37 +134,37 @@ onMounted(() => {
   // Check if consent banner should be shown
   if (checkConsent()) {
     // Consent already given, register service worker
-    const hasConsent = localStorage.getItem(CONSENT_KEY) === 'true'
+    const hasConsent = localStorage.getItem(CONSENT_KEY) === "true";
     if (hasConsent) {
-      analytics.updateConsent(true)
-      registerServiceWorker(true)
-      analytics.trackPageView()
+      analytics.updateConsent(true);
+      registerServiceWorker(true);
+      analytics.trackPageView();
     }
   } else {
     // Show banner after a short delay for better UX
     setTimeout(() => {
-      showBanner.value = true
-    }, 1000)
+      showBanner.value = true;
+    }, 1000);
   }
-  
+
   // Track outbound links
-  document.addEventListener('click', (e) => {
-    const target = e.target as HTMLElement
-    const link = target.closest('a')
-    
+  document.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    const link = target.closest("a");
+
     if (link?.href && !link.href.startsWith(globalThis.location.origin)) {
-      analytics.track('outbound_link_click', {
+      analytics.track("outbound_link_click", {
         url: link.href,
-        text: link.textContent || ''
-      })
+        text: link.textContent || "",
+      });
     }
-  })
-})
+  });
+});
 
 // Watch for theme changes and track
 watch(isDark, (newTheme) => {
-  analytics.trackThemeChange(newTheme ? 'dark' : 'light')
-})
+  analytics.trackThemeChange(newTheme ? "dark" : "light");
+});
 </script>
 
 <style scoped>
@@ -286,24 +293,24 @@ watch(isDark, (newTheme) => {
   .cookie-consent-banner {
     padding: 1rem;
   }
-  
+
   .cookie-consent-content {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .cookie-info h3 {
     font-size: 1.1rem;
   }
-  
+
   .cookie-info p {
     font-size: 0.9rem;
   }
-  
+
   .cookie-actions {
     width: 100%;
   }
-  
+
   .btn {
     flex: 1;
     padding: 0.65rem 1rem;
@@ -315,7 +322,7 @@ watch(isDark, (newTheme) => {
   .cookie-actions {
     flex-direction: column;
   }
-  
+
   .btn {
     width: 100%;
   }

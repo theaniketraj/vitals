@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 
 export function getWebviewContent(
   webview: vscode.Webview,
-  extensionUri: vscode.Uri
+  extensionUri: vscode.Uri,
 ): string {
   // TEMPORARY: Load integration test suite
   // To revert, comment out these two lines and uncomment the block below
@@ -12,10 +12,10 @@ export function getWebviewContent(
 
   /* Original Webview Content */
   const scriptUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "webview", "build", "bundle.js")
+    vscode.Uri.joinPath(extensionUri, "webview", "build", "bundle.js"),
   );
   const styleUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "webview", "build", "styles.css")
+    vscode.Uri.joinPath(extensionUri, "webview", "build", "styles.css"),
   );
 
   return `

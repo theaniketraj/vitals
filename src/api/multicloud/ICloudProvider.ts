@@ -26,14 +26,22 @@ export interface ICloudProvider {
    * @param end End timestamp in milliseconds
    * @param step Query resolution step in seconds
    */
-  queryRange(query: string, start: number, end: number, step: number): Promise<QueryResult>;
+  queryRange(
+    query: string,
+    start: number,
+    end: number,
+    step: number,
+  ): Promise<QueryResult>;
 
   /**
    * Execute a unified query (will be translated to native format)
    * @param unifiedQuery Query in unified query language
    * @param options Query options
    */
-  executeUnifiedQuery(unifiedQuery: UnifiedQuery, options?: QueryOptions): Promise<QueryResult>;
+  executeUnifiedQuery(
+    unifiedQuery: UnifiedQuery,
+    options?: QueryOptions,
+  ): Promise<QueryResult>;
 
   /**
    * Get available metrics/logs from this provider
@@ -146,8 +154,8 @@ export interface CostMetrics {
  * Cost optimization recommendation
  */
 export interface CostOptimizationTip {
-  category: 'ingestion' | 'storage' | 'queries' | 'retention' | 'other';
-  severity: 'high' | 'medium' | 'low';
+  category: "ingestion" | "storage" | "queries" | "retention" | "other";
+  severity: "high" | "medium" | "low";
   title: string;
   description: string;
   potentialSavings?: number; // USD per month
@@ -178,7 +186,7 @@ export interface AuthStatus {
  * Cloud provider credentials
  */
 export interface CloudCredentials {
-  type: 'apiKey' | 'oauth' | 'serviceAccount' | 'iamRole';
+  type: "apiKey" | "oauth" | "serviceAccount" | "iamRole";
   apiKey?: string;
   apiSecret?: string;
   token?: string;
@@ -207,7 +215,7 @@ export interface UnifiedQuery {
  */
 export interface QueryFilter {
   field: string;
-  operator: 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'regex';
+  operator: "eq" | "ne" | "gt" | "gte" | "lt" | "lte" | "in" | "regex";
   value: any;
 }
 
@@ -215,23 +223,23 @@ export interface QueryFilter {
  * Metric types
  */
 export enum MetricType {
-  COUNTER = 'counter',
-  GAUGE = 'gauge',
-  HISTOGRAM = 'histogram',
-  SUMMARY = 'summary',
-  LOG = 'log',
-  TRACE = 'trace',
+  COUNTER = "counter",
+  GAUGE = "gauge",
+  HISTOGRAM = "histogram",
+  SUMMARY = "summary",
+  LOG = "log",
+  TRACE = "trace",
 }
 
 /**
  * Aggregation types
  */
 export enum AggregationType {
-  AVG = 'avg',
-  SUM = 'sum',
-  MIN = 'min',
-  MAX = 'max',
-  COUNT = 'count',
-  RATE = 'rate',
-  PERCENTILE = 'percentile',
+  AVG = "avg",
+  SUM = "sum",
+  MIN = "min",
+  MAX = "max",
+  COUNT = "count",
+  RATE = "rate",
+  PERCENTILE = "percentile",
 }
